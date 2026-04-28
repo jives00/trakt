@@ -1,11 +1,13 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import supertest from 'supertest';
 import { buildApp } from '../../app';
 import { closePool, resetDb } from '../../test/helpers';
 
-// buildApp() creates and returns the Fastify instance without listening.
-// Supertest injects requests directly — no port needed.
 const app = buildApp();
+
+beforeAll(async () => {
+  await app.ready();
+});
 
 beforeEach(async () => {
   await resetDb();

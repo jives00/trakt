@@ -9,7 +9,7 @@ Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch
 ## Directory Map
 
 ```
-apps/api/             Fastify API server (Node 22, TypeScript)
+apps/api/             Fastify API server (Node 24, TypeScript)
 apps/web/             Next.js 14 web app (App Router, Tailwind, shadcn/ui)
 apps/mobile/          React Native + Expo (SDK 51)
 apps/stremio-addon/   Stremio addon server (Node.js, port 7000)
@@ -25,7 +25,7 @@ docs/                 Screenshots and reference images
 
 | Layer | Technology |
 |---|---|
-| Backend API | Node.js 22 + Fastify + TypeScript |
+| Backend API | Node.js 24 + Fastify + TypeScript |
 | Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
 | Mobile | React Native + Expo SDK 51 + TypeScript |
 | Database | MySQL 8 — installed directly on EC2, not a Docker service |
@@ -127,6 +127,12 @@ Transform tasks into verifiable goals before starting. For multi-step tasks, sta
 1. [Step] → verify: [check]
 2. [Step] → verify: [check]
 ```
+
+### 4. Code conventions that reduce future reads
+
+- No large comments or docstrings (coding standards already enforce this). Comments add tokens Claude has to read without adding information good names don't already carry.
+- Short files. If a file exceeds ~150 lines, it's probably doing too much — split it. Claude reads the whole file to understand any part of it.
+- No speculative abstractions (also in coding standards). A helper used once is dead weight Claude has to read and reason about.
 
 ---
 

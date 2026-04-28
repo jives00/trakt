@@ -4,7 +4,13 @@
       "Skill(update-config)",
       "Skill(update-config:*)",
       "Edit(C:\\Users\\jbrom\\SynologyDrive\\Development\\Trakt\\*)",
-      "Write(C:\\Users\\jbrom\\SynologyDrive\\Development\\Trakt\\*)"
+      "Write(C:\\Users\\jbrom\\SynologyDrive\\Development\\Trakt\\*)",
+      "Bash(pnpm --version)",
+      "Bash(pnpm list *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm --filter api migrate)",
+      "Bash(findstr 3306)"
     ]
   }
 }

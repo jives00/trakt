@@ -1,0 +1,34 @@
+{
+  "name": "@trakt/api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "migrate": "tsx scripts/migrate.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^9",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/jwt": "^7",
+    "@trakt/types": "workspace:*",
+    "bcryptjs": "^2",
+    "dotenv": "^16",
+    "fastify": "^4",
+    "jsonwebtoken": "^9",
+    "mysql2": "^3",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2",
+    "@types/jsonwebtoken": "^9",
+    "@types/node": "^22",
+    "@types/supertest": "^6",
+    "supertest": "^7",
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^2"
+  }
+}

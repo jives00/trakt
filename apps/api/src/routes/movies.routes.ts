@@ -1,0 +1,65 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { authenticate } from '../middleware/auth';
+import { getOrFetchMovie } from '../services/movies.service';
+import {
+  getMovieStatus, toggleWatchlist, toggleCollection,
+  markMovieWatched, unmarkMovieWatched,
+} from '../services/user-media.service';
+
+function userId(request: FastifyRequest): number {
+  return (request.user as { sub: number }).sub;
+}
+
+export async function moviesRoutes(app: FastifyInstance) {
+  const auth = { preHandler: [authenticate] };
+
+  app.get('/movies/:tmdbId', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    if (!tmdbId) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    const movie = await getOrFetchMovie(tmdbId);
+    const status = await getMovieStatus(userId(request), movie.id);
+    return { movie, status };
+  });
+
+  app.post('/movies/:tmdbId/watched', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    await markMovieWatched(userId(request), movie.id);
+    return { watched: true };
+  });
+
+  app.delete('/movies/:tmdbId/watched', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    await unmarkMovieWatched(userId(request), movie.id);
+    return { watched: false };
+  });
+
+  app.post('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    const added = await toggleWatchlist(userId(request), 'movie', movie.id);
+    return { inWatchlist: added };
+  });
+
+  app.delete('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    const added = await toggleWatchlist(userId(request), 'movie', movie.id);
+    return { inWatchlist: added };
+  });
+
+  app.post('/movies/:tmdbId/collection', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    const added = await toggleCollection(userId(request), 'movie', movie.id);
+    return { inCollection: added };
+  });
+
+  app.delete('/movies/:tmdbId/collection', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    const added = await toggleCollection(userId(request), 'movie', movie.id);
+    return { inCollection: added };
+  });
+}

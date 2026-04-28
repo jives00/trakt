@@ -1,0 +1,16 @@
+import { LoginForm } from "./login-form";
+
+export const metadata = { title: "Sign In — Trakt" };
+
+export default function LoginPage() {
+  return (
+    <div className="flex min-h-[80vh] items-center justify-center">
+      <div className="w-full max-w-sm rounded-lg border border-outline-variant bg-surface-container-low p-8">
+        <h1 className="mb-stack-md text-h2 font-black italic tracking-tight text-primary-container">
+          TRAKT
+        </h1>
+        <LoginForm />
+      </div>
+    </div>
+  );
+}
