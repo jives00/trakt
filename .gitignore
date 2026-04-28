@@ -6,3 +6,6 @@ dist/
 .expo/
 *.apk
 *.aab
+docs/codereviews/
+docs/designs/
+docs/trackt_screenshots/

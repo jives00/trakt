@@ -777,6 +777,24 @@ Goal: a working app you can log into, search for content, mark things watched, a
 
 **Exit criteria:** Can log in, search for a show, view its detail, mark an episode watched, and see it reflected on the dashboard.
 
+### Phase 0a — Phase 0 Bug Fixes
+Resolve all critical and high bugs found in the Phase 0 code review before starting Phase 1. Do not begin Phase 1 until every item below is fixed and its tests pass.
+
+1. **TMDB API key format** — change `Authorization: Bearer` to `?api_key=` query param in `apps/api/src/services/tmdb.client.ts:9`; all search and detail endpoints are broken until this is fixed
+2. **Race condition in toggleWatchlist / toggleCollection** — wrap the read-then-write in a DB transaction in `apps/api/src/services/user-media.service.ts:35-61`
+3. **TOCTOU race in getOrFetchMovie / getOrFetchShow** — replace SELECT → INSERT IGNORE → SELECT with `INSERT ... ON DUPLICATE KEY UPDATE` or a transaction in `apps/api/src/services/movies.service.ts:26-42` and `shows.service.ts:40-65`
+4. **Unawaited prefetchAllSeasons** — add `.catch()` error handling so unhandled rejections don't crash the process silently — `apps/api/src/routes/shows.routes.ts:68`
+5. **authenticate middleware catches too broadly** — narrow the `try/catch` to JWT-specific errors only; let other errors propagate — `apps/api/src/middleware/auth.ts:3-9`
+6. **Token lost on page refresh** — restore auth state on mount by calling `POST /api/auth/refresh` (HttpOnly cookie is sent automatically); store the returned access token back in React state — `apps/web/lib/auth-context.tsx:16-28`
+7. **Silent error swallowing** — replace all bare `.catch(() => {})` with error state that surfaces a visible message to the user — `apps/web/app/page.tsx:23`, `apps/web/lib/auth-context.tsx:26,36`, `apps/web/app/movies/[tmdbId]/page.tsx:24`
+8. **tmdbId validation** — add `Number.isInteger()` check; reject floats and strings that coerce to numbers — `apps/api/src/routes/movies.routes.ts:16-18`
+9. **Username whitespace** — add `.trim()` to the username Zod schema so `" "` is rejected — `packages/types/src/auth.ts:4`
+10. **Migration script** — replace the `errno === 1060` hack with a `migrations` tracking table; record and skip already-applied migrations — `apps/api/scripts/migrate.ts:19-35`
+11. **@trakt/types package.json `main`** — point to the compiled `.js` output (e.g. `dist/index.js`), not the `.ts` source — `packages/types/package.json:5`
+12. **Test coverage gaps** — add tests for: API show toggle endpoints (none exist), web movie/show detail pages (0 tests), web dashboard page (0 tests), web auth context (0 tests)
+
+**Exit criteria:** All Phase 0 tests pass, including the new tests from item 12. The app works end-to-end with no silent failures.
+
 ### Phase 1 — Full Web UI
 Complete all remaining web pages.
 
@@ -792,6 +810,12 @@ Complete all remaining web pages.
 10. Settings page
 11. Stats bar chart on dashboard (Recharts)
 12. Recent Episodes section on dashboard
+13. **Activate nav links** — `/history`, `/calendar`, `/watchlist` links in `top-nav.tsx` 404 until the pages above are built; enable them as each page lands
+14. **Eliminate type duplication** — remove local interface duplicates (`MovieStatus`, `ShowDetail`, `EpisodeItem`, `ScheduleEntry`) from `apps/web/lib/api.ts:94-117` and import from `@trakt/types`; align field names (`ScheduleEntry.airDate` → `ScheduleItem.date`)
+15. **Next.js middleware route guard** — add `middleware.ts` at the app root to redirect unauthenticated requests server-side; remove the client-side `useEffect` guards in `layout.tsx` and detail pages
+16. **Component tests** — add RTL tests for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, and `schedule-section.tsx`
+17. **Accessibility fixes** — add `aria-label` to `role="searchbox"` in `search-results.tsx:43`; use stable unique keys instead of genre strings in `movies/[tmdbId]/page.tsx:74`
+18. **Dead code cleanup** — remove unused `displayDays` logic in `schedule-section.tsx:42`
 
 ### Phase 2 — Scrobbling & Client Addons
 1. Scrobble API endpoints in `apps/api`: `POST /api/scrobble/emby`, `POST /api/scrobble/stremio`
@@ -830,6 +854,18 @@ Full feature parity with the web. Build in the same order as Phases 0–1.
 - On app focus, background refetch silently
 - No write-queue or true offline mode — reads show cached data when offline, writes fail with a toast notification
 - No changes needed to the API
+
+**Security hardening:**
+- Add `@fastify/helmet` to `apps/api/src/app.ts` — sets `X-Content-Type-Options`, `X-Frame-Options`, `HSTS`, and CSP headers on every response
+- Add rate limiting to `POST /api/auth/login` using `@fastify/rate-limit` (e.g. 10 attempts / 15 min per IP) to prevent brute-force attacks
+- Strengthen password validation in `packages/types/src/auth.ts` — minimum 8 characters (the single admin password is set once at deploy time; complexity requirements protect the seeded account)
+- Add abort controllers to all fetch calls in `apps/web/lib/api.ts` so in-flight requests are cancelled on component unmount or route change
+
+**Performance:**
+- Add an in-process TTL cache (e.g. `node-cache` or a plain `Map` with timestamps) in `apps/api/src/services/tmdb.client.ts` — cache responses for the configured metadata TTLs (7 days for static fields, 1 day for schedule/status) to stay well under TMDB's 60 req/s rate limit under load
+
+**CI/CD fix:**
+- Align the Node version in `.github/workflows/ci.yml` with the `"node": ">=24"` engine declared in `package.json`; currently the architecture plan references Node 22 for CI — update to Node 24
 
 ---
 
