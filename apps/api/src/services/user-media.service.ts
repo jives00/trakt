@@ -34,30 +34,56 @@ export async function getShowStatus(userId: number, showId: number) {
 
 export async function toggleWatchlist(userId: number, mediaType: MediaType, mediaId: number) {
   const pool = getPool();
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT id FROM watchlist WHERE user_id=? AND media_type=? AND media_id=?',
-    [userId, mediaType, mediaId],
-  );
-  if (rows.length > 0) {
-    await pool.query('DELETE FROM watchlist WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
-    return false;
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query<RowDataPacket[]>(
+      'SELECT id FROM watchlist WHERE user_id=? AND media_type=? AND media_id=? FOR UPDATE',
+      [userId, mediaType, mediaId],
+    );
+    let added: boolean;
+    if (rows.length > 0) {
+      await conn.query('DELETE FROM watchlist WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
+      added = false;
+    } else {
+      await conn.query('INSERT INTO watchlist (user_id, media_type, media_id) VALUES (?, ?, ?)', [userId, mediaType, mediaId]);
+      added = true;
+    }
+    await conn.commit();
+    return added;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
   }
-  await pool.query('INSERT INTO watchlist (user_id, media_type, media_id) VALUES (?, ?, ?)', [userId, mediaType, mediaId]);
-  return true;
 }
 
 export async function toggleCollection(userId: number, mediaType: MediaType, mediaId: number) {
   const pool = getPool();
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT id FROM collection WHERE user_id=? AND media_type=? AND media_id=?',
-    [userId, mediaType, mediaId],
-  );
-  if (rows.length > 0) {
-    await pool.query('DELETE FROM collection WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
-    return false;
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query<RowDataPacket[]>(
+      'SELECT id FROM collection WHERE user_id=? AND media_type=? AND media_id=? FOR UPDATE',
+      [userId, mediaType, mediaId],
+    );
+    let added: boolean;
+    if (rows.length > 0) {
+      await conn.query('DELETE FROM collection WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
+      added = false;
+    } else {
+      await conn.query('INSERT INTO collection (user_id, media_type, media_id) VALUES (?, ?, ?)', [userId, mediaType, mediaId]);
+      added = true;
+    }
+    await conn.commit();
+    return added;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
   }
-  await pool.query('INSERT INTO collection (user_id, media_type, media_id) VALUES (?, ?, ?)', [userId, mediaType, mediaId]);
-  return true;
 }
 
 export async function markMovieWatched(userId: number, movieId: number) {

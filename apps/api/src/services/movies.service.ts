@@ -32,8 +32,9 @@ export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: num
 
   const movie = await fetchMovie(tmdbId);
   await pool.query(
-    `INSERT IGNORE INTO movies (tmdb_id, title, year, overview, poster_path, backdrop_path, runtime_min, genres)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO movies (tmdb_id, title, year, overview, poster_path, backdrop_path, runtime_min, genres)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id`,
     [tmdbId, movie.title, movie.year || null, movie.overview, movie.posterPath,
      movie.backdropPath, movie.runtimeMin, JSON.stringify(movie.genres)],
   );

@@ -19,7 +19,7 @@ export async function showsRoutes(app: FastifyInstance) {
 
   app.get('/shows/:tmdbId', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const tmdbId = Number(params(request).tmdbId);
-    if (!tmdbId) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
     const show = await getOrFetchShow(tmdbId);
     const status = await getShowStatus(userId(request), show.id);
     return { show, status };
@@ -65,7 +65,7 @@ export async function showsRoutes(app: FastifyInstance) {
     const tmdbId = Number(params(request).tmdbId);
     const show = await getOrFetchShow(tmdbId);
     const added = await toggleWatchlist(userId(request), 'show', show.id);
-    if (added) void prefetchAllSeasons(tmdbId);
+    if (added) void prefetchAllSeasons(tmdbId).catch(() => {});
     return { inWatchlist: added };
   });
 

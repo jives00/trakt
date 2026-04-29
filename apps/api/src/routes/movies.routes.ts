@@ -15,7 +15,7 @@ export async function moviesRoutes(app: FastifyInstance) {
 
   app.get('/movies/:tmdbId', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const tmdbId = Number((request.params as any).tmdbId);
-    if (!tmdbId) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
     const movie = await getOrFetchMovie(tmdbId);
     const status = await getMovieStatus(userId(request), movie.id);
     return { movie, status };

@@ -11,11 +11,6 @@ const migrationFiles = readdirSync(migrationsDir)
   .filter(f => f.endsWith('.sql') && f !== 'test-seed.sql')
   .sort();
 
-const statements = migrationFiles.flatMap(file => {
-  const sql = readFileSync(join(migrationsDir, file), 'utf8');
-  return sql.split(';').map(s => s.trim()).filter(Boolean);
-});
-
 async function migrate(dbName: string) {
   const conn = await mysql.createConnection({
     host: process.env.DB_HOST ?? 'localhost',
@@ -23,13 +18,30 @@ async function migrate(dbName: string) {
     user: process.env.DB_USER ?? 'trakt',
     password: process.env.DB_PASSWORD ?? '',
     database: dbName,
+    multipleStatements: true,
   });
-  for (const statement of statements) {
-    await conn.query(statement).catch((err: { errno: number }) => {
-      if (err.errno === 1060) return; // duplicate column — already applied
-      throw err;
-    });
+
+  await conn.query(`
+    CREATE TABLE IF NOT EXISTS migrations (
+      name VARCHAR(255) PRIMARY KEY,
+      applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  const [rows] = await conn.query<mysql.RowDataPacket[]>('SELECT name FROM migrations');
+  const applied = new Set(rows.map((r) => r.name as string));
+
+  for (const file of migrationFiles) {
+    if (applied.has(file)) continue;
+    const sql = readFileSync(join(migrationsDir, file), 'utf8');
+    const statements = sql.split(';').map(s => s.trim()).filter(Boolean);
+    for (const stmt of statements) {
+      await conn.query(stmt);
+    }
+    await conn.query('INSERT INTO migrations (name) VALUES (?)', [file]);
+    console.log(`  applied: ${file}`);
   }
+
   await conn.end();
   console.log(`✓ Migrated ${dbName}`);
 }

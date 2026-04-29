@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(__dirname, "."),
+      "@trakt/types": resolve(__dirname, "../../packages/types/src/index.ts"),
     },
   },
 });

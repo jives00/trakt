@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const [upNext, setUpNext] = useState<UpNextItem[]>([]);
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     if (isLoading) return;
@@ -20,13 +21,14 @@ export default function DashboardPage() {
 
     Promise.all([api.getUpNext(token), api.getSchedule(token)])
       .then(([up, sched]) => { setUpNext(up); setSchedule(sched); })
-      .catch(() => {})
+      .catch(() => setFetchError("Failed to load dashboard."))
       .finally(() => setFetching(false));
   }, [token, isLoading, router]);
 
   if (isLoading || fetching) {
     return <p className="text-on-surface-variant">Loading…</p>;
   }
+  if (fetchError) return <p className="text-error">{fetchError}</p>;
 
   return (
     <div className="flex flex-col gap-stack-lg">

@@ -5,6 +5,11 @@ import { resolve } from 'path';
 const env = config({ path: resolve(__dirname, '../../.env') }).parsed ?? {};
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@trakt/types': resolve(__dirname, '../../packages/types/src/index.ts'),
+    },
+  },
   test: {
     environment: 'node',
     testTimeout: 10000,

@@ -120,3 +120,36 @@ describe('POST/DELETE /api/shows/:tmdbId/watchlist', () => {
     expect(removeRes.body.inWatchlist).toBe(false);
   });
 });
+
+describe('POST/DELETE /api/shows/:tmdbId/collection', () => {
+  it('toggles show collection on and off', async () => {
+    const token = await getToken();
+    await supertest(app.server).get('/api/shows/1396').set('Authorization', `Bearer ${token}`);
+
+    const addRes = await supertest(app.server)
+      .post('/api/shows/1396/collection')
+      .set('Authorization', `Bearer ${token}`);
+    expect(addRes.status).toBe(200);
+    expect(addRes.body.inCollection).toBe(true);
+
+    const removeRes = await supertest(app.server)
+      .delete('/api/shows/1396/collection')
+      .set('Authorization', `Bearer ${token}`);
+    expect(removeRes.status).toBe(200);
+    expect(removeRes.body.inCollection).toBe(false);
+  });
+
+  it('reflects collection status in show detail', async () => {
+    const token = await getToken();
+    await supertest(app.server).get('/api/shows/1396').set('Authorization', `Bearer ${token}`);
+
+    await supertest(app.server)
+      .post('/api/shows/1396/collection')
+      .set('Authorization', `Bearer ${token}`);
+
+    const detailRes = await supertest(app.server)
+      .get('/api/shows/1396')
+      .set('Authorization', `Bearer ${token}`);
+    expect(detailRes.body.status.inCollection).toBe(true);
+  });
+});

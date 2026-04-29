@@ -55,8 +55,9 @@ export async function getOrFetchShow(tmdbId: number) {
   const { show, seasonCount } = await fetchShowWithSeasonCount(tmdbId);
 
   await pool.query(
-    `INSERT IGNORE INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id`,
     [tmdbId, show.title, show.year || null, show.overview, show.posterPath,
      show.backdropPath, show.status, show.network, JSON.stringify(show.genres), seasonCount],
   );
