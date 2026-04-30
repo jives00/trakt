@@ -73,7 +73,11 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
   return rows as UpNextItem[];
 }
 
-export async function getSchedule(userId: number): Promise<ScheduleEntry[]> {
+export async function getSchedule(
+  userId: number,
+  range = 6,
+  type = 'tv',
+): Promise<ScheduleEntry[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
@@ -88,10 +92,10 @@ export async function getSchedule(userId: number): Promise<ScheduleEntry[]> {
      JOIN ${TRACKED} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id
      JOIN episodes e   ON e.season_id  = seas.id
-     WHERE e.air_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 6 DAY)
+     WHERE e.air_date >= CURDATE() AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
      ORDER BY e.air_date, s.title
-     LIMIT 50`,
-    [userId, userId],
+     LIMIT 100`,
+    [userId, userId, range],
   );
   return rows as ScheduleEntry[];
 }

@@ -31,11 +31,14 @@ const SEED_SQL = readFileSync(
 );
 
 export async function resetDb(): Promise<void> {
+  // Drain any in-flight async operations (e.g. prefetchAllSeasons) before truncating,
+  // so their inserts don't race with the seed's explicit IDs.
+  await new Promise(resolve => setTimeout(resolve, 50));
   const conn = await getPool().getConnection();
   try {
     await conn.query('SET FOREIGN_KEY_CHECKS = 0');
     for (const table of TABLES) {
-      await conn.query(`TRUNCATE TABLE \`${table}\``);
+      await conn.query(`DELETE FROM \`${table}\``);
     }
     await conn.query('SET FOREIGN_KEY_CHECKS = 1');
     for (const statement of SEED_SQL.split(';').map(s => s.trim()).filter(Boolean)) {

@@ -761,7 +761,7 @@ Build iteratively. Each phase produces something usable before the next begins.
 
 > **Test-first rule:** Before writing any feature code in a phase, draft the test scripts for that phase first. For the API, write Supertest integration tests and seed SQL. For the web, write Playwright smoke tests. For mobile, write RNTL screen skeletons. Tests define the contract; code makes them pass.
 
-### Phase 0 — MVP
+### Phase 0 — MVP ✅ COMPLETE
 Goal: a working app you can log into, search for content, mark things watched, and see a dashboard. Nothing else.
 
 1. Init pnpm monorepo, configure workspaces; commit `.env.example`
@@ -775,9 +775,9 @@ Goal: a working app you can log into, search for content, mark things watched, a
 9. Movie and Show detail pages (metadata + manual "mark watched" / watchlist / collection toggles)
 10. Home dashboard: Up Next + Upcoming Schedule sections only
 
-**Exit criteria:** Can log in, search for a show, view its detail, mark an episode watched, and see it reflected on the dashboard.
+**Exit criteria:** ✅ MET — Can log in, search for a show, view its detail, mark an episode watched, and see it reflected on the dashboard.
 
-### Phase 0a — Phase 0 Bug Fixes
+### Phase 0a — Phase 0 Bug Fixes ✅ COMPLETE
 Resolve all critical and high bugs found in the Phase 0 code review before starting Phase 1. Do not begin Phase 1 until every item below is fixed and its tests pass.
 
 1. **TMDB API key format** — change `Authorization: Bearer` to `?api_key=` query param in `apps/api/src/services/tmdb.client.ts:9`; all search and detail endpoints are broken until this is fixed
@@ -793,29 +793,65 @@ Resolve all critical and high bugs found in the Phase 0 code review before start
 11. **@trakt/types package.json `main`** — point to the compiled `.js` output (e.g. `dist/index.js`), not the `.ts` source — `packages/types/package.json:5`
 12. **Test coverage gaps** — add tests for: API show toggle endpoints (none exist), web movie/show detail pages (0 tests), web dashboard page (0 tests), web auth context (0 tests)
 
-**Exit criteria:** All Phase 0 tests pass, including the new tests from item 12. The app works end-to-end with no silent failures.
+**Exit criteria:** ✅ MET — All Phase 0 tests pass, including the new tests from item 12. The app works end-to-end with no silent failures.
 
 ### Phase 1 — Full Web UI
-Complete all remaining web pages.
+Complete all remaining web pages. Build order: API-first (all new endpoints + Supertest tests), then web pages one at a time.
 
-1. Season and Episode detail pages
-2. History page
-3. Progress page
-4. Collection page
-5. Lists pages (`/lists`, `/lists/[id]`)
-6. Ratings page
-7. Calendar page
-8. Stats pages (All Time, Year in Review, Month in Review)
-9. Integrations setup page
-10. Settings page
-11. Stats bar chart on dashboard (Recharts)
-12. Recent Episodes section on dashboard
-13. **Activate nav links** — `/history`, `/calendar`, `/watchlist` links in `top-nav.tsx` 404 until the pages above are built; enable them as each page lands
-14. **Eliminate type duplication** — remove local interface duplicates (`MovieStatus`, `ShowDetail`, `EpisodeItem`, `ScheduleEntry`) from `apps/web/lib/api.ts:94-117` and import from `@trakt/types`; align field names (`ScheduleEntry.airDate` → `ScheduleItem.date`)
-15. **Next.js middleware route guard** — add `middleware.ts` at the app root to redirect unauthenticated requests server-side; remove the client-side `useEffect` guards in `layout.tsx` and detail pages
-16. **Component tests** — add RTL tests for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, and `schedule-section.tsx`
-17. **Accessibility fixes** — add `aria-label` to `role="searchbox"` in `search-results.tsx:43`; use stable unique keys instead of genre strings in `movies/[tmdbId]/page.tsx:74`
-18. **Dead code cleanup** — remove unused `displayDays` logic in `schedule-section.tsx:42`
+**Scoping decisions (locked before build):**
+- Settings page: theme preference (light/dark) only for Phase 1; expand in later phases
+- Integrations page: static Emby + Stremio setup guides only; exclusion list UI deferred to Phase 2
+- Calendar: extend `GET /api/dashboard/schedule` with `?range=` and `?type=` query params rather than a new endpoint
+- Watchlist page (`/watchlist`): not in Phase 1; nav link suppressed until later
+- Design templates: extracted to a local tmp folder from `docs/designs/stitch_html_design_optimization-web.zip`; reference before implementing any page
+
+**Build steps:**
+
+*API (all with Supertest tests before web work begins):*
+1. `GET /api/history` — paginated watch log with `?type=` filter
+2. `GET /api/progress` — in-progress shows with `?status=` filter
+3. `GET /api/collection` — collected items with `?type=` filter
+4. `GET /api/watchlist` — watchlist items with `?type=` filter (endpoint needed even though page is deferred)
+5. `GET/POST/PUT/DELETE /api/lists` and `/api/lists/:id/items`
+6. `GET/POST/PUT/DELETE /api/ratings`
+7. `GET /api/stats/alltime`, `/api/stats/year/:year`, `/api/stats/month/:year/:month`
+8. `GET /api/dashboard/recent` — last N watched episodes
+9. `GET /api/dashboard/stats` — hours per day past 30 days
+10. Extend `GET /api/dashboard/schedule` — add `?range=` (days) and `?type=` (tv|movie|all) params for calendar use
+
+*Web pages (each page: implement → RTL/Playwright test → activate nav link):*
+11. Season and Episode detail pages
+12. History page (`/history`)
+13. Progress page (`/progress`)
+14. Collection page (`/collection`)
+15. Lists pages (`/lists`, `/lists/[id]`)
+16. Ratings page (`/ratings`)
+17. Calendar page (`/calendar`)
+18. Stats pages (`/stats`, `/stats/year/[year]`, `/stats/month/[year]/[month]`)
+19. Integrations page (`/integrations`) — static setup guide only
+20. Settings page (`/settings`) — theme toggle only
+21. Stats bar chart on dashboard (Recharts, 30-day)
+22. Recent Episodes section on dashboard
+
+*Cleanup (after all pages land):*
+23. **Eliminate type duplication** — remove local interface duplicates (`MovieStatus`, `ShowDetail`, `EpisodeItem`, `ScheduleEntry`) from `apps/web/lib/api.ts:94-117` and import from `@trakt/types`; align field names (`ScheduleEntry.airDate` → `ScheduleItem.date`)
+24. **Next.js middleware route guard** — add `middleware.ts` at the app root to redirect unauthenticated requests server-side; remove the client-side `useEffect` guards in `layout.tsx` and detail pages
+25. **Component tests** — add RTL tests for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, and `schedule-section.tsx`
+26. **Accessibility fixes** — add `aria-label` to `role="searchbox"` in `search-results.tsx:43`; use stable unique keys instead of genre strings in `movies/[tmdbId]/page.tsx:74`
+27. **Dead code cleanup** — remove unused `displayDays` logic in `schedule-section.tsx:42`
+
+**Exit criteria:**
+- All new web pages load without error in Playwright smoke tests: `/shows/[tmdbId]/[season]`, `/shows/[tmdbId]/[season]/[episode]`, `/history`, `/progress`, `/collection`, `/lists`, `/lists/[id]`, `/ratings`, `/calendar`, `/stats`, `/stats/year/[year]`, `/stats/month/[year]/[month]`, `/settings`, `/integrations`
+- Dashboard displays the 30-day stats bar chart (Recharts) and recent episodes section
+- All new API endpoints have at least one happy-path and one error-path Supertest test
+- Stats figures (`/api/stats/alltime`, `/api/stats/year/:year`, `/api/stats/month/:year/:month`) match manually seeded `watch_history` rows in `trakt_test`
+- RTL tests pass for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, `schedule-section.tsx`
+- No local interface duplicates in `apps/web/lib/api.ts` — all types imported from `@trakt/types`
+- `middleware.ts` redirects unauthenticated requests server-side; client-side `useEffect` guards removed
+- Nav links for `/history`, `/calendar`, `/collection`, `/ratings`, `/stats` are active with no 404s
+- `/watchlist` nav link remains suppressed
+- Nav links for `/history`, `/calendar`, `/watchlist` route correctly (no 404s)
+- Integrations page renders the static Emby and Stremio setup guides (exclusion list UI deferred to Phase 2)
 
 ### Phase 2 — Scrobbling & Client Addons
 1. Scrobble API endpoints in `apps/api`: `POST /api/scrobble/emby`, `POST /api/scrobble/stremio`
