@@ -1,5 +1,10 @@
 # Changelog
 
+## May 1, 2026
+
+### API
+- Search route and TMDB client improvements, user-media service fixes `2282f7f`
+
 ## April 30, 2026
 
 ### Web

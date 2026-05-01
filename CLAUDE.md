@@ -10,6 +10,8 @@ Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch
 
 ```
 apps/api/             Fastify API server (Node 24, TypeScript)
+  - src/routes/       Route handlers
+  - src/services/    Business logic
 apps/web/             Next.js 14 web app (App Router, Tailwind, shadcn/ui)
 apps/mobile/          React Native + Expo (SDK 51)
 apps/stremio-addon/   Stremio addon server (Node.js, port 7000)
@@ -71,7 +73,7 @@ NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewri
 - All protected routes require `Authorization: Bearer <accessToken>`
 - Web stores access token in memory (not localStorage). Mobile uses Expo SecureStore.
 - `apps/web/middleware.ts` checks for the `refreshToken` cookie server-side and redirects to `/login` if absent
-- `apps/web/next.config.mjs` proxies `/api/*` through Next.js so the cookie is on the same origin in dev (requires `NEXT_PUBLIC_API_URL` to be unset)
+- `apps/web/next.config.mjs` proxies `/api/*` through Next.js so the cookie is on the same origin in dev (CRITICAL: `NEXT_PUBLIC_API_URL` must be **unset** for this to work)
 
 ### Metadata sourcing
 
@@ -85,16 +87,23 @@ NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewri
 - All DTOs and DB model types live in `packages/types/`. Read one file there to understand any data shape.
 - No barrel re-exports unless necessary.
 
+## Development Workflow
+
+Common `pnpm` commands:
+- `pnpm dev:api` — Start Fastify API server
+- `pnpm dev:web` — Start Next.js web app
+- `pnpm test` — Run all tests
+
 ---
 
-## Testing
+## Testing`
 
 **Test-first rule:** Before writing feature code for a phase, write the tests for that phase first. Tests define the contract; code makes them pass.
 
 | Layer | Tool |
 |---|---|
 | API integration | Vitest + Supertest — always hit the real `trakt_test` MySQL DB, never mock it |
-| Web components | Vitest + React Testing Library |
+| Web components | Vitest + React Testing Library (uses vitest.setup.ts) |
 | Web E2E | Playwright |
 | Mobile | Jest + React Native Testing Library |
 | Kodi addon | pytest |
