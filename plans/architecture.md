@@ -795,7 +795,7 @@ Resolve all critical and high bugs found in the Phase 0 code review before start
 
 **Exit criteria:** ✅ MET — All Phase 0 tests pass, including the new tests from item 12. The app works end-to-end with no silent failures.
 
-### Phase 1 — Full Web UI
+### Phase 1 — Full Web UI ✅ COMPLETE
 Complete all remaining web pages. Build order: API-first (all new endpoints + Supertest tests), then web pages one at a time.
 
 **Scoping decisions (locked before build):**
@@ -807,17 +807,17 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 
 **Build steps:**
 
-*API (all with Supertest tests before web work begins):*
-1. `GET /api/history` — paginated watch log with `?type=` filter
-2. `GET /api/progress` — in-progress shows with `?status=` filter
-3. `GET /api/collection` — collected items with `?type=` filter
-4. `GET /api/watchlist` — watchlist items with `?type=` filter (endpoint needed even though page is deferred)
-5. `GET/POST/PUT/DELETE /api/lists` and `/api/lists/:id/items`
-6. `GET/POST/PUT/DELETE /api/ratings`
-7. `GET /api/stats/alltime`, `/api/stats/year/:year`, `/api/stats/month/:year/:month`
-8. `GET /api/dashboard/recent` — last N watched episodes
-9. `GET /api/dashboard/stats` — hours per day past 30 days
-10. Extend `GET /api/dashboard/schedule` — add `?range=` (days) and `?type=` (tv|movie|all) params for calendar use
+*API (all with Supertest tests before web work begins):* ✅ COMPLETE (92/92 tests passing — `09f2bc2`)
+1. ✅ `GET /api/history` — paginated watch log with `?type=` filter
+2. ✅ `GET /api/progress` — in-progress shows with `?status=` filter
+3. ✅ `GET /api/collection` — collected items with `?type=` filter
+4. ✅ `GET /api/watchlist` — watchlist items with `?type=` filter (endpoint needed even though page is deferred)
+5. ✅ `GET/POST/PUT/DELETE /api/lists` and `/api/lists/:id/items`
+6. ✅ `GET/POST/PUT/DELETE /api/ratings`
+7. ✅ `GET /api/stats/alltime`, `/api/stats/year/:year`, `/api/stats/month/:year/:month`
+8. ✅ `GET /api/dashboard/recent` — last N watched episodes
+9. ✅ `GET /api/dashboard/stats` — hours per day past 30 days
+10. ✅ Extend `GET /api/dashboard/schedule` — add `?range=` (days) and `?type=` (tv|movie|all) params for calendar use
 
 *Web pages (each page: implement → RTL/Playwright test → activate nav link):*
 11. Season and Episode detail pages
@@ -833,12 +833,12 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 21. Stats bar chart on dashboard (Recharts, 30-day)
 22. Recent Episodes section on dashboard
 
-*Cleanup (after all pages land):*
-23. **Eliminate type duplication** — remove local interface duplicates (`MovieStatus`, `ShowDetail`, `EpisodeItem`, `ScheduleEntry`) from `apps/web/lib/api.ts:94-117` and import from `@trakt/types`; align field names (`ScheduleEntry.airDate` → `ScheduleItem.date`)
-24. **Next.js middleware route guard** — add `middleware.ts` at the app root to redirect unauthenticated requests server-side; remove the client-side `useEffect` guards in `layout.tsx` and detail pages
-25. **Component tests** — add RTL tests for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, and `schedule-section.tsx`
-26. **Accessibility fixes** — add `aria-label` to `role="searchbox"` in `search-results.tsx:43`; use stable unique keys instead of genre strings in `movies/[tmdbId]/page.tsx:74`
-27. **Dead code cleanup** — remove unused `displayDays` logic in `schedule-section.tsx:42`
+*Cleanup (after all pages land):* ✅ COMPLETE
+23. ✅ **Eliminate type duplication** — moved `MovieStatus`, `ShowStatus`, `ShowDetail`, `EpisodeItem`, `EpisodeDetail`, `UpNextItem`, `ScheduleItem` into `@trakt/types`; renamed `ScheduleItem.airDate` → `date`; removed all local duplicates from `apps/web/lib/api.ts`
+24. ✅ **Next.js middleware route guard** — added `apps/web/middleware.ts` (checks `refreshToken` cookie, redirects to `/login`); added `/api/*` proxy rewrite in `next.config.mjs` so cookie is same-origin in dev; removed `router.replace('/login')` from all 14 pages
+25. ✅ **Component tests** — RTL tests added for `top-nav.tsx`, `action-buttons.tsx`, `up-next-section.tsx`, `schedule-section.tsx`
+26. ✅ **Accessibility fixes** — added `aria-label="Search movies and shows"` to searchbox in `search-results.tsx`; genre list uses index keys in `movies/[tmdbId]/page.tsx`
+27. ✅ **Dead code cleanup** — removed `displayDays`/`daysWithContent` dead code from `schedule-section.tsx`
 
 **Exit criteria:**
 - All new web pages load without error in Playwright smoke tests: `/shows/[tmdbId]/[season]`, `/shows/[tmdbId]/[season]/[episode]`, `/history`, `/progress`, `/collection`, `/lists`, `/lists/[id]`, `/ratings`, `/calendar`, `/stats`, `/stats/year/[year]`, `/stats/month/[year]/[month]`, `/settings`, `/integrations`

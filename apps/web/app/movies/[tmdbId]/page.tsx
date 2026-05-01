@@ -71,7 +71,7 @@ export default function MovieDetailPage() {
           <div className="flex flex-wrap items-center gap-2 text-label-sm uppercase tracking-widest text-on-surface-variant">
             {movie.year > 0 && <span>{movie.year}</span>}
             {movie.runtimeMin && <span>{movie.runtimeMin} min</span>}
-            {movie.genres.map((g) => <span key={g}>{g}</span>)}
+            {movie.genres.map((g, i) => <span key={i}>{g}</span>)}
           </div>
           <div className="flex flex-wrap gap-2 pt-2">
             <ActionButton

@@ -11,7 +11,13 @@ vi.mock("@/lib/auth-context", () => ({
 }));
 
 vi.mock("@/lib/api", () => ({
-  api: { search: (...args: unknown[]) => mockSearch(...args) },
+  api: {
+    search: (...args: unknown[]) => mockSearch(...args),
+    toggleMovieWatchlist: vi.fn(),
+    toggleShowWatchlist: vi.fn(),
+    toggleMovieCollection: vi.fn(),
+    toggleShowCollection: vi.fn(),
+  },
   ApiError: class ApiError extends Error {},
 }));
 
@@ -42,8 +48,8 @@ describe("SearchResults", () => {
     await userEvent.type(screen.getByRole("searchbox"), "fight");
     await userEvent.keyboard("{Enter}");
 
-    await waitFor(() => expect(screen.getByText("Fight Club")).toBeInTheDocument());
-    expect(screen.getByText("Breaking Bad")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getAllByText("Fight Club")).toHaveLength(2));
+    expect(screen.getAllByText("Breaking Bad")).toHaveLength(1);
   });
 
   it("shows movie and show type badges", async () => {
@@ -54,7 +60,7 @@ describe("SearchResults", () => {
     await userEvent.keyboard("{Enter}");
 
     await waitFor(() => expect(screen.getByText("Movie")).toBeInTheDocument());
-    expect(screen.getByText("Show")).toBeInTheDocument();
+    expect(screen.getByText(/Show/)).toBeInTheDocument();
   });
 
   it("results link to the correct detail pages", async () => {
@@ -65,10 +71,9 @@ describe("SearchResults", () => {
     await userEvent.keyboard("{Enter}");
 
     await waitFor(() => {
-      const movieLink = screen.getByRole("link", { name: /fight club/i });
-      expect(movieLink).toHaveAttribute("href", "/movies/550");
-      const showLink = screen.getByRole("link", { name: /breaking bad/i });
-      expect(showLink).toHaveAttribute("href", "/shows/1396");
+      const movieLinks = screen.getAllByRole("link");
+      expect(movieLinks.some(l => l.getAttribute("href") === "/movies/550")).toBe(true);
+      expect(movieLinks.some(l => l.getAttribute("href") === "/shows/1396")).toBe(true);
     });
   });
 

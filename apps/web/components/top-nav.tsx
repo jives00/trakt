@@ -10,7 +10,7 @@ const navLinks = [
 
 export function TopNav() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-outline-variant bg-surface-container-lowest/80 backdrop-blur-xl">
+    <header className="fixed top-0 z-50 w-full h-16 border-b border-white/5 bg-[#0f0f0f]/80 backdrop-blur-2xl">
       <div className="mx-auto flex max-w-page items-center justify-between px-margin-page py-4">
         <div className="flex items-center gap-8">
           <Link

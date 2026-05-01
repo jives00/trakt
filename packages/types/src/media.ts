@@ -46,6 +46,26 @@ export interface Episode {
   runtimeMin: number | null;
 }
 
+export interface ShowDetail extends TvShow {
+  seasonCount: number;
+}
+
+export interface EpisodeItem {
+  id: number;
+  episodeNumber: number;
+  title: string | null;
+  airDate: string | null;
+  stillPath: string | null;
+  runtimeMin: number | null;
+}
+
+export interface EpisodeDetail extends EpisodeItem {
+  overview: string | null;
+  showTmdbId: number;
+  showTitle: string;
+  seasonNumber: number;
+}
+
 export interface SearchResult {
   tmdbId: number;
   mediaType: 'movie' | 'show';

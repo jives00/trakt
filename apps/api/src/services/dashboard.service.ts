@@ -20,7 +20,7 @@ export interface ScheduleEntry {
   seasonNumber: number;
   episodeNumber: number;
   episodeTitle: string | null;
-  airDate: string;
+  date: string;
 }
 
 const TRACKED = `(
@@ -87,7 +87,7 @@ export async function getSchedule(
        seas.season_number AS seasonNumber,
        e.episode_number   AS episodeNumber,
        e.title            AS episodeTitle,
-       e.air_date         AS airDate
+       e.air_date         AS date
      FROM tv_shows s
      JOIN ${TRACKED} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id

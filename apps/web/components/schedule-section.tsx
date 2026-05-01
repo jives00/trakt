@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ScheduleEntry } from "@/lib/api";
+import type { ScheduleItem } from "@trakt/types";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -29,17 +29,14 @@ function next7Days(): string[] {
   return days;
 }
 
-export function ScheduleSection({ entries }: { entries: ScheduleEntry[] }) {
+export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
   const days = next7Days();
-  const byDay = new Map<string, ScheduleEntry[]>();
+  const byDay = new Map<string, ScheduleItem[]>();
   for (const e of entries) {
-    const key = e.airDate.slice(0, 10);
+    const key = e.date.slice(0, 10);
     if (!byDay.has(key)) byDay.set(key, []);
     byDay.get(key)!.push(e);
   }
-
-  const daysWithContent = days.filter((d) => byDay.has(d));
-  const displayDays = daysWithContent.length > 0 ? days.slice(0, 4) : days.slice(0, 4);
 
   return (
     <section className="flex flex-col gap-4">
@@ -48,7 +45,7 @@ export function ScheduleSection({ entries }: { entries: ScheduleEntry[] }) {
         Upcoming Schedule
       </h2>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {displayDays.map((day) => {
+        {days.slice(0, 4).map((day) => {
           const dayEntries = byDay.get(day) ?? [];
           const today = isToday(day);
           return (

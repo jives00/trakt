@@ -1,5 +1,10 @@
 # Changelog
 
+## April 30, 2026
+
+### Web
+- Search results page with featured section and paginated grid, dashboard with stats/recent activity, show/movie detail pages, episode tracking, side nav `f497545`
+
 ## April 29, 2026
 
 ### API

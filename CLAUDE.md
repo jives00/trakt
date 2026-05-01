@@ -48,7 +48,7 @@ JWT_SECRET            Signs access tokens (short-lived, 15 min)
 ADMIN_USERNAME        Seeded at startup — the only user account
 ADMIN_PASSWORD        Seeded at startup
 SCROBBLE_API_KEY      Sent in X-Api-Key header by Kodi/Emby/Stremio
-NEXT_PUBLIC_API_URL   Base URL for API calls from the web app
+NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewrite handles routing)
 ```
 
 `.env.example` is committed to the repo as a template.
@@ -67,9 +67,11 @@ NEXT_PUBLIC_API_URL   Base URL for API calls from the web app
 
 ### Auth
 
-- `POST /api/auth/login` → short-lived JWT access token (response body) + opaque refresh token (HttpOnly cookie)
+- `POST /api/auth/login` → short-lived JWT access token (response body) + opaque refresh token (HttpOnly cookie named `refreshToken`)
 - All protected routes require `Authorization: Bearer <accessToken>`
 - Web stores access token in memory (not localStorage). Mobile uses Expo SecureStore.
+- `apps/web/middleware.ts` checks for the `refreshToken` cookie server-side and redirects to `/login` if absent
+- `apps/web/next.config.mjs` proxies `/api/*` through Next.js so the cookie is on the same origin in dev (requires `NEXT_PUBLIC_API_URL` to be unset)
 
 ### Metadata sourcing
 

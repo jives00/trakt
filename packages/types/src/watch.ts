@@ -30,15 +30,35 @@ export interface ContinueWatchingItem {
   lastWatchedAt: string;
 }
 
-export interface ScheduleItem {
-  date: string;
-  tmdbId: number;
-  mediaType: 'movie' | 'episode';
-  title: string;
+export interface MovieStatus {
+  inWatchlist: boolean;
+  inCollection: boolean;
+  watched: boolean;
+}
+
+export interface ShowStatus {
+  inWatchlist: boolean;
+  inCollection: boolean;
+}
+
+export interface UpNextItem {
+  showTmdbId: number;
+  showTitle: string;
   posterPath: string | null;
-  episode?: {
-    seasonNumber: number;
-    episodeNumber: number;
-    title: string;
-  };
+  backdropPath: string | null;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeId: number;
+  episodeTitle: string | null;
+  airDate: string | null;
+}
+
+export interface ScheduleItem {
+  showTmdbId: number;
+  showTitle: string;
+  network: string | null;
+  seasonNumber: number;
+  episodeNumber: number;
+  episodeTitle: string | null;
+  date: string;
 }

@@ -1,0 +1,57 @@
+import { render, screen } from "@testing-library/react";
+import { vi, describe, it, expect } from "vitest";
+import { UpNextSection } from "../up-next-section";
+import type { UpNextItem } from "@trakt/types";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) => (
+    <a href={href} className={className}>{children}</a>
+  ),
+}));
+
+vi.mock("next/image", () => ({
+  default: ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />,
+}));
+
+const makeItem = (overrides: Partial<UpNextItem> = {}): UpNextItem => ({
+  showTmdbId: 1,
+  showTitle: "Test Show",
+  posterPath: null,
+  backdropPath: null,
+  seasonNumber: 1,
+  episodeNumber: 2,
+  episodeId: 99,
+  episodeTitle: "Pilot",
+  airDate: null,
+  ...overrides,
+});
+
+describe("UpNextSection", () => {
+  it("shows empty state when no items", () => {
+    render(<UpNextSection items={[]} />);
+    expect(screen.getByText(/no shows tracked yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/search for a show/i)).toBeInTheDocument();
+  });
+
+  it("renders a card for each item", () => {
+    const items = [
+      makeItem({ showTitle: "Show A", episodeId: 1 }),
+      makeItem({ showTitle: "Show B", episodeId: 2 }),
+    ];
+    render(<UpNextSection items={items} />);
+    expect(screen.getAllByText("Show A")).toHaveLength(2); // placeholder + label
+    expect(screen.getAllByText("Show B")).toHaveLength(2);
+  });
+
+  it("links to the show detail page", () => {
+    render(<UpNextSection items={[makeItem({ showTmdbId: 42 })]} />);
+    const link = screen.getByRole("link", { name: /test show/i });
+    expect(link).toHaveAttribute("href", "/shows/42");
+  });
+
+  it("shows episode label", () => {
+    render(<UpNextSection items={[makeItem({ seasonNumber: 2, episodeNumber: 5, episodeTitle: "The One" })]} />);
+    expect(screen.getByText(/S2E5/)).toBeInTheDocument();
+    expect(screen.getByText(/The One/)).toBeInTheDocument();
+  });
+});
