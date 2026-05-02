@@ -1,5 +1,14 @@
 # Changelog
 
+## May 2, 2026
+
+### API
+- TVDB client to fetch series air time; store `air_time` on episodes via migration 004; backfill utility for existing episodes `072e059`
+- Dashboard schedule endpoint surfaces `air_time` per entry `072e059`
+
+### Web
+- Schedule section redesigned: 5-day window, poster columns for first two days, air time display `072e059`
+
 ## May 1, 2026
 
 ### Build

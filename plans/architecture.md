@@ -672,55 +672,6 @@ The app supports light and dark mode as the initial two themes, with the archite
 
 ---
 
-## Mobile App (React Native + Expo)
-
-Full feature parity with the web app. All web pages have a corresponding mobile screen. Navigation is adapted for mobile conventions using React Navigation.
-
-### Navigation Structure
-
-**Bottom tab nav:** Home | Shows | Movies | Library | Settings
-
-| Tab | Screens |
-|---|---|
-| **Home** | Dashboard (Up Next, Upcoming Schedule, Recent, Stats bar) |
-| **Shows** | Browse (Trending/Popular/Watched/Collected/Watchlist) → Show Detail → Season Detail → Episode Detail |
-| **Movies** | Browse (same filters) → Movie Detail |
-| **Library** | Sub-tabs: History \| Progress \| Collection \| Lists \| Ratings \| Calendar \| Stats |
-| **Settings** | Preferences, API keys, Integrations setup guide |
-
-Stack navigators within each tab for detail screens. The Library tab uses a secondary top tab navigator for its sub-sections.
-
-- Shared API client from `packages/types` for type-safe fetch calls
-
-### APK Build Options
-
-The app uses Expo managed workflow for DX convenience (OTA updates, easy config), but supports **local APK builds** as a first-class option to avoid burning EAS cloud build slots.
-
-**Dev machine requirements for local builds:**
-- JDK 17 (`JAVA_HOME` set)
-- Android SDK (`ANDROID_HOME` set) — install via Android Studio or `sdkmanager`
-
-**Build commands:**
-```bash
-# Cloud build (uses an EAS slot — use sparingly)
-eas build --platform android
-
-# Local build — no slot consumed, runs on your machine
-eas build --platform android --local
-# Output: a .apk or .aab in the project root
-
-# Dev/debug — fastest iteration during development
-npx expo run:android
-```
-
-**`eas.json` config** will define a `production` profile (APK for sideloading) and a `preview` profile (internal testing). The `--local` flag works with both profiles.
-
-**Signing:** Keystore managed by EAS credentials or stored locally; passwords in `.env` (never committed).
-
-**Day-to-day dev workflow:** `npx expo start` + Expo Go for quick iteration; `eas build --local` when a real APK is needed.
-
----
-
 ## Docker Compose
 
 ```yaml
@@ -860,20 +811,7 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 4. Build `apps/stremio-addon/` using stremio-addon-sdk; add `stremio-addon` Docker Compose service (port 7000)
 5. Exclusion UI on the Integrations page (search-to-add by show/movie name, per-integration lists)
 
-### Phase 3 — Mobile App
-Full feature parity with the web. Build in the same order as Phases 0–1.
-
-1. Expo scaffold (`npx create-expo-app`); configure `eas.json` with `production` and `preview` profiles; verify `eas build --platform android --local` produces an APK before writing any feature code
-2. Set up keystore and signing config
-3. Auth (login screen, token storage in Expo SecureStore)
-4. Home dashboard screen
-5. Shows and Movies browse screens + detail screens (show, season, episode, movie)
-6. Search
-7. Library tab: History, Progress, Collection, Lists, Ratings, Calendar
-8. Stats screens
-9. Settings + Integrations screens
-
-### Phase 4 — Production & Polish
+### Phase 3 — Production
 
 **EC2 Deployment:**
 1. SSH into EC2, clone repo, create `.env` from `.env.example`
@@ -884,19 +822,6 @@ Full feature parity with the web. Build in the same order as Phases 0–1.
 
 **GitHub Actions auto-deploy** (see CI/CD section) handles all subsequent deployments on push to `main`.
 
-**Mobile offline / caching:**
-- Add TanStack Query (React Query) to the mobile app for data caching and stale-while-revalidate
-- Cache TTLs: metadata (shows/movies) 24h, dashboard 5min, history/progress 1h
-- On app focus, background refetch silently
-- No write-queue or true offline mode — reads show cached data when offline, writes fail with a toast notification
-- No changes needed to the API
-
-**Security hardening:**
-- Add `@fastify/helmet` to `apps/api/src/app.ts` — sets `X-Content-Type-Options`, `X-Frame-Options`, `HSTS`, and CSP headers on every response
-- Add rate limiting to `POST /api/auth/login` using `@fastify/rate-limit` (e.g. 10 attempts / 15 min per IP) to prevent brute-force attacks
-- Strengthen password validation in `packages/types/src/auth.ts` — minimum 8 characters (the single admin password is set once at deploy time; complexity requirements protect the seeded account)
-- Add abort controllers to all fetch calls in `apps/web/lib/api.ts` so in-flight requests are cancelled on component unmount or route change
-
 **Performance:**
 - Add an in-process TTL cache (e.g. `node-cache` or a plain `Map` with timestamps) in `apps/api/src/services/tmdb.client.ts` — cache responses for the configured metadata TTLs (7 days for static fields, 1 day for schedule/status) to stay well under TMDB's 60 req/s rate limit under load
 
@@ -905,7 +830,7 @@ Full feature parity with the web. Build in the same order as Phases 0–1.
 
 ---
 
-### Phase 5 — Trakt.tv Data Import (one-time)
+### Phase 4 — Trakt.tv Data Import (one-time)
 
 A one-time import of existing Trakt.tv data — watch history, ratings, watchlist, collection, and lists. Run once after the app is deployed; data is deduplicated so it's safe to re-run.
 
@@ -972,6 +897,87 @@ Register a Trakt app at [trakt.tv/oauth/applications/new](https://trakt.tv/oauth
 #### Verification
 
 After the import, check the dashboard: watch history totals should match your Trakt profile's "movies watched" and "episodes watched" counts. Spot-check 3–5 entries in `/history` against Trakt's history page.
+
+---
+
+### Phase 5 — Polish
+
+**Security hardening:**
+- Add `@fastify/helmet` to `apps/api/src/app.ts` — sets `X-Content-Type-Options`, `X-Frame-Options`, `HSTS`, and CSP headers on every response
+- Add rate limiting to `POST /api/auth/login` using `@fastify/rate-limit` (e.g. 10 attempts / 15 min per IP) to prevent brute-force attacks
+- Strengthen password validation in `packages/types/src/auth.ts` — minimum 8 characters (the single admin password is set once at deploy time; complexity requirements protect the seeded account)
+- Add abort controllers to all fetch calls in `apps/web/lib/api.ts` so in-flight requests are cancelled on component unmount or route change
+
+**Mobile offline / caching:**
+- Add TanStack Query (React Query) to the mobile app for data caching and stale-while-revalidate
+- Cache TTLs: metadata (shows/movies) 24h, dashboard 5min, history/progress 1h
+- On app focus, background refetch silently
+- No write-queue or true offline mode — reads show cached data when offline, writes fail with a toast notification
+- No changes needed to the API
+
+---
+
+### Phase 6 — Mobile App
+Full feature parity with the web. Build in the same order as Phases 0–1.
+
+1. Expo scaffold (`npx create-expo-app`); configure `eas.json` with `production` and `preview` profiles; verify `eas build --platform android --local` produces an APK before writing any feature code
+2. Set up keystore and signing config
+3. Auth (login screen, token storage in Expo SecureStore)
+4. Home dashboard screen
+5. Shows and Movies browse screens + detail screens (show, season, episode, movie)
+6. Search
+7. Library tab: History, Progress, Collection, Lists, Ratings, Calendar
+8. Stats screens
+9. Settings + Integrations screens
+
+---
+
+## Mobile App (React Native + Expo)
+
+Full feature parity with the web app. All web pages have a corresponding mobile screen. Navigation is adapted for mobile conventions using React Navigation.
+
+### Navigation Structure
+
+**Bottom tab nav:** Home | Shows | Movies | Library | Settings
+
+| Tab | Screens |
+|---|---|
+| **Home** | Dashboard (Up Next, Upcoming Schedule, Recent, Stats bar) |
+| **Shows** | Browse (Trending/Popular/Watched/Collected/Watchlist) → Show Detail → Season Detail → Episode Detail |
+| **Movies** | Browse (same filters) → Movie Detail |
+| **Library** | Sub-tabs: History \| Progress \| Collection \| Lists \| Ratings \| Calendar \| Stats |
+| **Settings** | Preferences, API keys, Integrations setup guide |
+
+Stack navigators within each tab for detail screens. The Library tab uses a secondary top tab navigator for its sub-sections.
+
+- Shared API client from `packages/types` for type-safe fetch calls
+
+### APK Build Options
+
+The app uses Expo managed workflow for DX convenience (OTA updates, easy config), but supports **local APK builds** as a first-class option to avoid burning EAS cloud build slots.
+
+**Dev machine requirements for local builds:**
+- JDK 17 (`JAVA_HOME` set)
+- Android SDK (`ANDROID_HOME` set) — install via Android Studio or `sdkmanager`
+
+**Build commands:**
+```bash
+# Cloud build (uses an EAS slot — use sparingly)
+eas build --platform android
+
+# Local build — no slot consumed, runs on your machine
+eas build --platform android --local
+# Output: a .apk or .aab in the project root
+
+# Dev/debug — fastest iteration during development
+npx expo run:android
+```
+
+**`eas.json` config** will define a `production` profile (APK for sideloading) and a `preview` profile (internal testing). The `--local` flag works with both profiles.
+
+**Signing:** Keystore managed by EAS credentials or stored locally; passwords in `.env` (never committed).
+
+**Day-to-day dev workflow:** `npx expo start` + Expo Go for quick iteration; `eas build --local` when a real APK is needed.
 
 ---
 
@@ -1125,13 +1131,15 @@ apps/stremio-addon/
 
 **Phase 2:** Emby `PlaybackStopped` webhook → correct `watch_history` row → appears in dashboard "Recent". Stremio addon installs and manifest is reachable. Add a show to the Emby exclusion list → play it in Emby → no `watch_history` row created. Same for Stremio exclusion.
 
-**Phase 3:** All mobile screens render in RNTL tests. APK builds locally via `eas build --platform android --local` and installs on a device. Auth, watch marking, and dashboard work end-to-end on mobile.
+**Phase 3 (Production):** `https://yourdomain.com` loads the web app with valid TLS. Push a commit to `main` → GitHub Actions CI passes → EC2 pulls and restarts containers automatically.
 
-**Phase 4:** `https://yourdomain.com` loads the web app with valid TLS. Push a commit to `main` → GitHub Actions CI passes → EC2 pulls and restarts containers automatically. Mobile shows cached data when network is offline.
+**Phase 4 (Trakt import):** Run `pnpm --filter api import:trakt` → script completes without fatal errors → `/history` row count matches Trakt profile totals → spot-check 3–5 entries match → re-running the script adds 0 new rows (deduplication confirmed).
 
-**Phase 5 (Trakt import):** Run `pnpm --filter api import:trakt` → script completes without fatal errors → `/history` row count matches Trakt profile totals → spot-check 3–5 entries match → re-running the script adds 0 new rows (deduplication confirmed).
+> Note: the import runs against the live production DB after Phase 3 deployment.
 
-> Note: the import runs against the live production DB after Phase 4 deployment.
+**Phase 5 (Polish):** Security headers present in all API responses. Rate limiting is active on `/api/auth/login`. Mobile app with TanStack Query caching loads and displays cached data when network is offline.
+
+**Phase 6 (Mobile):** All mobile screens render in RNTL tests. APK builds locally via `eas build --platform android --local` and installs on a device. Auth, watch marking, and dashboard work end-to-end on mobile.
 
 ### Commands
 ```bash

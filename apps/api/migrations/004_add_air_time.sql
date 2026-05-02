@@ -1,0 +1,1 @@
+ALTER TABLE episodes ADD COLUMN air_time TIME DEFAULT NULL;

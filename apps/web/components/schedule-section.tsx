@@ -2,12 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import type { ScheduleItem } from "@trakt/types";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatTime(timeStr: string | null): string {
+  if (!timeStr) return '';
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  if (isNaN(hours) || isNaN(minutes)) return '';
+  const period = hours >= 12 ? 'pm' : 'am';
+  const displayHours = hours % 12 || 12;
+  const displayMins = minutes === 0 ? '' : `:${String(minutes).padStart(2, '0')}`;
+  return `${displayHours}${displayMins}${period}`;
+}
 
 function formatDateHeader(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number);
@@ -30,11 +39,12 @@ function formatDateHeader(dateStr: string): string {
   return `${DAY_NAMES[d.getDay()]} ${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`.toUpperCase();
 }
 
-function getNextNDaysWithContent(entries: ScheduleItem[], maxCols = 5, maxDayWindow = 5): string[] {
+function getNextNDaysWithContent(entries: ScheduleItem[], maxDisplay = 7, maxDayWindow = 30): string[] {
   const days: string[] = [];
   const usedDates = new Set(entries.map(e => e.date.slice(0, 10)));
 
-  for (let i = 0; i < maxDayWindow && days.length < maxCols; i++) {
+  // Collect all days with content in the next 30 days
+  for (let i = 0; i < maxDayWindow; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
     const year = d.getFullYear();
@@ -47,11 +57,12 @@ function getNextNDaysWithContent(entries: ScheduleItem[], maxCols = 5, maxDayWin
     }
   }
 
-  return days;
+  // Return up to maxDisplay days
+  return days.slice(0, maxDisplay);
 }
 
 export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
-  const days = getNextNDaysWithContent(entries);
+  const days = getNextNDaysWithContent(entries, 5, 6);
 
   if (days.length === 0) {
     return (
@@ -78,19 +89,51 @@ export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
         <span className="block h-8 w-1 rounded-full bg-primary-container" />
         Upcoming Schedule
       </h2>
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${days.length}, minmax(0, 1fr))` }}>
-        {days.map((day, colIndex) => {
-          const dayEntries = byDay.get(day) ?? [];
-          return (
-            <ScheduleColumn
-              key={day}
-              day={day}
-              entries={dayEntries}
-              columnIndex={colIndex}
-              showPoster={colIndex < 2}
-            />
-          );
-        })}
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(7, minmax(0, 1fr))` }}>
+        {/* Interleave poster/info for first 2 days, then info for remaining days */}
+        {[
+          ...days.slice(0, 2).flatMap((day) => {
+            const dayEntries = byDay.get(day) ?? [];
+            const posterEntry = dayEntries[0];
+            const posterPath = posterEntry?.posterPath
+              ? `${TMDB_IMG}w154${posterEntry.posterPath}`
+              : null;
+            return [
+              <div key={`poster-${day}`} className="flex flex-col">
+                <div className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">
+                  {formatDateHeader(day)}
+                </div>
+                {posterPath && (
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10">
+                    <Image
+                      src={posterPath}
+                      alt="Show poster"
+                      fill
+                      className="object-cover"
+                      sizes="80px"
+                    />
+                  </div>
+                )}
+              </div>,
+              <ScheduleColumn
+                key={`info-${day}`}
+                day={day}
+                entries={dayEntries}
+              />,
+            ];
+          }),
+          ...days.slice(2, 5).map((day) => {
+            const dayEntries = byDay.get(day) ?? [];
+            return (
+              <ScheduleColumn
+                key={`info-${day}`}
+                day={day}
+                entries={dayEntries}
+                showHeader={true}
+              />
+            );
+          }),
+        ]}
       </div>
     </section>
   );
@@ -99,54 +142,26 @@ export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
 function ScheduleColumn({
   day,
   entries,
-  columnIndex,
-  showPoster,
+  showHeader = false,
 }: {
   day: string;
   entries: ScheduleItem[];
-  columnIndex: number;
-  showPoster: boolean;
+  showHeader?: boolean;
 }) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-
-  const posterEntry = showPoster ? (
-    hoveredIndex !== null ? entries[hoveredIndex] : entries[0]
-  ) : null;
-
-  const posterPath = posterEntry?.posterPath
-    ? `${TMDB_IMG}w400${posterEntry.posterPath}`
-    : null;
-
   return (
     <div className="flex flex-col">
-      <div className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-3">
-        {formatDateHeader(day)}
-      </div>
-
-      {showPoster && posterPath && (
-        <div className="relative aspect-[2/3] mb-3 rounded-lg overflow-hidden border border-white/10">
-          <Image
-            src={posterPath}
-            alt="Show poster"
-            fill
-            className="object-cover"
-            sizes="150px"
-          />
+      {showHeader && (
+        <div className="text-sm font-black uppercase tracking-widest text-on-surface-variant mb-2">
+          {formatDateHeader(day)}
         </div>
       )}
 
-      <div className="flex flex-col">
+      <div className={`flex flex-col ${!showHeader ? 'mt-6' : ''}`}>
         {entries.map((entry, i) => (
-          <div
-            key={i}
-            onMouseEnter={() => showPoster && entries.length > 1 && setHoveredIndex(i)}
-            onMouseLeave={() => showPoster && setHoveredIndex(null)}
-            className={showPoster && entries.length > 1 ? "cursor-pointer" : ""}
-          >
+          <div key={i}>
             {i > 0 && (
               <div className="h-px bg-white/10 my-2" />
             )}
-
             <ScheduleEntry entry={entry} />
           </div>
         ))}
@@ -159,7 +174,7 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
   if (entry.mediaType === "movie") {
     return (
       <Link href={`/movies/${entry.movieTmdbId}`} className="group">
-        <p className="text-sm font-bold text-on-surface group-hover:text-primary-container truncate">
+        <p className="text-lg font-bold text-on-surface group-hover:text-primary-container">
           {entry.movieTitle}
         </p>
         <p className="text-xs text-on-surface-variant">
@@ -171,15 +186,17 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
 
   return (
     <Link href={`/shows/${entry.showTmdbId}`} className="group">
-      <p className="text-sm font-bold text-on-surface group-hover:text-primary-container truncate">
+      <p className="text-lg font-bold text-on-surface group-hover:text-primary-container">
         {entry.showTitle}
       </p>
       <p className="text-xs text-on-surface-variant">
         S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
         {entry.episodeTitle && ` · ${entry.episodeTitle}`}
       </p>
-      {entry.network && (
-        <p className="text-xs text-on-surface-variant">{entry.network}</p>
+      {(entry.airTime || entry.network) && (
+        <p className="text-xs text-on-surface-variant">
+          {entry.airTime && formatTime(entry.airTime)} {entry.airTime && entry.network ? 'on' : ''} {entry.network}
+        </p>
       )}
     </Link>
   );

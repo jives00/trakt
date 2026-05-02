@@ -77,6 +77,7 @@ function transformEpisode(ep: Record<string, any>, showId = 0, seasonId = 0): Ep
     overview: ep['overview'] ?? null,
     stillPath: ep['still_path'] ?? null,
     airDate: ep['air_date'] ?? null,
+    airTime: ep['air_time'] ?? null,
     runtimeMin: ep['runtime'] ?? null,
   };
 }
@@ -118,6 +119,11 @@ export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise
       transformEpisode(ep),
     ),
   };
+}
+
+export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
+  const data = await get<{ tvdb_id?: number | null }>(`/tv/${tmdbId}/external_ids`);
+  return data.tvdb_id ?? null;
 }
 
 export async function fetchEpisode(

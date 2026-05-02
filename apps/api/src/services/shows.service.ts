@@ -1,7 +1,8 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { TvShow } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchShowWithSeasonCount, fetchSeason } from './tmdb.client';
+import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId } from './tmdb.client';
+import { fetchSeriesAirTime } from './tvdb.client';
 
 interface ShowRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
@@ -65,6 +66,26 @@ export async function getOrFetchShow(tmdbId: number) {
   return rowToShow(inserted[0], seasonCount);
 }
 
+interface ExternalIdRow extends RowDataPacket { external_id: string }
+
+async function getOrCacheTvdbId(showInternalId: number, showTmdbId: number): Promise<number | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<ExternalIdRow[]>(
+    `SELECT external_id FROM external_ids WHERE media_type = 'show' AND media_id = ? AND source = 'tvdb'`,
+    [showInternalId],
+  );
+  if (rows.length > 0) return Number(rows[0].external_id);
+
+  const tvdbId = await fetchTvdbId(showTmdbId);
+  if (!tvdbId) return null;
+
+  await pool.query(
+    `INSERT IGNORE INTO external_ids (media_type, media_id, source, external_id) VALUES ('show', ?, 'tvdb', ?)`,
+    [showInternalId, String(tvdbId)],
+  );
+  return tvdbId;
+}
+
 export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number) {
   const pool = getPool();
   const [showRows] = await pool.query<ShowRow[]>(
@@ -89,11 +110,19 @@ export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number)
     seasonId = r.insertId;
 
     if (tmdbSeason.episodes) {
+      let seriesAirTime: string | null = null;
+      try {
+        const tvdbId = await getOrCacheTvdbId(show.id, showTmdbId);
+        if (tvdbId) seriesAirTime = await fetchSeriesAirTime(tvdbId);
+      } catch {
+        // TVDB failure is non-blocking — episodes are still inserted without air time
+      }
+
       for (const ep of tmdbSeason.episodes) {
         await pool.query(
-          `INSERT IGNORE INTO episodes (show_id, season_id, episode_number, title, overview, still_path, air_date, runtime_min)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [show.id, seasonId, ep.episodeNumber, ep.title, ep.overview, ep.stillPath, ep.airDate, ep.runtimeMin],
+          `INSERT IGNORE INTO episodes (show_id, season_id, episode_number, title, overview, still_path, air_date, runtime_min, air_time)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [show.id, seasonId, ep.episodeNumber, ep.title, ep.overview, ep.stillPath, ep.airDate, ep.runtimeMin, ep.airTime ?? seriesAirTime],
         );
       }
     }
@@ -121,4 +150,37 @@ export async function prefetchAllSeasons(showTmdbId: number): Promise<void> {
   for (let n = 1; n <= seasonCount; n++) {
     await getOrFetchSeason(showTmdbId, n).catch(() => {});
   }
+}
+
+interface ShowAirTimeRow extends RowDataPacket { id: number; tmdb_id: number }
+
+export async function backfillAirTimes(): Promise<{ updated: number; failed: number }> {
+  const pool = getPool();
+  const [shows] = await pool.query<ShowAirTimeRow[]>(
+    `SELECT DISTINCT s.id, s.tmdb_id
+     FROM tv_shows s
+     JOIN episodes e ON e.show_id = s.id
+     WHERE e.air_time IS NULL`,
+  );
+
+  let updated = 0;
+  let failed = 0;
+
+  for (const show of shows) {
+    try {
+      const tvdbId = await getOrCacheTvdbId(show.id, show.tmdb_id);
+      if (!tvdbId) { failed++; continue; }
+      const airTime = await fetchSeriesAirTime(tvdbId);
+      if (!airTime) { failed++; continue; }
+      await pool.query(
+        `UPDATE episodes SET air_time = ? WHERE show_id = ? AND air_time IS NULL`,
+        [airTime, show.id],
+      );
+      updated++;
+    } catch {
+      failed++;
+    }
+  }
+
+  return { updated, failed };
 }

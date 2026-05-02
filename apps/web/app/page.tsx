@@ -28,7 +28,7 @@ export default function DashboardPage() {
     Promise.all([
       api.getProfile(token),
       api.getUpNext(token),
-      api.getSchedule(token),
+      api.getSchedule(token, 30),
       api.getDashboardStats(token),
       api.getRecentItems(token, 6),
       api.getStatsAllTime(token),

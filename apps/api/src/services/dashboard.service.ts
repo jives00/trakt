@@ -137,7 +137,7 @@ export async function getSchedule(
        e.episode_number   AS episodeNumber,
        e.title            AS episodeTitle,
        e.air_date         AS date,
-       NULL               AS airTime
+       e.air_time         AS airTime
      FROM tv_shows s
      JOIN ${TRACKED} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id

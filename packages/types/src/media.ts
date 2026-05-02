@@ -43,6 +43,7 @@ export interface Episode {
   overview: string | null;
   stillPath: string | null;
   airDate: string | null;
+  airTime: string | null;
   runtimeMin: number | null;
 }
 
