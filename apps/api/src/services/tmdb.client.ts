@@ -138,6 +138,16 @@ export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
   return data.tvdb_id ?? null;
 }
 
+export async function fetchMovieRecommendations(tmdbId: number): Promise<{ id: number; title: string; release_date: string; poster_path: string | null; overview: string }[]> {
+  const data = await get<{ results: Record<string, any>[] }>(`/movie/${tmdbId}/recommendations`);
+  return data.results;
+}
+
+export async function fetchShowRecommendations(tmdbId: number): Promise<{ id: number; name: string; first_air_date: string; poster_path: string | null; overview: string }[]> {
+  const data = await get<{ results: Record<string, any>[] }>(`/tv/${tmdbId}/recommendations`);
+  return data.results;
+}
+
 export async function fetchEpisode(
   tmdbId: number,
   seasonNumber: number,

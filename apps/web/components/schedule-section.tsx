@@ -137,7 +137,7 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
           {formatDateHeader(day)}
         </div>
         {hasPoster && (
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10">
+          <div className="relative aspect-[2/3] overflow-hidden border border-white/10">
             {slotA && (
               <Image
                 src={slotA}

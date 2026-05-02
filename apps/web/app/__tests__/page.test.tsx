@@ -7,6 +7,8 @@ const mockGetSchedule = vi.fn();
 const mockGetDashboardStats = vi.fn();
 const mockGetRecentItems = vi.fn();
 const mockGetStatsAllTime = vi.fn();
+const mockGetShowRecommendations = vi.fn();
+const mockGetMovieRecommendations = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn() }),
@@ -20,6 +22,8 @@ vi.mock("@/lib/api", () => ({
     getDashboardStats: (...args: unknown[]) => mockGetDashboardStats(...args),
     getRecentItems: (...args: unknown[]) => mockGetRecentItems(...args),
     getStatsAllTime: (...args: unknown[]) => mockGetStatsAllTime(...args),
+    getShowRecommendations: (...args: unknown[]) => mockGetShowRecommendations(...args),
+    getMovieRecommendations: (...args: unknown[]) => mockGetMovieRecommendations(...args),
   },
 }));
 
@@ -61,6 +65,8 @@ describe("DashboardPage", () => {
     mockGetDashboardStats.mockResolvedValue({ daily: [], summary: { totalMinutes: 0, episodes: 0, movies: 0, plays: 0 }, genres: [] });
     mockGetRecentItems.mockResolvedValue([]);
     mockGetStatsAllTime.mockResolvedValue({ totalMinutes: 0, totalShows: 0, totalMovies: 0, totalEpisodes: 0, longestStreak: 0, topShows: [], topGenres: [], heatmap: [] });
+    mockGetShowRecommendations.mockResolvedValue([]);
+    mockGetMovieRecommendations.mockResolvedValue([]);
 
     const { default: Page } = await import("../page");
     render(<Page />);
@@ -79,6 +85,8 @@ describe("DashboardPage", () => {
     mockGetDashboardStats.mockRejectedValue(new Error("Server error"));
     mockGetRecentItems.mockRejectedValue(new Error("Server error"));
     mockGetStatsAllTime.mockRejectedValue(new Error("Server error"));
+    mockGetShowRecommendations.mockRejectedValue(new Error("Server error"));
+    mockGetMovieRecommendations.mockRejectedValue(new Error("Server error"));
 
     const { default: Page } = await import("../page");
     render(<Page />);

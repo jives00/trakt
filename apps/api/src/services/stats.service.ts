@@ -357,6 +357,8 @@ export async function getRecentItems(userId: number, limit = 10): Promise<Recent
        COALESCE(m.tmdb_id, ts.tmdb_id) AS tmdbId,
        CASE WHEN wh.media_type='movie' THEN m.title ELSE e.title END AS title,
        CASE WHEN wh.media_type='movie' THEN m.poster_path ELSE ts.poster_path END AS posterPath,
+       e.still_path AS stillPath,
+       m.tagline AS tagline,
        ts.title AS showTitle,
        seas.season_number AS seasonNumber,
        e.episode_number AS episodeNumber

@@ -77,6 +77,14 @@ export interface DashboardStats {
   genres: DashboardGenre[];
 }
 
+export interface RecommendationItem {
+  tmdbId: number;
+  title: string;
+  year: number | null;
+  posterPath: string | null;
+  overview: string;
+}
+
 export interface RecentItem {
   id: number;
   mediaType: 'movie' | 'episode';
@@ -86,6 +94,8 @@ export interface RecentItem {
   tmdbId: number | null;
   title: string | null;
   posterPath: string | null;
+  stillPath?: string | null;
+  tagline?: string | null;
   showTitle?: string | null;
   seasonNumber?: number | null;
   episodeNumber?: number | null;

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, StatsAllTime, UserProfile } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, RecommendationItem, StatsAllTime, UserProfile } from "@trakt/types";
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
@@ -18,6 +18,8 @@ export default function DashboardPage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [showRecs, setShowRecs] = useState<RecommendationItem[]>([]);
+  const [movieRecs, setMovieRecs] = useState<RecommendationItem[]>([]);
   const [alltime, setAlltime] = useState<StatsAllTime | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -30,12 +32,14 @@ export default function DashboardPage() {
       api.getUpNext(token),
       api.getSchedule(token, 30),
       api.getDashboardStats(token),
-      api.getRecentItems(token, 6),
+      api.getRecentItems(token, 3),
       api.getStatsAllTime(token),
+      api.getShowRecommendations(token),
+      api.getMovieRecommendations(token),
     ])
-      .then(([prof, up, sched, stats, recent, at]) => {
+      .then(([prof, up, sched, stats, recent, at, srecs, mrecs]) => {
         setProfile(prof); setUpNext(up); setSchedule(sched); setDashStats(stats);
-        setRecentItems(recent); setAlltime(at);
+        setRecentItems(recent); setAlltime(at); setShowRecs(srecs); setMovieRecs(mrecs);
       })
       .catch(() => setFetchError("Failed to load dashboard."))
       .finally(() => setFetching(false));
@@ -54,7 +58,7 @@ export default function DashboardPage() {
         <ScheduleSection entries={schedule} />
         {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} />}
         <RecentSection items={recentItems} />
-        <RecommendationsSection />
+        <RecommendationsSection showRecs={showRecs} movieRecs={movieRecs} />
       </div>
     </div>
   );
@@ -108,8 +112,8 @@ function RecentSection({ items }: { items: RecentItem[] }) {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeading>Recently Watched</SectionHeading>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
-        {items.slice(0, 6).map((item) => <RecentCard key={item.id} item={item} />)}
+      <div className="grid grid-cols-3 gap-gutter">
+        {items.slice(0, 3).map((item) => <RecentCard key={item.id} item={item} />)}
       </div>
     </section>
   );
@@ -118,11 +122,12 @@ function RecentSection({ items }: { items: RecentItem[] }) {
 function RecentCard({ item }: { item: RecentItem }) {
   const isEpisode = item.mediaType === "episode";
   const href = item.tmdbId ? (isEpisode ? `/shows/${item.tmdbId}` : `/movies/${item.tmdbId}`) : "#";
-  const posterUrl = item.posterPath ? `${TMDB_IMG}w500${item.posterPath}` : null;
+  const imagePath = isEpisode ? (item.stillPath ?? item.posterPath) : item.posterPath;
+  const posterUrl = imagePath ? `${TMDB_IMG}w500${imagePath}` : null;
   const title = isEpisode ? (item.showTitle ?? item.title) : item.title;
 
   return (
-    <Link href={href} className="group relative aspect-video rounded-xl overflow-hidden border border-white/5 cursor-pointer block">
+    <Link href={href} className="group relative aspect-video overflow-hidden border border-white/5 cursor-pointer block">
       {posterUrl ? (
         <Image src={posterUrl} alt={title ?? ""} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-center transition-transform duration-500 group-hover:scale-110" />
       ) : (
@@ -140,29 +145,49 @@ function RecentCard({ item }: { item: RecentItem }) {
         {isEpisode && item.title && item.showTitle && (
           <p className="text-white/50 text-sm">{item.title}</p>
         )}
+        {!isEpisode && item.tagline && (
+          <p className="text-white/50 text-sm">{item.tagline}</p>
+        )}
       </div>
     </Link>
   );
 }
 
-function RecommendationsSection() {
+function RecommendationsSection({ showRecs, movieRecs }: { showRecs: RecommendationItem[]; movieRecs: RecommendationItem[] }) {
+  if (showRecs.length === 0 && movieRecs.length === 0) return null;
   return (
     <section className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-      <RecPanel title="Show Recommendations" />
-      <RecPanel title="Movie Recommendations" />
+      {showRecs.length > 0 && <RecPanel title="Show Recommendations" items={showRecs} linkPrefix="/shows" />}
+      {movieRecs.length > 0 && <RecPanel title="Movie Recommendations" items={movieRecs} linkPrefix="/movies" />}
     </section>
   );
 }
 
-function RecPanel({ title }: { title: string }) {
+function RecPanel({ title, items, linkPrefix }: { title: string; items: RecommendationItem[]; linkPrefix: string }) {
   return (
     <div className="glass-panel rounded-xl overflow-hidden">
-      <div className="p-6 border-b border-white/5 flex justify-between items-center">
+      <div className="p-5 border-b border-white/5 flex justify-between items-center">
         <h3 className="text-h3 font-bold text-white">{title}</h3>
         <Link href="/search" className="text-[#e8002d] text-xs font-bold uppercase hover:underline">Browse</Link>
       </div>
-      <div className="flex items-center justify-center h-32 text-white/20 text-sm">
-        Recommendations coming soon
+      <div className="grid grid-cols-3 gap-3 p-4">
+        {items.map((item) => (
+          <Link key={item.tmdbId} href={`${linkPrefix}/${item.tmdbId}`} className="group relative">
+            <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-[1.02]">
+              {item.posterPath ? (
+                <Image src={`${TMDB_IMG}w185${item.posterPath}`} alt={item.title} fill sizes="33vw" className="object-cover" />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <span className="material-symbols-outlined text-2xl text-white/20">image_not_supported</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex flex-col justify-end p-3">
+                <p className="text-sm font-bold text-white leading-tight line-clamp-2">{item.title}</p>
+                {item.year && <p className="text-xs text-white/50 mt-0.5">{item.year}</p>}
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -265,55 +290,44 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
 }
 
 function GenreBar({ genres }: { genres: DashboardGenre[] }) {
+  const [hovered, setHovered] = useState<number | null>(null);
   const total = genres.reduce((sum, g) => sum + g.plays, 0);
+  const h = hovered !== null ? genres[hovered] : null;
+
   return (
     <div className="mt-2">
-      {/* Labels row — alternating above/below */}
-      <div className="flex w-full" style={{ height: 56 }}>
+      <div className="flex w-full h-10 overflow-hidden">
         {genres.map((g, i) => {
           const pct = (g.plays / total) * 100;
-          const above = i % 2 === 0;
           return (
-            <div key={g.genre} style={{ width: `${pct}%`, flexShrink: 0 }} className="relative">
-              {above && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 1, background: GENRE_COLORS[i % GENRE_COLORS.length] }} />}
-              {above && (
-                <div className="absolute bottom-0 left-0 pl-2 pr-1 pb-2">
-                  <p className="text-sm font-black uppercase text-white/80 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{g.genre}</p>
-                  {g.episodes > 0 && <p className="text-xs text-white/40 leading-tight">{g.episodes} episode{g.episodes !== 1 ? "s" : ""}</p>}
-                  {g.shows > 0 && <p className="text-xs text-white/40 leading-tight">{g.shows} show{g.shows !== 1 ? "s" : ""}</p>}
-                  {g.movies > 0 && <p className="text-xs text-white/40 leading-tight">{g.movies} movie{g.movies !== 1 ? "s" : ""}</p>}
-                </div>
-              )}
-            </div>
+            <div
+              key={g.genre}
+              style={{ width: `${pct}%`, background: GENRE_COLORS[i % GENRE_COLORS.length], flexShrink: 0, opacity: hovered === null || hovered === i ? 1 : 0.35, transition: "opacity 0.15s" }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+            />
           );
         })}
       </div>
-      {/* Segmented bar */}
-      <div className="flex w-full h-6 overflow-hidden">
-        {genres.map((g, i) => {
-          const pct = (g.plays / total) * 100;
-          return <div key={g.genre} style={{ width: `${pct}%`, background: GENRE_COLORS[i % GENRE_COLORS.length], flexShrink: 0, height: "100%" }} />;
-        })}
+      <div className="h-7 mt-2 flex items-center">
+        {h && (
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 flex-none" style={{ background: GENRE_COLORS[genres.indexOf(h) % GENRE_COLORS.length] }} />
+            <span className="text-sm font-black uppercase text-white/80">{h.genre}</span>
+            <span className="text-xs text-white/40">
+              {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" · ")}
+            </span>
+            <span className="text-xs font-bold text-white/30">{Math.round((h.plays / total) * 100)}%</span>
+          </div>
+        )}
       </div>
-      {/* Below labels */}
-      <div className="flex w-full" style={{ height: 44 }}>
-        {genres.map((g, i) => {
-          const pct = (g.plays / total) * 100;
-          const above = i % 2 === 0;
-          return (
-            <div key={g.genre} style={{ width: `${pct}%`, flexShrink: 0 }} className="relative">
-              {!above && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 1, background: GENRE_COLORS[i % GENRE_COLORS.length] }} />}
-              {!above && (
-                <div className="absolute top-0 left-0 pl-2 pr-1 pt-2">
-                  <p className="text-sm font-black uppercase text-white/80 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{g.genre}</p>
-                  {g.episodes > 0 && <p className="text-xs text-white/40 leading-tight">{g.episodes} episode{g.episodes !== 1 ? "s" : ""}</p>}
-                  {g.shows > 0 && <p className="text-xs text-white/40 leading-tight">{g.shows} show{g.shows !== 1 ? "s" : ""}</p>}
-                  {g.movies > 0 && <p className="text-xs text-white/40 leading-tight">{g.movies} movie{g.movies !== 1 ? "s" : ""}</p>}
-                </div>
-              )}
-            </div>
-          );
-        })}
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-1">
+        {genres.map((g, i) => (
+          <div key={g.genre} className="flex items-center gap-1.5">
+            <span className="w-2 h-2 flex-none" style={{ background: GENRE_COLORS[i % GENRE_COLORS.length] }} />
+            <span className="text-xs font-bold uppercase tracking-wide text-white/50">{g.genre}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

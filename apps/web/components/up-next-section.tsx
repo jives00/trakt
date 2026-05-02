@@ -80,7 +80,7 @@ function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episode
 
   return (
     <Link href={href} className="group flex-none w-56">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-t-md bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02]">
+      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02]">
         {item.posterPath ? (
           <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
         ) : (

@@ -2,6 +2,18 @@
 
 ## May 2, 2026
 
+### API
+- Recommendations service: seed from recent watch history, call TMDB recommendations, deduplicate, filter already-watched; two new dashboard routes for shows and movies `e5cbad2`
+- Recently watched query returns episode `still_path` and movie `tagline` `e5cbad2`
+- Add `fetchMovieRecommendations` and `fetchShowRecommendations` to TMDB client `e5cbad2`
+
+### Web
+- Show/movie recommendations panels on dashboard with horizontal poster grid (3 items each) `e5cbad2`
+- Recently watched uses episode still image instead of series poster; movie tagline shown under title `e5cbad2`
+- Genre bar replaced with segmented hover bar + per-segment tooltip + flex-wrap legend; bar is taller `e5cbad2`
+- Rounded corners removed from all art across dashboard (recent cards, up-next posters, schedule posters) `e5cbad2`
+- Recently watched reduced to 3 items (one row) `e5cbad2`
+
 ### Build
 - Fix tsconfig errors: remove unused project references, silence node10 moduleResolution deprecation, add scripts/tsconfig.json to fix api rootDir violation `18b6bf2`
 

@@ -3,6 +3,7 @@ import { authenticate } from '../middleware/auth';
 import { getUpNext, getSchedule } from '../services/dashboard.service';
 import { getDashboardStats, getRecentItems } from '../services/stats.service';
 import { backfillAirTimes } from '../services/shows.service';
+import { getShowRecommendations, getMovieRecommendations } from '../services/recommendations.service';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -29,6 +30,14 @@ export async function dashboardRoutes(app: FastifyInstance) {
 
   app.get('/dashboard/stats', auth, async (request: FastifyRequest) => {
     return getDashboardStats(userId(request));
+  });
+
+  app.get('/dashboard/recommendations/shows', auth, async (request: FastifyRequest) => {
+    return getShowRecommendations(userId(request));
+  });
+
+  app.get('/dashboard/recommendations/movies', auth, async (request: FastifyRequest) => {
+    return getMovieRecommendations(userId(request));
   });
 
   app.post('/dashboard/backfill-air-times', auth, async () => {
