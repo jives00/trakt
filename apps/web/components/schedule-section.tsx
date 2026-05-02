@@ -30,11 +30,11 @@ function formatDateHeader(dateStr: string): string {
   return `${DAY_NAMES[d.getDay()]} ${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`.toUpperCase();
 }
 
-function getNextNDaysWithContent(entries: ScheduleItem[], maxDays = 30): string[] {
+function getNextNDaysWithContent(entries: ScheduleItem[], maxCols = 5, maxDayWindow = 5): string[] {
   const days: string[] = [];
   const usedDates = new Set(entries.map(e => e.date.slice(0, 10)));
 
-  for (let i = 0; i < maxDays && days.length < 5; i++) {
+  for (let i = 0; i < maxDayWindow && days.length < maxCols; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
     const year = d.getFullYear();

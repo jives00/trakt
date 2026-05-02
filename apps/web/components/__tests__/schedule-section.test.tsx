@@ -57,8 +57,10 @@ describe("ScheduleSection", () => {
 
   it("links show title to show detail page", () => {
     render(<ScheduleSection entries={[makeEntry({ showTmdbId: 99 })]} />);
-    const link = screen.getByRole("link", { name: "Breaking Bad" });
-    expect(link).toHaveAttribute("href", "/shows/99");
+    const links = screen.getAllByRole("link");
+    const showLink = links.find(l => l.textContent?.includes("Breaking Bad") && l.getAttribute("href") === "/shows/99");
+    expect(showLink).toBeDefined();
+    expect(showLink).toHaveAttribute("href", "/shows/99");
   });
 
   it("shows TODAY label for today's entries", () => {
