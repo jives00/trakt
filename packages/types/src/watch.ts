@@ -51,6 +51,8 @@ export interface UpNextItem {
   episodeId: number;
   episodeTitle: string | null;
   airDate: string | null;
+  watchedCount: number;
+  totalAired: number;
 }
 
 export interface ScheduleItem {

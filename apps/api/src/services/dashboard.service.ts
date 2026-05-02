@@ -11,6 +11,8 @@ export interface UpNextItem {
   episodeId: number;
   episodeTitle: string | null;
   airDate: string | null;
+  watchedCount: number;
+  totalAired: number;
 }
 
 export interface ScheduleEntry {
@@ -33,26 +35,28 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
-       show_tmdb_id  AS showTmdbId,
-       show_title    AS showTitle,
-       poster_path   AS posterPath,
-       backdrop_path AS backdropPath,
-       season_number AS seasonNumber,
-       episode_number AS episodeNumber,
-       episode_id    AS episodeId,
-       episode_title AS episodeTitle,
-       air_date      AS airDate
+       show_id,
+       showTmdbId,
+       showTitle,
+       posterPath,
+       backdropPath,
+       seasonNumber,
+       episodeNumber,
+       episodeId,
+       episodeTitle,
+       airDate
      FROM (
        SELECT
-         s.tmdb_id  AS show_tmdb_id,
-         s.title    AS show_title,
-         s.poster_path,
-         s.backdrop_path,
-         seas.season_number,
-         e.episode_number,
-         e.id       AS episode_id,
-         e.title    AS episode_title,
-         e.air_date,
+         s.id AS show_id,
+         s.tmdb_id  AS showTmdbId,
+         s.title    AS showTitle,
+         s.poster_path AS posterPath,
+         s.backdrop_path AS backdropPath,
+         seas.season_number AS seasonNumber,
+         e.episode_number AS episodeNumber,
+         e.id       AS episodeId,
+         e.title    AS episodeTitle,
+         e.air_date AS airDate,
          ROW_NUMBER() OVER (
            PARTITION BY s.id
            ORDER BY seas.season_number, e.episode_number
@@ -64,13 +68,49 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        LEFT JOIN watch_history wh
          ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
        WHERE wh.id IS NULL
+         AND EXISTS (
+           SELECT 1 FROM watch_history wh2
+           JOIN episodes e2 ON e2.id = wh2.media_id
+           JOIN seasons seas2 ON seas2.id = e2.season_id
+           WHERE wh2.media_type = 'episode'
+             AND seas2.show_id = s.id
+             AND wh2.user_id = ?
+           LIMIT 1
+         )
      ) sub
      WHERE rn = 1
-     ORDER BY show_title
+     ORDER BY showTitle
      LIMIT 20`,
-    [userId, userId, userId],
+    [userId, userId, userId, userId],
   );
-  return rows as UpNextItem[];
+
+  // Calculate watched/total for each show
+  const showIds = rows.map(r => (r as any).show_id);
+  if (showIds.length === 0) {
+    return rows.map(r => ({ ...(r as UpNextItem), watchedCount: 0, totalAired: 0 }));
+  }
+
+  const [counts] = await pool.query<RowDataPacket[]>(
+    `SELECT
+       s.id,
+       COUNT(DISTINCT CASE WHEN wh.id IS NOT NULL THEN wh.media_id END) AS watchedCount,
+       COUNT(DISTINCT e.id) AS totalAired
+     FROM tv_shows s
+     LEFT JOIN seasons seas ON seas.show_id = s.id
+     LEFT JOIN episodes e ON e.season_id = seas.id AND e.air_date <= CURDATE()
+     LEFT JOIN watch_history wh ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
+     WHERE s.id IN (${showIds.map(() => '?').join(',')})
+     GROUP BY s.id`,
+    [userId, ...showIds],
+  );
+
+  const countMap = new Map(counts.map(c => [(c as any).id, { watchedCount: (c as any).watchedCount, totalAired: (c as any).totalAired }]));
+
+  return rows.map(row => ({
+    ...(row as UpNextItem),
+    watchedCount: countMap.get((row as any).show_id)?.watchedCount ?? 0,
+    totalAired: countMap.get((row as any).show_id)?.totalAired ?? 0,
+  }));
 }
 
 export async function getSchedule(

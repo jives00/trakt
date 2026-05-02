@@ -80,7 +80,7 @@ function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episode
 
   return (
     <Link href={href} className="group flex-none w-56">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02]">
+      <div className="relative aspect-[2/3] overflow-hidden rounded-t-md bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02]">
         {item.posterPath ? (
           <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
         ) : (
@@ -98,7 +98,14 @@ function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episode
             Mark as Watched
           </button>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20" />
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
+          {item.totalAired > 0 && (
+            <div
+              className="h-full bg-[#e8002d] transition-all duration-300"
+              style={{ width: `${(item.watchedCount / item.totalAired) * 100}%` }}
+            />
+          )}
+        </div>
       </div>
       <div className="mt-2 px-0.5 flex justify-between items-start">
         <div className="min-w-0">

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { vi, describe, it, expect } from "vitest";
 import { UpNextSection } from "../up-next-section";
+import { AuthProvider } from "@/lib/auth-context";
 import type { UpNextItem } from "@trakt/types";
 
 vi.mock("next/link", () => ({
@@ -23,12 +24,18 @@ const makeItem = (overrides: Partial<UpNextItem> = {}): UpNextItem => ({
   episodeId: 99,
   episodeTitle: "Pilot",
   airDate: null,
+  totalAired: 5,
+  watchedCount: 0,
   ...overrides,
 });
 
 describe("UpNextSection", () => {
   it("shows empty state when no items", () => {
-    render(<UpNextSection items={[]} />);
+    render(
+      <AuthProvider>
+        <UpNextSection items={[]} />
+      </AuthProvider>
+    );
     expect(screen.getByText(/no shows tracked yet/i)).toBeInTheDocument();
     expect(screen.getByText(/search for a show/i)).toBeInTheDocument();
   });
@@ -38,19 +45,31 @@ describe("UpNextSection", () => {
       makeItem({ showTitle: "Show A", episodeId: 1 }),
       makeItem({ showTitle: "Show B", episodeId: 2 }),
     ];
-    render(<UpNextSection items={items} />);
+    render(
+      <AuthProvider>
+        <UpNextSection items={items} />
+      </AuthProvider>
+    );
     expect(screen.getAllByText("Show A")).toHaveLength(2); // placeholder + label
     expect(screen.getAllByText("Show B")).toHaveLength(2);
   });
 
   it("links to the show detail page", () => {
-    render(<UpNextSection items={[makeItem({ showTmdbId: 42 })]} />);
+    render(
+      <AuthProvider>
+        <UpNextSection items={[makeItem({ showTmdbId: 42 })]} />
+      </AuthProvider>
+    );
     const link = screen.getByRole("link", { name: /test show/i });
     expect(link).toHaveAttribute("href", "/shows/42");
   });
 
   it("shows episode label", () => {
-    render(<UpNextSection items={[makeItem({ seasonNumber: 2, episodeNumber: 5, episodeTitle: "The One" })]} />);
+    render(
+      <AuthProvider>
+        <UpNextSection items={[makeItem({ seasonNumber: 2, episodeNumber: 5, episodeTitle: "The One" })]} />
+      </AuthProvider>
+    );
     expect(screen.getByText(/S2E5/)).toBeInTheDocument();
     expect(screen.getByText(/The One/)).toBeInTheDocument();
   });

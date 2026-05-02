@@ -87,6 +87,45 @@ describe('GET /api/dashboard/up-next', () => {
       episodeId: ep2Id,
     });
   });
+
+  it('excludes shows with no watched episodes', async () => {
+    const pool = getPool();
+    // Create a show with episodes but no watched history
+    const [show] = await pool.query<any>(
+      `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, genres)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [8888, 'Unwatched Show', 2024, 'Never watched', '/poster.jpg', '["Drama"]'],
+    );
+    const showId = show.insertId;
+
+    const [season] = await pool.query<any>(
+      `INSERT INTO seasons (show_id, season_number, episode_count) VALUES (?, 1, 2)`,
+      [showId],
+    );
+    const seasonId = season.insertId;
+
+    await pool.query<any>(
+      `INSERT INTO episodes (show_id, season_id, episode_number, title, air_date)
+       VALUES (?, ?, 1, 'Pilot', CURDATE())`, [showId, seasonId],
+    );
+    await pool.query<any>(
+      `INSERT INTO episodes (show_id, season_id, episode_number, title, air_date)
+       VALUES (?, ?, 2, 'Episode 2', DATE_ADD(CURDATE(), INTERVAL 1 DAY))`, [showId, seasonId],
+    );
+
+    // Add to watchlist but don't watch any episodes
+    await pool.query(
+      `INSERT INTO watchlist (user_id, media_type, media_id) VALUES (1, 'show', ?)`, [showId],
+    );
+
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/dashboard/up-next')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
 });
 
 describe('GET /api/dashboard/schedule', () => {
