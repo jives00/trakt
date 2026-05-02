@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,9 +24,20 @@ export function SearchResults() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [sort, setSort] = useState<SortOption>("Relevance");
   const [showSort, setShowSort] = useState(false);
+  const lastSearchedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const initialQuery = params.get("q");
+    if (initialQuery && initialQuery !== lastSearchedRef.current) {
+      lastSearchedRef.current = initialQuery;
+      setQuery(initialQuery);
+      runSearch(initialQuery);
+    }
+  }, [params, token]);
 
   async function runSearch(q: string) {
     if (!q.trim() || !token) return;
+    lastSearchedRef.current = q.trim();
     router.replace(`/search?q=${encodeURIComponent(q.trim())}`);
     setLoading(true);
     try {

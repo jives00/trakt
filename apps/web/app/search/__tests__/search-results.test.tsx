@@ -21,9 +21,12 @@ vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {},
 }));
 
+const mockReplace = vi.fn();
+let mockSearchParams = new URLSearchParams("");
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(""),
+  useRouter: () => ({ replace: mockReplace }),
+  useSearchParams: () => mockSearchParams,
 }));
 
 const results: SearchResult[] = [
@@ -34,6 +37,7 @@ const results: SearchResult[] = [
 describe("SearchResults", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSearchParams = new URLSearchParams("");
   });
 
   it("renders a search input", () => {
@@ -85,5 +89,29 @@ describe("SearchResults", () => {
     await userEvent.keyboard("{Enter}");
 
     await waitFor(() => expect(screen.getByText(/no results/i)).toBeInTheDocument());
+  });
+
+  it("automatically searches when mounted with a query parameter", async () => {
+    mockSearch.mockResolvedValue(results);
+    mockSearchParams = new URLSearchParams("q=Breaking%20Bad");
+
+    render(<SearchResults />);
+
+    await waitFor(() => {
+      expect(mockSearch).toHaveBeenCalledWith("Breaking Bad", "test-token");
+      expect(screen.getAllByText("Breaking Bad")).toHaveLength(1);
+    });
+  });
+
+  it("displays the query from URL in the search input when mounted", async () => {
+    mockSearchParams = new URLSearchParams("q=Breaking%20Bad");
+    mockSearch.mockResolvedValue([results[1]]);
+
+    render(<SearchResults />);
+
+    await waitFor(() => {
+      const searchInput = screen.getByRole("searchbox") as HTMLInputElement;
+      expect(searchInput.value).toBe("Breaking Bad");
+    });
   });
 });

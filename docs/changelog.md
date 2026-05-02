@@ -7,6 +7,7 @@
 
 ### Web
 - Add --skip-tests flag to /commit command; add public assets `5ae8364`
+- Fix search results auto-execution when navigating from top nav; fix ScheduleSection timezone handling for local 'Today' label `78b2138`
 
 ## April 30, 2026
 
