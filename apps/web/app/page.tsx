@@ -6,18 +6,11 @@ import Image from "next/image";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { UpNextItem, ScheduleItem, DashboardDailyStats, RecentItem, StatsAllTime } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardDailyStats, RecentItem, StatsAllTime, UserProfile } from "@trakt/types";
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
-
-function usernameFromToken(token: string): string {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.username ?? payload.sub ?? "there";
-  } catch { return "there"; }
-}
 
 export default function DashboardPage() {
   const { token, isLoading } = useAuth();
@@ -26,20 +19,22 @@ export default function DashboardPage() {
   const [dailyStats, setDailyStats] = useState<DashboardDailyStats[]>([]);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [alltime, setAlltime] = useState<StatsAllTime | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     if (isLoading || !token) return;
     Promise.all([
+      api.getProfile(token),
       api.getUpNext(token),
       api.getSchedule(token),
       api.getDashboardStats(token),
       api.getRecentItems(token, 6),
       api.getStatsAllTime(token),
     ])
-      .then(([up, sched, stats, recent, at]) => {
-        setUpNext(up); setSchedule(sched); setDailyStats(stats);
+      .then(([prof, up, sched, stats, recent, at]) => {
+        setProfile(prof); setUpNext(up); setSchedule(sched); setDailyStats(stats);
         setRecentItems(recent); setAlltime(at);
       })
       .catch(() => setFetchError("Failed to load dashboard."))
@@ -49,11 +44,11 @@ export default function DashboardPage() {
   if (isLoading || fetching) return null;
   if (fetchError) return <p className="text-error">{fetchError}</p>;
 
-  const username = token ? usernameFromToken(token) : "there";
+  const greeting = profile?.displayName || profile?.username || "there";
 
   return (
     <div className="flex flex-col flex-1">
-      <HeroSection username={username} alltime={alltime} />
+      <HeroSection username={greeting} alltime={alltime} />
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">

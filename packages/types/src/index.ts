@@ -6,3 +6,4 @@ export * from './collection';
 export * from './lists';
 export * from './ratings';
 export * from './stats';
+export * from './user';

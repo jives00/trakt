@@ -6,9 +6,11 @@
 - Root tsconfig with workspace references for monorepo; api and types packages extend from root config `f18e75f`
 
 ### API
+- User profile endpoints (GET/PATCH) for managing display name `17350ea`
 - Search route and TMDB client improvements, user-media service fixes `2282f7f`
 
 ### Web
+- Add user display name field to settings; use display name in dashboard greeting instead of user ID `17350ea`
 - Add --skip-tests flag to /commit command; add public assets `5ae8364`
 - Fix search results auto-execution when navigating from top nav; fix ScheduleSection timezone handling for local 'Today' label `78b2138`
 - Dashboard hero banner full-width; improve top nav separator line styling `d6e3140`

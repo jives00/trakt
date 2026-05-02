@@ -7,6 +7,7 @@ import type {
   RatingItem,
   StatsAllTime, StatsYear, StatsMonth, DashboardDailyStats, RecentItem,
   MovieStatus, ShowStatus, UpNextItem, ScheduleItem,
+  UserProfile,
 } from "@trakt/types";
 
 export type { ShowDetail, EpisodeItem, EpisodeDetail, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
@@ -48,6 +49,16 @@ export const api = {
     request<{ accessToken: string }>("/api/auth/refresh", { method: "POST" }),
   logout: (token: string) =>
     request<void>("/api/auth/logout", { method: "POST", token }),
+
+  // User
+  getProfile: (token: string) =>
+    request<UserProfile>("/api/user/profile", { token }),
+  updateProfile: (displayName: string, token: string) =>
+    request<UserProfile>("/api/user/profile", {
+      method: "PATCH",
+      body: JSON.stringify({ displayName }),
+      token,
+    }),
 
   // Search
   search: (query: string, token: string) =>

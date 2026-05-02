@@ -14,6 +14,7 @@ import { watchlistRoutes } from './routes/watchlist.routes';
 import { listsRoutes } from './routes/lists.routes';
 import { ratingsRoutes } from './routes/ratings.routes';
 import { statsRoutes } from './routes/stats.routes';
+import { userRoutes } from './routes/user.routes';
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false });
@@ -39,6 +40,7 @@ void app.register(corsPlugin, {
   void app.register(listsRoutes, { prefix: '/api' });
   void app.register(ratingsRoutes, { prefix: '/api' });
   void app.register(statsRoutes, { prefix: '/api' });
+  void app.register(userRoutes, { prefix: '/api' });
 
   return app;
 }

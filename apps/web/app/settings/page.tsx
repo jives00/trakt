@@ -2,18 +2,43 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { api } from "@/lib/api";
+import type { UserProfile } from "@trakt/types";
 
 type Theme = "dark" | "light";
 
 export default function SettingsPage() {
   const { token, isLoading } = useAuth();
   const [theme, setTheme] = useState<Theme>("dark");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [displayName, setDisplayName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     if (isLoading || !token) return;
     const saved = localStorage.getItem("theme") as Theme | null;
     if (saved) setTheme(saved);
+    api.getProfile(token).then(setProfile).catch(() => {});
   }, [token, isLoading]);
+
+  useEffect(() => {
+    if (profile) setDisplayName(profile.displayName ?? "");
+  }, [profile]);
+
+  async function handleSaveProfile() {
+    if (!token || !displayName.trim()) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const updated = await api.updateProfile(displayName.trim(), token);
+      setProfile(updated);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   function applyTheme(t: Theme) {
     setTheme(t);
@@ -33,6 +58,30 @@ export default function SettingsPage() {
         </header>
 
         <div className="max-w-xl flex flex-col gap-6">
+          {/* Profile */}
+          <div className="glass-panel rounded-xl p-5">
+            <h3 className="font-bold text-white mb-1">Display Name</h3>
+            <p className="text-xs text-white/40 mb-4">This appears in your dashboard greeting.</p>
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => { setDisplayName(e.target.value); setSaveError(""); }}
+                maxLength={50}
+                placeholder="Enter your name"
+                className="w-full px-3 py-2 rounded-lg bg-[#181818] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#e8002d] transition-colors"
+              />
+              {saveError && <p className="text-xs text-[#e8002d]">{saveError}</p>}
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving || !displayName.trim()}
+                className="px-4 py-2 rounded-lg bg-[#e8002d] text-white font-bold text-sm uppercase tracking-widest hover:bg-[#d40026] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+
           {/* Theme */}
           <div className="glass-panel rounded-xl p-5">
             <h3 className="font-bold text-white mb-1">Theme</h3>

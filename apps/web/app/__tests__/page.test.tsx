@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
+const mockGetProfile = vi.fn();
 const mockGetUpNext = vi.fn();
 const mockGetSchedule = vi.fn();
 const mockGetDashboardStats = vi.fn();
@@ -13,6 +14,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/api", () => ({
   api: {
+    getProfile: (...args: unknown[]) => mockGetProfile(...args),
     getUpNext: (...args: unknown[]) => mockGetUpNext(...args),
     getSchedule: (...args: unknown[]) => mockGetSchedule(...args),
     getDashboardStats: (...args: unknown[]) => mockGetDashboardStats(...args),
@@ -53,6 +55,7 @@ describe("DashboardPage", () => {
     vi.doMock("@/lib/auth-context", () => ({
       useAuth: () => ({ token: "tok", isLoading: false }),
     }));
+    mockGetProfile.mockResolvedValue({ id: 1, username: "testuser", displayName: "Test User" });
     mockGetUpNext.mockResolvedValue([]);
     mockGetSchedule.mockResolvedValue([]);
     mockGetDashboardStats.mockResolvedValue([]);
@@ -70,6 +73,7 @@ describe("DashboardPage", () => {
     vi.doMock("@/lib/auth-context", () => ({
       useAuth: () => ({ token: "tok", isLoading: false }),
     }));
+    mockGetProfile.mockRejectedValue(new Error("Server error"));
     mockGetUpNext.mockRejectedValue(new Error("Server error"));
     mockGetSchedule.mockRejectedValue(new Error("Server error"));
     mockGetDashboardStats.mockRejectedValue(new Error("Server error"));
