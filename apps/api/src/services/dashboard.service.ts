@@ -16,13 +16,18 @@ export interface UpNextItem {
 }
 
 export interface ScheduleEntry {
-  showTmdbId: number;
-  showTitle: string;
+  mediaType: 'episode' | 'movie';
+  showTmdbId?: number;
+  showTitle?: string;
+  movieTmdbId?: number;
+  movieTitle?: string;
+  posterPath: string | null;
   network: string | null;
-  seasonNumber: number;
-  episodeNumber: number;
-  episodeTitle: string | null;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  episodeTitle?: string | null;
   date: string;
+  airTime?: string | null;
 }
 
 const TRACKED = `(
@@ -115,19 +120,24 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
 
 export async function getSchedule(
   userId: number,
-  range = 6,
-  type = 'tv',
+  range = 7,
+  type = 'all',
 ): Promise<ScheduleEntry[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
+       'episode' AS mediaType,
        s.tmdb_id       AS showTmdbId,
        s.title         AS showTitle,
+       NULL            AS movieTmdbId,
+       NULL            AS movieTitle,
+       s.poster_path   AS posterPath,
        s.network,
        seas.season_number AS seasonNumber,
        e.episode_number   AS episodeNumber,
        e.title            AS episodeTitle,
-       e.air_date         AS date
+       e.air_date         AS date,
+       NULL               AS airTime
      FROM tv_shows s
      JOIN ${TRACKED} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id

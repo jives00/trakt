@@ -56,11 +56,16 @@ export interface UpNextItem {
 }
 
 export interface ScheduleItem {
-  showTmdbId: number;
-  showTitle: string;
-  network: string | null;
-  seasonNumber: number;
-  episodeNumber: number;
-  episodeTitle: string | null;
+  mediaType: 'episode' | 'movie';
+  showTmdbId?: number;
+  showTitle?: string;
+  movieTmdbId?: number;
+  movieTitle?: string;
+  posterPath: string | null;
+  network?: string | null;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  episodeTitle?: string | null;
   date: string;
+  airTime?: string | null;
 }

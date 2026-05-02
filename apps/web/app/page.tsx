@@ -51,12 +51,8 @@ export default function DashboardPage() {
       <HeroSection username={greeting} alltime={alltime} />
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-          <div className="lg:col-span-2">
-            <ScheduleSection entries={schedule} />
-          </div>
-          <StatsBarChart data={dailyStats} />
-        </div>
+        <ScheduleSection entries={schedule} />
+        <StatsBarChart data={dailyStats} />
         <RecentSection items={recentItems} />
         <RecommendationsSection />
       </div>
