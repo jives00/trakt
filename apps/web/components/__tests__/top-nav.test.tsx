@@ -19,6 +19,11 @@ describe("TopNav", () => {
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Search")).toBeInTheDocument();
     expect(screen.getByText("History")).toBeInTheDocument();
+    expect(screen.getByText("Progress")).toBeInTheDocument();
+    expect(screen.getByText("Collection")).toBeInTheDocument();
+    expect(screen.getByText("Lists")).toBeInTheDocument();
+    expect(screen.getByText("Stats")).toBeInTheDocument();
+    expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 
   it("logo links to /", () => {

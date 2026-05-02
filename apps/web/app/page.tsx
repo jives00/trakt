@@ -71,7 +71,17 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
   const daysWatched = alltime ? Math.round(alltime.totalMinutes / 1440) : 0;
   return (
     <section className="relative overflow-hidden rounded-xl bg-surface-container-low p-8 md:p-12">
-      <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest via-transparent to-transparent z-0" />
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `url('/trakt-pattern.jpg')`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: 'auto',
+          backgroundAttachment: 'fixed',
+          filter: 'blur(3px) brightness(0.6)',
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
       <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
         <div>
           <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>

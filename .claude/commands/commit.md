@@ -7,6 +7,7 @@ Runs the test suite, commits if everything passes, and appends an entry to `docs
 | Flag | What it does |
 |---|---|
 | `--e2e` | Also run Playwright end-to-end tests before committing (slower; use for significant UI changes) |
+| `--skip-tests` | Skip the test suite and commit directly |
 
 ---
 
@@ -16,6 +17,8 @@ Runs the test suite, commits if everything passes, and appends an entry to `docs
 Run `git diff --stat` and `git status` so the user can see exactly what's changing before anything is committed.
 
 ### 2. Run the test suite
+Skip this step if `--skip-tests` was passed.
+
 Always run from the repo root using pnpm workspace filters:
 ```bash
 pnpm --filter @trakt/api test
@@ -55,8 +58,7 @@ After tests pass, before committing:
 ---
 
 ## Rules
-- Never commit or push if any test is failing
-- Never skip tests (`--no-verify` is not allowed)
+- If `--skip-tests` is NOT passed, never commit or push if any test is failing
 - Always show `git diff --stat` before committing so the user knows what's going out
 - Never amend a commit that has already been pushed
 - Changelog update happens after the initial commit (so the hash is known), then the commit is amended before pushing — one push total

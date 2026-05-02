@@ -5,6 +5,9 @@
 ### API
 - Search route and TMDB client improvements, user-media service fixes `2282f7f`
 
+### Web
+- Add --skip-tests flag to /commit command; add public assets `5ae8364`
+
 ## April 30, 2026
 
 ### Web

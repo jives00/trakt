@@ -5,7 +5,11 @@ const navLinks = [
   { href: "/search", label: "Search" },
   { href: "/history", label: "History" },
   { href: "/calendar", label: "Schedule" },
-  { href: "/watchlist", label: "Watchlist" },
+  { href: "/progress", label: "Progress" },
+  { href: "/collection", label: "Collection" },
+  { href: "/lists", label: "Lists" },
+  { href: "/stats", label: "Stats" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export function TopNav() {
