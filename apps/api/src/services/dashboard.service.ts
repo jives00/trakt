@@ -21,6 +21,7 @@ export interface ScheduleEntry {
   showTitle?: string;
   movieTmdbId?: number;
   movieTitle?: string;
+  movieTagline?: string | null;
   posterPath: string | null;
   network: string | null;
   seasonNumber?: number;
@@ -118,6 +119,12 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
   }));
 }
 
+const TRACKED_MOVIES = `(
+  SELECT media_id FROM watchlist WHERE user_id = ? AND media_type = 'movie'
+  UNION
+  SELECT media_id FROM collection WHERE user_id = ? AND media_type = 'movie'
+)`;
+
 export async function getSchedule(
   userId: number,
   range = 7,
@@ -131,6 +138,7 @@ export async function getSchedule(
        s.title         AS showTitle,
        NULL            AS movieTmdbId,
        NULL            AS movieTitle,
+       NULL            AS movieTagline,
        s.poster_path   AS posterPath,
        s.network,
        seas.season_number AS seasonNumber,
@@ -143,9 +151,27 @@ export async function getSchedule(
      JOIN seasons seas ON seas.show_id = s.id
      JOIN episodes e   ON e.season_id  = seas.id
      WHERE e.air_date >= CURDATE() AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
-     ORDER BY e.air_date, s.title
+     UNION ALL
+     SELECT
+       'movie'          AS mediaType,
+       NULL             AS showTmdbId,
+       NULL             AS showTitle,
+       m.tmdb_id        AS movieTmdbId,
+       m.title          AS movieTitle,
+       m.tagline        AS movieTagline,
+       m.poster_path    AS posterPath,
+       NULL             AS network,
+       NULL             AS seasonNumber,
+       NULL             AS episodeNumber,
+       NULL             AS episodeTitle,
+       m.release_date   AS date,
+       NULL             AS airTime
+     FROM movies m
+     JOIN ${TRACKED_MOVIES} tracked_movies ON tracked_movies.media_id = m.id
+     WHERE m.release_date >= CURDATE() AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
+     ORDER BY date, showTitle, movieTitle
      LIMIT 100`,
-    [userId, userId, range],
+    [userId, userId, range, userId, userId, range],
   );
   return rows as ScheduleEntry[];
 }

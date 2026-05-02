@@ -8,6 +8,8 @@ export interface Movie {
   backdropPath: string | null;
   runtimeMin: number | null;
   genres: string[];
+  releaseDate?: string | null;
+  tagline?: string | null;
 }
 
 export interface TvShow {

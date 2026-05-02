@@ -5,9 +5,11 @@
 ### API
 - TVDB client to fetch series air time; store `air_time` on episodes via migration 004; backfill utility for existing episodes `072e059`
 - Dashboard schedule endpoint surfaces `air_time` per entry `072e059`
+- Add `release_date` and `tagline` to movies table (migrations 005-006); TMDB client and movies service fetch both fields; dashboard schedule includes upcoming tracked movies `4437ef1`
 
 ### Web
 - Schedule section redesigned: 5-day window, poster columns for first two days, air time display `072e059`
+- Schedule section renders movie entries with tagline; fix schedule window test to reflect 30-day/5-day-content model `4437ef1`
 
 ## May 1, 2026
 

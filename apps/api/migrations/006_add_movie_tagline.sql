@@ -1,0 +1,1 @@
+ALTER TABLE movies ADD COLUMN tagline VARCHAR(500) NULL AFTER overview;

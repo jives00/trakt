@@ -61,6 +61,7 @@ export interface ScheduleItem {
   showTitle?: string;
   movieTmdbId?: number;
   movieTitle?: string;
+  movieTagline?: string | null;
   posterPath: string | null;
   network?: string | null;
   seasonNumber?: number;

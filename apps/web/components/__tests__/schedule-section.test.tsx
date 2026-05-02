@@ -89,15 +89,18 @@ describe("ScheduleSection", () => {
     expect(images.length).toBeGreaterThan(0);
   });
 
-  it("does not show entries more than 5 days away", () => {
+  it("shows at most 5 days of content", () => {
     const entries = [
-      makeEntry({ date: todayStr(), showTitle: "Today" }),
-      makeEntry({ date: daysFromNow(1), showTitle: "Tomorrow" }),
-      makeEntry({ date: daysFromNow(6), showTitle: "Far Future" }),
+      makeEntry({ date: todayStr(), showTitle: "Day 0" }),
+      makeEntry({ date: daysFromNow(1), showTitle: "Day 1" }),
+      makeEntry({ date: daysFromNow(2), showTitle: "Day 2" }),
+      makeEntry({ date: daysFromNow(3), showTitle: "Day 3" }),
+      makeEntry({ date: daysFromNow(4), showTitle: "Day 4" }),
+      makeEntry({ date: daysFromNow(5), showTitle: "Day 5" }),
     ];
     render(<ScheduleSection entries={entries} />);
-    expect(screen.getByText("Today")).toBeInTheDocument();
-    expect(screen.getByText("Tomorrow")).toBeInTheDocument();
-    expect(screen.queryByText("Far Future")).not.toBeInTheDocument();
+    expect(screen.getByText("Day 0")).toBeInTheDocument();
+    expect(screen.getByText("Day 4")).toBeInTheDocument();
+    expect(screen.queryByText("Day 5")).not.toBeInTheDocument();
   });
 });

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { ScheduleItem } from "@trakt/types";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
@@ -62,7 +63,7 @@ function getNextNDaysWithContent(entries: ScheduleItem[], maxDisplay = 7, maxDay
 }
 
 export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
-  const days = getNextNDaysWithContent(entries, 5, 6);
+  const days = getNextNDaysWithContent(entries, 5, 30);
 
   if (days.length === 0) {
     return (
@@ -90,52 +91,76 @@ export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
         Upcoming Schedule
       </h2>
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(7, minmax(0, 1fr))` }}>
-        {/* Interleave poster/info for first 2 days, then info for remaining days */}
-        {[
-          ...days.slice(0, 2).flatMap((day) => {
-            const dayEntries = byDay.get(day) ?? [];
-            const posterEntry = dayEntries[0];
-            const posterPath = posterEntry?.posterPath
-              ? `${TMDB_IMG}w154${posterEntry.posterPath}`
-              : null;
-            return [
-              <div key={`poster-${day}`} className="flex flex-col">
-                <div className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">
-                  {formatDateHeader(day)}
-                </div>
-                {posterPath && (
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10">
-                    <Image
-                      src={posterPath}
-                      alt="Show poster"
-                      fill
-                      className="object-cover"
-                      sizes="80px"
-                    />
-                  </div>
-                )}
-              </div>,
-              <ScheduleColumn
-                key={`info-${day}`}
-                day={day}
-                entries={dayEntries}
-              />,
-            ];
-          }),
-          ...days.slice(2, 5).map((day) => {
-            const dayEntries = byDay.get(day) ?? [];
-            return (
-              <ScheduleColumn
-                key={`info-${day}`}
-                day={day}
-                entries={dayEntries}
-                showHeader={true}
-              />
-            );
-          }),
-        ]}
+        {days.slice(0, 2).map((day) => {
+          const dayEntries = byDay.get(day) ?? [];
+          return <ScheduleDayPair key={day} day={day} entries={dayEntries} />;
+        })}
+        {days.slice(2, 5).map((day) => {
+          const dayEntries = byDay.get(day) ?? [];
+          return (
+            <ScheduleColumn
+              key={`info-${day}`}
+              day={day}
+              entries={dayEntries}
+              showHeader={true}
+            />
+          );
+        })}
       </div>
     </section>
+  );
+}
+
+function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[] }) {
+  const initialPath = entries[0]?.posterPath ? `${TMDB_IMG}w154${entries[0].posterPath}` : null;
+  const [slotA, setSlotA] = useState<string | null>(initialPath);
+  const [slotB, setSlotB] = useState<string | null>(null);
+  const [activeSlot, setActiveSlot] = useState<"a" | "b">("a");
+
+  const handleHover = (i: number) => {
+    const newPath = entries[i]?.posterPath ? `${TMDB_IMG}w154${entries[i].posterPath}` : null;
+    if (activeSlot === "a") {
+      setSlotB(newPath);
+      setActiveSlot("b");
+    } else {
+      setSlotA(newPath);
+      setActiveSlot("a");
+    }
+  };
+
+  const hasPoster = slotA || slotB;
+
+  return (
+    <>
+      <div className="flex flex-col">
+        <div className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">
+          {formatDateHeader(day)}
+        </div>
+        {hasPoster && (
+          <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10">
+            {slotA && (
+              <Image
+                src={slotA}
+                alt="Show poster"
+                fill
+                className={`object-cover absolute inset-0 transition-opacity duration-500 ${activeSlot === "a" ? "opacity-100" : "opacity-0"}`}
+                sizes="80px"
+              />
+            )}
+            {slotB && (
+              <Image
+                src={slotB}
+                alt="Show poster"
+                fill
+                className={`object-cover absolute inset-0 transition-opacity duration-500 ${activeSlot === "b" ? "opacity-100" : "opacity-0"}`}
+                sizes="80px"
+              />
+            )}
+          </div>
+        )}
+      </div>
+      <ScheduleColumn day={day} entries={entries} onHover={handleHover} />
+    </>
   );
 }
 
@@ -143,10 +168,12 @@ function ScheduleColumn({
   day,
   entries,
   showHeader = false,
+  onHover,
 }: {
   day: string;
   entries: ScheduleItem[];
   showHeader?: boolean;
+  onHover?: (i: number) => void;
 }) {
   return (
     <div className="flex flex-col">
@@ -158,7 +185,7 @@ function ScheduleColumn({
 
       <div className={`flex flex-col ${!showHeader ? 'mt-6' : ''}`}>
         {entries.map((entry, i) => (
-          <div key={i}>
+          <div key={i} onMouseEnter={() => onHover?.(i)}>
             {i > 0 && (
               <div className="h-px bg-white/10 my-2" />
             )}
@@ -174,19 +201,19 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
   if (entry.mediaType === "movie") {
     return (
       <Link href={`/movies/${entry.movieTmdbId}`} className="group">
-        <p className="text-lg font-bold text-on-surface group-hover:text-primary-container">
+        <p className="text-lg font-bold leading-tight text-on-surface group-hover:text-primary-container">
           {entry.movieTitle}
         </p>
-        <p className="text-xs text-on-surface-variant">
-          {entry.date}
-        </p>
+        {entry.movieTagline && (
+          <p className="text-xs text-on-surface-variant">{entry.movieTagline}</p>
+        )}
       </Link>
     );
   }
 
   return (
     <Link href={`/shows/${entry.showTmdbId}`} className="group">
-      <p className="text-lg font-bold text-on-surface group-hover:text-primary-container">
+      <p className="text-lg font-bold leading-tight text-on-surface group-hover:text-primary-container mb-1">
         {entry.showTitle}
       </p>
       <p className="text-xs text-on-surface-variant">

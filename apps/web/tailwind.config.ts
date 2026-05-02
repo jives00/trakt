@@ -21,7 +21,7 @@ const config: Config = {
         "surface-container-highest": "#333535",
         "surface-variant": "#333535",
         "on-surface": "#e2e2e2",
-        "on-surface-variant": "#e8bcb9",
+        "on-surface-variant": "#cccccc",
         "inverse-surface": "#e2e2e2",
         "inverse-on-surface": "#2f3131",
         "on-background": "#e2e2e2",
