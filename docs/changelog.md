@@ -13,6 +13,7 @@
 - Genre bar replaced with segmented hover bar + per-segment tooltip + flex-wrap legend; bar is taller `e5cbad2`
 - Rounded corners removed from all art across dashboard (recent cards, up-next posters, schedule posters) `e5cbad2`
 - Recently watched reduced to 3 items (one row) `e5cbad2`
+- Fix schedule section date header font size inconsistency (poster-pair columns now match standalone columns) `30eaebb`
 
 ### Build
 - Fix tsconfig errors: remove unused project references, silence node10 moduleResolution deprecation, add scripts/tsconfig.json to fix api rootDir violation `18b6bf2`

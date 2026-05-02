@@ -133,7 +133,7 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
   return (
     <>
       <div className="flex flex-col">
-        <div className="text-xs font-black uppercase tracking-widest text-on-surface-variant mb-2">
+        <div className="text-sm font-black uppercase tracking-widest text-on-surface-variant mb-2">
           {formatDateHeader(day)}
         </div>
         {hasPoster && (
