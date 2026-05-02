@@ -6,11 +6,13 @@
 - Fix tsconfig errors: remove unused project references, silence node10 moduleResolution deprecation, add scripts/tsconfig.json to fix api rootDir violation `18b6bf2`
 
 ### API
+- Dashboard stats endpoint returns `{ daily, summary, genres }` instead of a bare array; per-day episode/movie counts; 30-day genre aggregation with show deduplication `dac5a0e`
 - TVDB client to fetch series air time; store `air_time` on episodes via migration 004; backfill utility for existing episodes `072e059`
 - Dashboard schedule endpoint surfaces `air_time` per entry `072e059`
 - Add `release_date` and `tagline` to movies table (migrations 005-006); TMDB client and movies service fetch both fields; dashboard schedule includes upcoming tracked movies `4437ef1`
 
 ### Web
+- Last 30 Days: full 30-day bar chart (US Central, missing days = 0), grey/red hover bars, watch-time sub-header, rich per-day tooltip, segmented genre bar with colored vertical lines `dac5a0e`
 - Schedule section redesigned: 5-day window, poster columns for first two days, air time display `072e059`
 - Schedule section renders movie entries with tagline; fix schedule window test to reflect 30-day/5-day-content model `4437ef1`
 

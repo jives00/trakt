@@ -52,6 +52,29 @@ export interface StatsMonth {
 export interface DashboardDailyStats {
   date: string;
   hours: number;
+  episodes: number;
+  movies: number;
+}
+
+export interface DashboardSummary {
+  totalMinutes: number;
+  episodes: number;
+  movies: number;
+  plays: number;
+}
+
+export interface DashboardGenre {
+  genre: string;
+  episodes: number;
+  movies: number;
+  shows: number;
+  plays: number;
+}
+
+export interface DashboardStats {
+  daily: DashboardDailyStats[];
+  summary: DashboardSummary;
+  genres: DashboardGenre[];
 }
 
 export interface RecentItem {

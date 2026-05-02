@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { UpNextItem, ScheduleItem, DashboardDailyStats, RecentItem, StatsAllTime, UserProfile } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, StatsAllTime, UserProfile } from "@trakt/types";
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const { token, isLoading } = useAuth();
   const [upNext, setUpNext] = useState<UpNextItem[]>([]);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
-  const [dailyStats, setDailyStats] = useState<DashboardDailyStats[]>([]);
+  const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [alltime, setAlltime] = useState<StatsAllTime | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -34,7 +34,7 @@ export default function DashboardPage() {
       api.getStatsAllTime(token),
     ])
       .then(([prof, up, sched, stats, recent, at]) => {
-        setProfile(prof); setUpNext(up); setSchedule(sched); setDailyStats(stats);
+        setProfile(prof); setUpNext(up); setSchedule(sched); setDashStats(stats);
         setRecentItems(recent); setAlltime(at);
       })
       .catch(() => setFetchError("Failed to load dashboard."))
@@ -52,7 +52,7 @@ export default function DashboardPage() {
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <ScheduleSection entries={schedule} />
-        <StatsBarChart data={dailyStats} />
+        {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} />}
         <RecentSection items={recentItems} />
         <RecommendationsSection />
       </div>
@@ -168,44 +168,154 @@ function RecPanel({ title }: { title: string }) {
   );
 }
 
-function StatsBarChart({ data }: { data: DashboardDailyStats[] }) {
-  if (data.length === 0) return null;
-  const chartData = data.map((d) => ({
-    date: new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-    hours: Math.round(d.hours * 10) / 10,
-  }));
+function formatWatchTime(totalMinutes: number): string {
+  const d = Math.floor(totalMinutes / 1440);
+  const h = Math.floor((totalMinutes % 1440) / 60);
+  const m = Math.round(totalMinutes % 60);
+  const parts = [];
+  if (d > 0) parts.push(`${d}d`);
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0 || parts.length === 0) parts.push(`${m}m`);
+  return parts.join(" ");
+}
 
-  const topGenres = [
-    { label: "Top Genre", pct: 0 },
-  ];
+const GENRE_COLORS = ["#c0392b","#16a085","#e67e22","#7f5539","#f1c40f","#8e44ad","#2980b9","#c0392b"];
+
+function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[]; summary: DashboardSummary; genres: DashboardGenre[] }) {
+  const [activeBar, setActiveBar] = useState<number | null>(null);
+  // Anchor to today in US Central time, then build a dense 30-day window
+  const centralToday = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Chicago",
+  }).format(new Date()); // "en-CA" → YYYY-MM-DD
+  const [y, m, d] = centralToday.split("-").map(Number);
+  const anchor = Date.UTC(y, m - 1, d);
+
+  const dataMap = new Map(data.map((item) => [item.date.slice(0, 10), item]));
+
+  const chartData = Array.from({ length: 30 }, (_, i) => {
+    const ms = anchor - (29 - i) * 86_400_000;
+    const dt = new Date(ms);
+    const dateStr = dt.toISOString().slice(0, 10);
+    const entry = dataMap.get(dateStr);
+    const totalMinutes = entry ? entry.hours * 60 : 0;
+    return {
+      date: String(dt.getUTCDate()),
+      hours: Math.round((entry?.hours ?? 0) * 10) / 10,
+      totalMinutes,
+      episodes: entry?.episodes ?? 0,
+      movies: entry?.movies ?? 0,
+    };
+  });
+
+  const watchTime = formatWatchTime(summary.totalMinutes);
+  const summaryParts: string[] = [`${watchTime} watched`];
+  if (summary.episodes > 0) {
+    summaryParts.push(`${summary.episodes} episode${summary.episodes !== 1 ? "s" : ""} (${summary.plays} play${summary.plays !== 1 ? "s" : ""})`);
+  }
+  if (summary.movies > 0) {
+    summaryParts.push(`${summary.movies} movie${summary.movies !== 1 ? "s" : ""}`);
+  }
 
   return (
     <section className="flex flex-col gap-4">
-      <SectionHeading>Last 30 Days</SectionHeading>
+      <div>
+        <SectionHeading>Last 30 Days</SectionHeading>
+        {summary.plays > 0 && (
+          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" — ")}</p>
+        )}
+      </div>
       <div className="glass-panel p-5 rounded-xl flex-1">
-        <div className="h-32 mb-5">
+        <div className="h-48 mb-5">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ left: 0, right: 0, bottom: 0 }}>
-              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} interval={Math.floor(chartData.length / 4)} />
+              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} interval={0} />
               <Tooltip
-                contentStyle={{ background: "#181818", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px" }}
-                formatter={(v) => [`${typeof v === "number" ? v : 0}h`, "Hours"]}
+                cursor={false}
+                content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const p = payload[0].payload as typeof chartData[0];
+                  const h = Math.floor(p.totalMinutes / 60);
+                  const m = Math.round(p.totalMinutes % 60);
+                  const time = [h > 0 && `${h}h`, m > 0 && `${m}m`].filter(Boolean).join(" ") || "0m";
+                  return (
+                    <div style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: "1.6" }}>
+                      <div style={{ fontWeight: 700, marginBottom: 4 }}>{time} watched</div>
+                      {p.episodes > 0 && <div style={{ color: "rgba(255,255,255,0.55)" }}>{p.episodes} episode{p.episodes !== 1 ? "s" : ""}</div>}
+                      {p.movies > 0 && <div style={{ color: "rgba(255,255,255,0.55)" }}>{p.movies} movie{p.movies !== 1 ? "s" : ""}</div>}
+                    </div>
+                  );
+                }}
               />
-              <Bar dataKey="hours" fill="#e8002d" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="hours" radius={[3, 3, 0, 0]} onMouseLeave={() => setActiveBar(null)}>
+                {chartData.map((_, i) => (
+                  <Cell
+                    key={i}
+                    fill={activeBar === i ? "#e8002d" : "rgba(255,255,255,0.2)"}
+                    onMouseEnter={() => setActiveBar(i)}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        {topGenres.map((g) => (
-          <div key={g.label}>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-white/40">Genres</span>
-              <span className="text-white font-bold">—</span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full" />
-          </div>
-        ))}
+        {genres.length > 0 && <GenreBar genres={genres} />}
       </div>
     </section>
+  );
+}
+
+function GenreBar({ genres }: { genres: DashboardGenre[] }) {
+  const total = genres.reduce((sum, g) => sum + g.plays, 0);
+  return (
+    <div className="mt-2">
+      {/* Labels row — alternating above/below */}
+      <div className="flex w-full" style={{ height: 56 }}>
+        {genres.map((g, i) => {
+          const pct = (g.plays / total) * 100;
+          const above = i % 2 === 0;
+          return (
+            <div key={g.genre} style={{ width: `${pct}%`, flexShrink: 0 }} className="relative">
+              {above && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 1, background: GENRE_COLORS[i % GENRE_COLORS.length] }} />}
+              {above && (
+                <div className="absolute bottom-0 left-0 pl-2 pr-1 pb-2">
+                  <p className="text-sm font-black uppercase text-white/80 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{g.genre}</p>
+                  {g.episodes > 0 && <p className="text-xs text-white/40 leading-tight">{g.episodes} episode{g.episodes !== 1 ? "s" : ""}</p>}
+                  {g.shows > 0 && <p className="text-xs text-white/40 leading-tight">{g.shows} show{g.shows !== 1 ? "s" : ""}</p>}
+                  {g.movies > 0 && <p className="text-xs text-white/40 leading-tight">{g.movies} movie{g.movies !== 1 ? "s" : ""}</p>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* Segmented bar */}
+      <div className="flex w-full h-6 overflow-hidden">
+        {genres.map((g, i) => {
+          const pct = (g.plays / total) * 100;
+          return <div key={g.genre} style={{ width: `${pct}%`, background: GENRE_COLORS[i % GENRE_COLORS.length], flexShrink: 0, height: "100%" }} />;
+        })}
+      </div>
+      {/* Below labels */}
+      <div className="flex w-full" style={{ height: 44 }}>
+        {genres.map((g, i) => {
+          const pct = (g.plays / total) * 100;
+          const above = i % 2 === 0;
+          return (
+            <div key={g.genre} style={{ width: `${pct}%`, flexShrink: 0 }} className="relative">
+              {!above && <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 1, background: GENRE_COLORS[i % GENRE_COLORS.length] }} />}
+              {!above && (
+                <div className="absolute top-0 left-0 pl-2 pr-1 pt-2">
+                  <p className="text-sm font-black uppercase text-white/80 leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{g.genre}</p>
+                  {g.episodes > 0 && <p className="text-xs text-white/40 leading-tight">{g.episodes} episode{g.episodes !== 1 ? "s" : ""}</p>}
+                  {g.shows > 0 && <p className="text-xs text-white/40 leading-tight">{g.shows} show{g.shows !== 1 ? "s" : ""}</p>}
+                  {g.movies > 0 && <p className="text-xs text-white/40 leading-tight">{g.movies} movie{g.movies !== 1 ? "s" : ""}</p>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

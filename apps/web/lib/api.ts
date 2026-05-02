@@ -5,7 +5,7 @@ import type {
   CollectionItem, WatchlistItem,
   UserList, ListDetail,
   RatingItem,
-  StatsAllTime, StatsYear, StatsMonth, DashboardDailyStats, RecentItem,
+  StatsAllTime, StatsYear, StatsMonth, DashboardStats, RecentItem,
   MovieStatus, ShowStatus, UpNextItem, ScheduleItem,
   UserProfile,
 } from "@trakt/types";
@@ -113,7 +113,7 @@ export const api = {
   getRecentItems: (token: string, limit = 10) =>
     request<RecentItem[]>(`/api/dashboard/recent?limit=${limit}`, { token }),
   getDashboardStats: (token: string) =>
-    request<DashboardDailyStats[]>("/api/dashboard/stats", { token }),
+    request<DashboardStats>("/api/dashboard/stats", { token }),
 
   // History
   getHistory: (token: string, type = "all", page = 1, limit = 20) =>

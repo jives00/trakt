@@ -202,7 +202,9 @@ describe('GET /api/dashboard/stats', () => {
       .get('/api/dashboard/stats')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    expect(res.body.daily).toEqual([]);
+    expect(res.body.summary.plays).toBe(0);
+    expect(res.body.genres).toEqual([]);
   });
 
   it('returns daily hours for recent watch history', async () => {
@@ -216,8 +218,9 @@ describe('GET /api/dashboard/stats', () => {
       .get('/api/dashboard/stats')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body).toHaveLength(1);
-    expect(res.body[0]).toHaveProperty('date');
-    expect(res.body[0].hours).toBeGreaterThan(0);
+    expect(res.body.daily).toHaveLength(1);
+    expect(res.body.daily[0]).toHaveProperty('date');
+    expect(res.body.daily[0].hours).toBeGreaterThan(0);
+    expect(res.body.summary.plays).toBe(1);
   });
 });

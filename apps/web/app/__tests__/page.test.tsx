@@ -58,7 +58,7 @@ describe("DashboardPage", () => {
     mockGetProfile.mockResolvedValue({ id: 1, username: "testuser", displayName: "Test User" });
     mockGetUpNext.mockResolvedValue([]);
     mockGetSchedule.mockResolvedValue([]);
-    mockGetDashboardStats.mockResolvedValue([]);
+    mockGetDashboardStats.mockResolvedValue({ daily: [], summary: { totalMinutes: 0, episodes: 0, movies: 0, plays: 0 }, genres: [] });
     mockGetRecentItems.mockResolvedValue([]);
     mockGetStatsAllTime.mockResolvedValue({ totalMinutes: 0, totalShows: 0, totalMovies: 0, totalEpisodes: 0, longestStreak: 0, topShows: [], topGenres: [], heatmap: [] });
 
