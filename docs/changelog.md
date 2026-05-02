@@ -2,6 +2,9 @@
 
 ## May 2, 2026
 
+### Build
+- Fix tsconfig errors: remove unused project references, silence node10 moduleResolution deprecation, add scripts/tsconfig.json to fix api rootDir violation `18b6bf2`
+
 ### API
 - TVDB client to fetch series air time; store `air_time` on episodes via migration 004; backfill utility for existing episodes `072e059`
 - Dashboard schedule endpoint surfaces `air_time` per entry `072e059`
