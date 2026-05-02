@@ -12,46 +12,48 @@ export default function IntegrationsPage() {
   const [showKey, setShowKey] = useState(false);
 
   return (
-    <div>
-      <header className="mb-8">
-        <h1 className="text-h1 font-black tracking-tight text-white mb-1">Integrations</h1>
-        <p className="text-white/40">Set up scrobbling from your media players.</p>
-      </header>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8">
+          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Integrations</h1>
+          <p className="text-white/40">Set up scrobbling from your media players.</p>
+        </header>
 
-      {/* Tab switcher */}
-      <div className="flex bg-[#181818] p-1 rounded-xl border border-white/5 w-fit mb-8">
-        {(["emby", "stremio"] as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-              tab === t ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
-            }`}
-          >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* API key display */}
-      <div className="glass-panel rounded-xl p-5 mb-8">
-        <h3 className="font-bold text-white mb-1">API Key</h3>
-        <p className="text-xs text-white/40 mb-3">Use this key in the <code className="text-[#e8002d]">X-Api-Key</code> header for all integrations.</p>
-        <div className="flex items-center gap-3 bg-[#181818] rounded-lg px-4 py-2 border border-white/10">
-          <code className="text-sm text-white/60 flex-grow font-mono tracking-widest">
-            {showKey ? SCROBBLE_KEY : "••••••••••••••••••••••••"}
-          </code>
-          <button
-            onClick={() => setShowKey((s) => !s)}
-            className="material-symbols-outlined text-white/40 hover:text-white transition-colors text-base"
-          >
-            {showKey ? "visibility_off" : "visibility"}
-          </button>
+        {/* Tab switcher */}
+        <div className="flex bg-[#181818] p-1 rounded-xl border border-white/5 w-fit mb-8">
+          {(["emby", "stremio"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                tab === t ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
+              }`}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
         </div>
-      </div>
 
-      {tab === "emby" && <EmbyGuide baseUrl={BASE_URL} />}
-      {tab === "stremio" && <StremioGuide baseUrl={BASE_URL} />}
+        {/* API key display */}
+        <div className="glass-panel rounded-xl p-5 mb-8">
+          <h3 className="font-bold text-white mb-1">API Key</h3>
+          <p className="text-xs text-white/40 mb-3">Use this key in the <code className="text-[#e8002d]">X-Api-Key</code> header for all integrations.</p>
+          <div className="flex items-center gap-3 bg-[#181818] rounded-lg px-4 py-2 border border-white/10">
+            <code className="text-sm text-white/60 flex-grow font-mono tracking-widest">
+              {showKey ? SCROBBLE_KEY : "••••••••••••••••••••••••"}
+            </code>
+            <button
+              onClick={() => setShowKey((s) => !s)}
+              className="material-symbols-outlined text-white/40 hover:text-white transition-colors text-base"
+            >
+              {showKey ? "visibility_off" : "visibility"}
+            </button>
+          </div>
+        </div>
+
+        {tab === "emby" && <EmbyGuide baseUrl={BASE_URL} />}
+        {tab === "stremio" && <StremioGuide baseUrl={BASE_URL} />}
+      </div>
     </div>
   );
 }

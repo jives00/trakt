@@ -30,41 +30,43 @@ export default function CollectionPage() {
   if (error) return <p className="text-error">{error}</p>;
 
   return (
-    <div>
-      <header className="mb-8">
-        <h1 className="text-h1 font-black tracking-tight text-white mb-1">Collection</h1>
-        <p className="text-white/40">{items.length} item{items.length !== 1 ? "s" : ""} collected.</p>
-      </header>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8">
+          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Collection</h1>
+          <p className="text-white/40">{items.length} item{items.length !== 1 ? "s" : ""} collected.</p>
+        </header>
 
-      <div className="flex gap-2 mb-8">
-        {(["all", "movie", "show"] as FilterType[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-              filter === f
-                ? "bg-[#e8002d] text-white"
-                : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
-            }`}
-          >
-            {f === "all" ? "All" : f === "movie" ? "Movies" : "Shows"}
-          </button>
-        ))}
-      </div>
-
-      {fetching && <p className="text-white/40">Loading…</p>}
-
-      {!fetching && items.length === 0 && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">video_library</span>
-          <p className="text-white/40">Your collection is empty.</p>
+        <div className="flex gap-2 mb-8">
+          {(["all", "movie", "show"] as FilterType[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                filter === f
+                  ? "bg-[#e8002d] text-white"
+                  : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+              }`}
+            >
+              {f === "all" ? "All" : f === "movie" ? "Movies" : "Shows"}
+            </button>
+          ))}
         </div>
-      )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {items.map((item) => (
-          <CollectionCard key={item.id} item={item} />
-        ))}
+        {fetching && <p className="text-white/40">Loading…</p>}
+
+        {!fetching && items.length === 0 && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">video_library</span>
+            <p className="text-white/40">Your collection is empty.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {items.map((item) => (
+            <CollectionCard key={item.id} item={item} />
+          ))}
+        </div>
       </div>
     </div>
   );

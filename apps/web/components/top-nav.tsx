@@ -45,7 +45,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/5 bg-[#0f0f0f]/80 backdrop-blur-2xl">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/20 bg-[#0f0f0f]/80 backdrop-blur-2xl">
       <div className="flex h-full items-center justify-between px-8 gap-8">
         {/* Left: Logo + Search Bar */}
         <div className="flex items-center gap-6 flex-1 min-w-0">

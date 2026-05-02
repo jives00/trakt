@@ -58,67 +58,69 @@ export default function RatingsPage() {
   if (error) return <p className="text-error">{error}</p>;
 
   return (
-    <div>
-      <header className="mb-8">
-        <h1 className="text-h1 font-black tracking-tight text-white mb-1">Ratings</h1>
-        <p className="text-white/40">{total} item{total !== 1 ? "s" : ""} rated.</p>
-      </header>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8">
+          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Ratings</h1>
+          <p className="text-white/40">{total} item{total !== 1 ? "s" : ""} rated.</p>
+        </header>
 
-      <div className="flex flex-wrap gap-2 mb-8">
-        <div className="flex gap-1">
-          {(["all", "movie", "show", "episode"] as FilterType[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
-              }`}
-            >
-              {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1) + "s"}
-            </button>
+        <div className="flex flex-wrap gap-2 mb-8">
+          <div className="flex gap-1">
+            {(["all", "movie", "show", "episode"] as FilterType[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                  filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                }`}
+              >
+                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1) + "s"}
+              </button>
+            ))}
+          </div>
+          <div className="ml-auto flex gap-1">
+            {(["date", "rating"] as SortType[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => setSort(s)}
+                className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                  sort === s ? "bg-[#181818] text-white border border-white/30" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                }`}
+              >
+                {s === "date" ? "By Date" : "By Rating"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {fetching && items.length === 0 && <p className="text-white/40">Loading…</p>}
+
+        {!fetching && items.length === 0 && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">star</span>
+            <p className="text-white/40">No ratings yet.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {items.map((item) => (
+            <RatingCard key={item.id} item={item} onDelete={() => handleDelete(item)} />
           ))}
         </div>
-        <div className="ml-auto flex gap-1">
-          {(["date", "rating"] as SortType[]).map((s) => (
+
+        {items.length < total && (
+          <div className="flex justify-center mt-8">
             <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                sort === s ? "bg-[#181818] text-white border border-white/30" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
-              }`}
+              onClick={loadMore}
+              disabled={fetching}
+              className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
             >
-              {s === "date" ? "By Date" : "By Rating"}
+              {fetching ? "Loading…" : "Load More"}
             </button>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
-
-      {fetching && items.length === 0 && <p className="text-white/40">Loading…</p>}
-
-      {!fetching && items.length === 0 && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">star</span>
-          <p className="text-white/40">No ratings yet.</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {items.map((item) => (
-          <RatingCard key={item.id} item={item} onDelete={() => handleDelete(item)} />
-        ))}
-      </div>
-
-      {items.length < total && (
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={loadMore}
-            disabled={fetching}
-            className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
-          >
-            {fetching ? "Loading…" : "Load More"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }

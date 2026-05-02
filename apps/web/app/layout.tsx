@@ -15,9 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <TopNav />
           <main className="pt-16 min-h-screen flex flex-col">
-            <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
-              {children}
-            </div>
+            {children}
             <footer className="bg-black border-t border-white/5 mt-12">
               <div className="max-w-page mx-auto px-margin-page py-10 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div className="flex flex-col items-center md:items-start gap-1">

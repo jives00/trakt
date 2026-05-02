@@ -48,57 +48,59 @@ export default function ProgressPage() {
   const rest = items.slice(1);
 
   return (
-    <div>
-      <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Watching Progress</h1>
-          <p className="text-white/40">
-            {items.length > 0 ? `${items.length} show${items.length === 1 ? "" : "s"} in progress` : "No shows in progress."}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {(["all", "airing", "ended"] as FilterStatus[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
-              }`}
-            >
-              {f === "all" ? "All" : f === "airing" ? "Currently Airing" : "Ended"}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      {fetching && <p className="text-white/40">Loading…</p>}
-
-      {!fetching && items.length === 0 && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">trending_up</span>
-          <p className="text-white/40">No in-progress shows.</p>
-        </div>
-      )}
-
-      {!fetching && featured && (
-        <>
-          {/* Bento Layout: Featured + Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
-            <FeaturedCard item={featured} />
-            <QuickStatsPanel items={items} />
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-h1 font-black tracking-tight text-white mb-1">Watching Progress</h1>
+            <p className="text-white/40">
+              {items.length > 0 ? `${items.length} show${items.length === 1 ? "" : "s"} in progress` : "No shows in progress."}
+            </p>
           </div>
+          <div className="flex gap-2">
+            {(["all", "airing", "ended"] as FilterStatus[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                  filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                }`}
+              >
+                {f === "all" ? "All" : f === "airing" ? "Currently Airing" : "Ended"}
+              </button>
+            ))}
+          </div>
+        </header>
 
-          {/* Progress Grid */}
-          {rest.length > 0 && (
-            <div>
-              <h3 className="text-h3 font-bold text-white mb-6">Currently Tracking</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-                {rest.map((item) => <ProgressCard key={item.showId} item={item} />)}
-              </div>
+        {fetching && <p className="text-white/40">Loading…</p>}
+
+        {!fetching && items.length === 0 && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">trending_up</span>
+            <p className="text-white/40">No in-progress shows.</p>
+          </div>
+        )}
+
+        {!fetching && featured && (
+          <>
+            {/* Bento Layout: Featured + Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+              <FeaturedCard item={featured} />
+              <QuickStatsPanel items={items} />
             </div>
-          )}
-        </>
-      )}
+
+            {/* Progress Grid */}
+            {rest.length > 0 && (
+              <div>
+                <h3 className="text-h3 font-bold text-white mb-6">Currently Tracking</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                  {rest.map((item) => <ProgressCard key={item.showId} item={item} />)}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

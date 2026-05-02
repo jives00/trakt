@@ -52,17 +52,19 @@ export default function DashboardPage() {
   const username = token ? usernameFromToken(token) : "there";
 
   return (
-    <div className="flex flex-col gap-stack-lg">
+    <div className="flex flex-col flex-1">
       <HeroSection username={username} alltime={alltime} />
-      <UpNextSection items={upNext} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-        <div className="lg:col-span-2">
-          <ScheduleSection entries={schedule} />
+      <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
+        <UpNextSection items={upNext} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+          <div className="lg:col-span-2">
+            <ScheduleSection entries={schedule} />
+          </div>
+          <StatsBarChart data={dailyStats} />
         </div>
-        <StatsBarChart data={dailyStats} />
+        <RecentSection items={recentItems} />
+        <RecommendationsSection />
       </div>
-      <RecentSection items={recentItems} />
-      <RecommendationsSection />
     </div>
   );
 }
@@ -70,30 +72,32 @@ export default function DashboardPage() {
 function HeroSection({ username, alltime }: { username: string; alltime: StatsAllTime | null }) {
   const daysWatched = alltime ? Math.round(alltime.totalMinutes / 1440) : 0;
   return (
-    <section className="relative overflow-hidden rounded-xl bg-surface-container-low p-8 md:p-12">
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: `url('/trakt-pattern.jpg')`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: 'auto',
-          backgroundAttachment: 'fixed',
-          filter: 'blur(3px) brightness(0.6)',
-        }}
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
-      <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
-        <div>
-          <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
-          {alltime && (
-            <div className="flex gap-8 md:gap-12">
-              <Stat label="Shows Collected" value={alltime.totalShows.toLocaleString()} />
-              <Stat label="Episodes Watched" value={alltime.totalEpisodes.toLocaleString()} />
-              <Stat label="Days Watched" value={daysWatched.toLocaleString()} />
-            </div>
-          )}
+    <section className="relative overflow-hidden bg-surface-container-low">
+      <div className="px-margin-page py-12 md:py-16">
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url('/trakt-pattern.jpg')`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'auto',
+            backgroundAttachment: 'fixed',
+            filter: 'blur(3px) brightness(0.6)',
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
+          <div>
+            <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
+            {alltime && (
+              <div className="flex gap-8 md:gap-12">
+                <Stat label="Shows Collected" value={alltime.totalShows.toLocaleString()} />
+                <Stat label="Episodes Watched" value={alltime.totalEpisodes.toLocaleString()} />
+                <Stat label="Days Watched" value={daysWatched.toLocaleString()} />
+              </div>
+            )}
+          </div>
+            {/* Now Playing card — renders only when scrobble is active (Phase 2+) */}
         </div>
-        {/* Now Playing card — renders only when scrobble is active (Phase 2+) */}
       </div>
     </section>
   );

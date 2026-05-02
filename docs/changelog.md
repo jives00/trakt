@@ -11,6 +11,7 @@
 ### Web
 - Add --skip-tests flag to /commit command; add public assets `5ae8364`
 - Fix search results auto-execution when navigating from top nav; fix ScheduleSection timezone handling for local 'Today' label `78b2138`
+- Dashboard hero banner full-width; improve top nav separator line styling `d6e3140`
 
 ## April 30, 2026
 

@@ -57,66 +57,68 @@ export default function CalendarPage() {
   const groups = groupByDate(entries);
 
   return (
-    <div>
-      <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <span className="text-[#e8002d] text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
-          <h1 className="text-h1 font-black tracking-tight text-white">UPCOMING SCHEDULE</h1>
-        </div>
-        <div className="flex gap-3 items-center">
-          <div className="flex bg-[#181818] p-1 rounded-xl border border-white/5">
-            {(["all", "tv", "movie"] as ContentType[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                  filter === f ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
-                }`}
-              >
-                {f === "all" ? "All" : f === "tv" ? "Episodes" : "Movies"}
-              </button>
-            ))}
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <span className="text-[#e8002d] text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
+            <h1 className="text-h1 font-black tracking-tight text-white">UPCOMING SCHEDULE</h1>
           </div>
-          <select
-            value={range}
-            onChange={(e) => setRange(Number(e.target.value))}
-            className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-[#e8002d] transition-colors"
-          >
-            <option value={7}>Next 7 days</option>
-            <option value={14}>Next 14 days</option>
-            <option value={30}>Next 30 days</option>
-            <option value={90}>Next 90 days</option>
-          </select>
+          <div className="flex gap-3 items-center">
+            <div className="flex bg-[#181818] p-1 rounded-xl border border-white/5">
+              {(["all", "tv", "movie"] as ContentType[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+                    filter === f ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
+                  }`}
+                >
+                  {f === "all" ? "All" : f === "tv" ? "Episodes" : "Movies"}
+                </button>
+              ))}
+            </div>
+            <select
+              value={range}
+              onChange={(e) => setRange(Number(e.target.value))}
+              className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-[#e8002d] transition-colors"
+            >
+              <option value={7}>Next 7 days</option>
+              <option value={14}>Next 14 days</option>
+              <option value={30}>Next 30 days</option>
+              <option value={90}>Next 90 days</option>
+            </select>
+          </div>
+        </header>
+
+        {fetching && <p className="text-white/40">Loading…</p>}
+
+        {!fetching && groups.length === 0 && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">calendar_today</span>
+            <p className="text-white/40">Nothing scheduled in this period.</p>
+          </div>
+        )}
+
+        <div className="space-y-12">
+          {groups.map(([dateStr, dayEntries]) => {
+            const { label, sub } = formatDateHeader(dateStr);
+            return (
+              <section key={dateStr}>
+                <div className="flex items-center gap-4 mb-6">
+                  <h2 className="text-h2 font-bold text-white">{label}</h2>
+                  <span className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+                  <span className="text-white/40 text-label-sm uppercase tracking-widest">{sub}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {dayEntries.map((entry, i) => (
+                    <CalendarCard key={`${entry.showTmdbId}-${entry.seasonNumber}-${entry.episodeNumber}-${i}`} entry={entry} />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </div>
-      </header>
-
-      {fetching && <p className="text-white/40">Loading…</p>}
-
-      {!fetching && groups.length === 0 && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">calendar_today</span>
-          <p className="text-white/40">Nothing scheduled in this period.</p>
-        </div>
-      )}
-
-      <div className="space-y-12">
-        {groups.map(([dateStr, dayEntries]) => {
-          const { label, sub } = formatDateHeader(dateStr);
-          return (
-            <section key={dateStr}>
-              <div className="flex items-center gap-4 mb-6">
-                <h2 className="text-h2 font-bold text-white">{label}</h2>
-                <span className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
-                <span className="text-white/40 text-label-sm uppercase tracking-widest">{sub}</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                {dayEntries.map((entry, i) => (
-                  <CalendarCard key={`${entry.showTmdbId}-${entry.seasonNumber}-${entry.episodeNumber}-${i}`} entry={entry} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
       </div>
     </div>
   );

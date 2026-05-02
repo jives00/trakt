@@ -43,65 +43,67 @@ export default function ListsPage() {
   if (error) return <p className="text-error">{error}</p>;
 
   return (
-    <div>
-      <header className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Lists</h1>
-          <p className="text-white/40">{lists.length} list{lists.length !== 1 ? "s" : ""}.</p>
-        </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#c8001e] transition-colors"
-        >
-          <span className="material-symbols-outlined text-base">add</span>
-          New List
-        </button>
-      </header>
-
-      {creating && (
-        <form onSubmit={handleCreate} className="glass-panel rounded-xl p-5 mb-6">
-          <h3 className="font-bold text-white mb-4">New List</h3>
-          <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              placeholder="List name"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
-              autoFocus
-            />
-            <input
-              type="text"
-              placeholder="Description (optional)"
-              value={newDesc}
-              onChange={(e) => setNewDesc(e.target.value)}
-              className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
-            />
-            <div className="flex gap-2">
-              <button type="submit" className="px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest">
-                Create
-              </button>
-              <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 rounded-lg bg-[#181818] text-white/60 border border-white/10 text-xs font-bold uppercase tracking-widest">
-                Cancel
-              </button>
-            </div>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8 flex items-end justify-between gap-4">
+          <div>
+            <h1 className="text-h1 font-black tracking-tight text-white mb-1">Lists</h1>
+            <p className="text-white/40">{lists.length} list{lists.length !== 1 ? "s" : ""}.</p>
           </div>
-        </form>
-      )}
+          <button
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#c8001e] transition-colors"
+          >
+            <span className="material-symbols-outlined text-base">add</span>
+            New List
+          </button>
+        </header>
 
-      {fetching && <p className="text-white/40">Loading…</p>}
+        {creating && (
+          <form onSubmit={handleCreate} className="glass-panel rounded-xl p-5 mb-6">
+            <h3 className="font-bold text-white mb-4">New List</h3>
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                placeholder="List name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
+                autoFocus
+              />
+              <input
+                type="text"
+                placeholder="Description (optional)"
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
+              />
+              <div className="flex gap-2">
+                <button type="submit" className="px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest">
+                  Create
+                </button>
+                <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 rounded-lg bg-[#181818] text-white/60 border border-white/10 text-xs font-bold uppercase tracking-widest">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
 
-      {!fetching && lists.length === 0 && !creating && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">format_list_bulleted</span>
-          <p className="text-white/40">No lists yet. Create one to get started.</p>
+        {fetching && <p className="text-white/40">Loading…</p>}
+
+        {!fetching && lists.length === 0 && !creating && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">format_list_bulleted</span>
+            <p className="text-white/40">No lists yet. Create one to get started.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {lists.map((list) => (
+            <ListCard key={list.id} list={list} onDelete={() => handleDelete(list.id)} />
+          ))}
         </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {lists.map((list) => (
-          <ListCard key={list.id} list={list} onDelete={() => handleDelete(list.id)} />
-        ))}
       </div>
     </div>
   );

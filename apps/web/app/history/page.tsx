@@ -95,7 +95,8 @@ export default function HistoryPage() {
   const hasMore = items.length < total;
 
   return (
-    <div>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
       <header className="mb-8">
         <h1 className="text-h1 font-black tracking-tight text-white mb-1">History</h1>
         <p className="text-white/40">Your cinematic journey, chronologically curated.</p>
@@ -157,6 +158,7 @@ export default function HistoryPage() {
           <p className="text-white/40">No watch history yet.</p>
         </div>
       )}
+      </div>
     </div>
   );
 }

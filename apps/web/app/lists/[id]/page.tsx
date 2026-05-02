@@ -34,28 +34,30 @@ export default function ListDetailPage() {
   if (!list) return <p className="text-white/40">Loading…</p>;
 
   return (
-    <div>
-      <header className="mb-8">
-        <Link href="/lists" className="flex items-center gap-1 text-xs text-white/40 hover:text-white mb-4 transition-colors">
-          <span className="material-symbols-outlined text-base">arrow_back</span>
-          All Lists
-        </Link>
-        <h1 className="text-h1 font-black tracking-tight text-white mb-1">{list.name}</h1>
-        {list.description && <p className="text-white/40">{list.description}</p>}
-        <p className="text-xs text-white/40 mt-1">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</p>
-      </header>
+    <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
+      <div>
+        <header className="mb-8">
+          <Link href="/lists" className="flex items-center gap-1 text-xs text-white/40 hover:text-white mb-4 transition-colors">
+            <span className="material-symbols-outlined text-base">arrow_back</span>
+            All Lists
+          </Link>
+          <h1 className="text-h1 font-black tracking-tight text-white mb-1">{list.name}</h1>
+          {list.description && <p className="text-white/40">{list.description}</p>}
+          <p className="text-xs text-white/40 mt-1">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</p>
+        </header>
 
-      {list.items.length === 0 && (
-        <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">playlist_add</span>
-          <p className="text-white/40">This list is empty.</p>
+        {list.items.length === 0 && (
+          <div className="text-center py-24">
+            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">playlist_add</span>
+            <p className="text-white/40">This list is empty.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {list.items.map((item) => (
+            <ListItemCard key={item.id} item={item} onRemove={() => handleRemove(item)} />
+          ))}
         </div>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {list.items.map((item) => (
-          <ListItemCard key={item.id} item={item} onRemove={() => handleRemove(item)} />
-        ))}
       </div>
     </div>
   );
