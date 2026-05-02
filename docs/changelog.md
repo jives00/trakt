@@ -2,6 +2,9 @@
 
 ## May 1, 2026
 
+### Build
+- Root tsconfig with workspace references for monorepo; api and types packages extend from root config `f18e75f`
+
 ### API
 - Search route and TMDB client improvements, user-media service fixes `2282f7f`
 
