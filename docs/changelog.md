@@ -1,5 +1,13 @@
 # Changelog
 
+## May 3, 2026
+
+### API
+- Add POST/DELETE /shows/:tmdbId/watched for bulk marking all episodes watched/unwatched; extend ShowStatus with watched flag `6d96737`
+
+### Web
+- Show detail page: remove watchlist/collection from hero, move status to metadata section, add full-width Mark Watched toggle to sidebar, remove year/seasons sidebar rows `6d96737`
+
 ## May 2, 2026
 
 ### API

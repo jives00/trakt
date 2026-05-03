@@ -4,6 +4,7 @@ import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
+  markShowWatched, unmarkShowWatched,
 } from '../services/user-media.service';
 
 function userId(request: FastifyRequest): number {
@@ -59,6 +60,18 @@ export async function showsRoutes(app: FastifyInstance) {
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
     await unmarkEpisodeWatched(userId(request), episodeId);
     return { watched: false, episodeId };
+  });
+
+  app.post('/shows/:tmdbId/watched', auth, async (request: FastifyRequest) => {
+    const show = await getOrFetchShow(Number(params(request).tmdbId));
+    await markShowWatched(userId(request), show.id);
+    return { watched: true };
+  });
+
+  app.delete('/shows/:tmdbId/watched', auth, async (request: FastifyRequest) => {
+    const show = await getOrFetchShow(Number(params(request).tmdbId));
+    await unmarkShowWatched(userId(request), show.id);
+    return { watched: false };
   });
 
   app.post('/shows/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {

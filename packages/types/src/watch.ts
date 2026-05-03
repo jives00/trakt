@@ -39,6 +39,7 @@ export interface MovieStatus {
 export interface ShowStatus {
   inWatchlist: boolean;
   inCollection: boolean;
+  watched: boolean;
 }
 
 export interface UpNextItem {

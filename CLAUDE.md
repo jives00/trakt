@@ -9,7 +9,7 @@ Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch
 ## Directory Map
 
 ```
-apps/api/             Fastify API server (Node 24, TypeScript)
+apps/api/             Fastify API server (Node 24, TypeScript)           
   - src/routes/       Route handlers
   - src/services/    Business logic
 apps/web/             Next.js 14 web app (App Router, Tailwind, shadcn/ui)
@@ -18,7 +18,7 @@ apps/stremio-addon/   Stremio addon server (Node.js, port 7000)
 apps/kodi-addon/      Kodi Python addon — sideloaded, not a Docker service
 packages/types/       Shared TypeScript types and Zod schemas (single source of truth for DTOs and DB models)
 plans/                Architecture and implementation plan
-docs/                 Screenshots and reference images
+docs/                 Documentation, screenshots, and design guidelines
 ```
 
 ---
@@ -87,6 +87,10 @@ NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewri
 - All DTOs and DB model types live in `packages/types/`. Read one file there to understand any data shape.
 - No barrel re-exports unless necessary.
 
+## Design Guidelines
+
+Refer to [docs/DESIGN.md](docs/DESIGN.md) for the project's visual identity, color palette, and UI/UX principles. All web and mobile development should adhere to these standards.
+
 ## Development Workflow
 
 Common `pnpm` commands:
@@ -144,13 +148,3 @@ Transform tasks into verifiable goals before starting. For multi-step tasks, sta
 - No large comments or docstrings (coding standards already enforce this). Comments add tokens Claude has to read without adding information good names don't already carry.
 - Short files. If a file exceeds ~150 lines, it's probably doing too much — split it. Claude reads the whole file to understand any part of it.
 - No speculative abstractions (also in coding standards). A helper used once is dead weight Claude has to read and reason about.
-
----
-
-## Keeping Token Use Low
-
-- Use `/clear` between unrelated tasks.
-- Reference specific files and line numbers — never ask Claude to "find where X is handled."
-- Break large features into small focused tasks (one route, one component, one migration per task).
-- Use plan mode for anything touching more than 2–3 files.
-- State what you already know about the data shape or DB schema so Claude skips reading it.

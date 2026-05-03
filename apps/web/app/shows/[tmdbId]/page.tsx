@@ -119,6 +119,11 @@ export default function ShowDetailPage() {
     setStatus((s) => s && { ...s, inCollection: res.inCollection });
   }
 
+  async function handleWatched() {
+    const res = await api.toggleShowWatched(Number(tmdbId), status!.watched, token!);
+    setStatus((s) => s && { ...s, watched: res.watched });
+  }
+
   async function handleRating(r: number) {
     if (!token) return;
     setRating(r);
@@ -176,28 +181,8 @@ export default function ShowDetailPage() {
                 </div>
                 <h1 className="text-h1 font-black text-white mb-3 drop-shadow-2xl">{show.title}</h1>
                 {show.overview && (
-                  <p className="text-body-sm text-white/70 mb-6 line-clamp-3">{show.overview}</p>
+                  <p className="text-body-sm text-white/70 line-clamp-3">{show.overview}</p>
                 )}
-                <div className="flex items-center gap-4 flex-wrap">
-                  <button
-                    onClick={handleWatchlist}
-                    className={`px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg ${
-                      status.inWatchlist
-                        ? "bg-[#e8002d] text-white shadow-[#e8002d]/30"
-                        : "bg-[#e8002d] text-white shadow-[#e8002d]/20 hover:shadow-[#e8002d]/40"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
-                    {status.inWatchlist ? "In Watchlist" : "Watchlist"}
-                  </button>
-                  <button
-                    onClick={handleCollection}
-                    className="bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-white font-bold px-8 py-3 rounded-xl flex items-center gap-2 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-sm">library_add</span>
-                    {status.inCollection ? "In Collection" : "Collection"}
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -210,6 +195,12 @@ export default function ShowDetailPage() {
 
             {/* Metadata */}
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+              {show.status && (
+                <div>
+                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-[#e8002d] font-bold">{show.status}</p>
+                </div>
+              )}
               {airsOnParts.length > 0 && (
                 <div>
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
@@ -379,6 +370,15 @@ export default function ShowDetailPage() {
                     <span className="material-symbols-outlined text-sm">library_add</span>
                     {status.inCollection ? "Collected" : "Collect"}
                   </button>
+                  <button
+                    onClick={handleWatched}
+                    className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                      status.watched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
+                    {status.watched ? "Watched" : "Mark Watched"}
+                  </button>
                 </div>
               </div>
 
@@ -390,25 +390,6 @@ export default function ShowDetailPage() {
                       <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 pt-4 space-y-3 text-xs">
-                {show.status && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/40">Status</span>
-                    <span className="text-[#e8002d] font-bold bg-[#e8002d]/10 px-2 py-0.5 rounded">{show.status}</span>
-                  </div>
-                )}
-                {show.year > 0 && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-white/40">Year</span>
-                    <span className="text-white">{show.year}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-white/40">Seasons</span>
-                  <span className="text-white">{show.seasonCount}</span>
                 </div>
               </div>
 

@@ -96,6 +96,10 @@ export const api = {
       `/api/shows/${tmdbId}/seasons/${season}/episodes/${ep}/watched`,
       { method: watched ? "DELETE" : "POST", token },
     ),
+  toggleShowWatched: (tmdbId: number, watched: boolean, token: string) =>
+    request<{ watched: boolean }>(`/api/shows/${tmdbId}/watched`, {
+      method: watched ? "DELETE" : "POST", token,
+    }),
   toggleShowWatchlist: (tmdbId: number, inWatchlist: boolean, token: string) =>
     request<{ inWatchlist: boolean }>(`/api/shows/${tmdbId}/watchlist`, {
       method: inWatchlist ? "DELETE" : "POST", token,

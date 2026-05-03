@@ -21,15 +21,36 @@ export async function getMovieStatus(userId: number, movieId: number) {
 
 export async function getShowStatus(userId: number, showId: number) {
   const pool = getPool();
-  const [[wl], [col]] = await Promise.all([
+  const [[wl], [col], [hist]] = await Promise.all([
     pool.query<RowDataPacket[]>(
       'SELECT id FROM watchlist WHERE user_id=? AND media_type="show" AND media_id=?', [userId, showId],
     ),
     pool.query<RowDataPacket[]>(
       'SELECT id FROM collection WHERE user_id=? AND media_type="show" AND media_id=?', [userId, showId],
     ),
+    pool.query<RowDataPacket[]>(
+      `SELECT wh.id FROM watch_history wh JOIN episodes e ON wh.media_id=e.id
+       WHERE wh.user_id=? AND wh.media_type="episode" AND e.show_id=? LIMIT 1`,
+      [userId, showId],
+    ),
   ]);
-  return { inWatchlist: wl.length > 0, inCollection: col.length > 0 };
+  return { inWatchlist: wl.length > 0, inCollection: col.length > 0, watched: hist.length > 0 };
+}
+
+export async function markShowWatched(userId: number, showId: number) {
+  await getPool().query(
+    `INSERT IGNORE INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
+     SELECT ?, 'episode', id, NOW(), 100, 'manual' FROM episodes WHERE show_id=?`,
+    [userId, showId],
+  );
+}
+
+export async function unmarkShowWatched(userId: number, showId: number) {
+  await getPool().query(
+    `DELETE wh FROM watch_history wh JOIN episodes e ON wh.media_id=e.id
+     WHERE wh.user_id=? AND wh.media_type="episode" AND e.show_id=?`,
+    [userId, showId],
+  );
 }
 
 export async function toggleWatchlist(userId: number, mediaType: MediaType, mediaId: number) {
