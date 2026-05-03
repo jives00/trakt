@@ -3,7 +3,11 @@
 ## May 2, 2026
 
 ### API
+- Add /cast, /up-next, /recent-episodes show routes; fetchShowCast from TMDB aggregate_credits; getShowUpNext and getShowRecentEpisodes services; migration 007 for metadata/cast columns; dateStrings: true fix for DATE columns `2093eed`
 - Fix up-next query to surface episode after most recently watched, not globally lowest unwatched `67b3a3c`
+
+### Web
+- Show detail page redesign: metadata grid, episode highlights (Up Next + 2 recently aired), cast tabs (Series Regulars / Guest Stars), overflow-x-hidden hero fix, runtime fallback from episodes table `2093eed`
 
 ### Web
 - Schedule section: increase divider padding between same-day entries `67b3a3c`

@@ -19,6 +19,10 @@ vi.mock("@/lib/api", () => ({
     toggleShowWatchlist: vi.fn().mockResolvedValue({ inWatchlist: true }),
     toggleShowCollection: vi.fn().mockResolvedValue({ inCollection: true }),
     toggleEpisodeWatched: vi.fn().mockResolvedValue({ watched: true }),
+    getShowUpNext: vi.fn().mockResolvedValue({ episode: null }),
+    getShowRecentEpisodes: vi.fn().mockResolvedValue({ episodes: [] }),
+    getShowCast: vi.fn().mockResolvedValue({ cast: [] }),
+    upsertRating: vi.fn().mockResolvedValue({}),
   },
 }));
 
@@ -56,7 +60,7 @@ describe("ShowDetailPage", () => {
 
     await waitFor(() => expect(screen.getByText("Breaking Bad")).toBeInTheDocument());
     expect(screen.getByText("2008")).toBeInTheDocument();
-    expect(screen.getByText("AMC")).toBeInTheDocument();
+    expect(screen.getAllByText("AMC").length).toBeGreaterThan(0);
     expect(screen.getByText("Ended")).toBeInTheDocument();
     expect(screen.getByText("A chemistry teacher...")).toBeInTheDocument();
   });

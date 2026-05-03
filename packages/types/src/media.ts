@@ -51,6 +51,31 @@ export interface Episode {
 
 export interface ShowDetail extends TvShow {
   seasonCount: number;
+  firstAirDate: string | null;
+  originCountry: string | null;
+  originalLanguage: string | null;
+  runtimeMin: number | null;
+  airTime: string | null;
+  airsDay: string | null;
+}
+
+export interface CastMember {
+  tmdbId: number;
+  name: string;
+  profilePath: string | null;
+  character: string;
+  episodeCount: number;
+  isRegular: boolean;
+}
+
+export interface ShowEpisodeSummary {
+  episodeId: number;
+  seasonNumber: number;
+  episodeNumber: number;
+  title: string | null;
+  airDate: string | null;
+  stillPath: string | null;
+  runtimeMin: number | null;
 }
 
 export interface EpisodeItem {

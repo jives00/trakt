@@ -10,6 +10,7 @@ export function getPool(): mysql.Pool {
       database: process.env.DB_NAME ?? 'trakt',
       user: process.env.DB_USER ?? 'trakt',
       password: process.env.DB_PASSWORD ?? '',
+      dateStrings: true,
     });
   }
   return pool;

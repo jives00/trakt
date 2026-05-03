@@ -39,6 +39,18 @@ function parseAirTime(airsTime: string | null | undefined): string | null {
 
 // Returns MySQL TIME string (e.g. "20:00:00") or null if unavailable
 export async function fetchSeriesAirTime(tvdbId: number): Promise<string | null> {
-  const data = await get<{ data: { airsTime?: string | null } }>(`/series/${tvdbId}/extended`);
-  return parseAirTime(data.data.airsTime);
+  const { airTime } = await fetchSeriesAirInfo(tvdbId);
+  return airTime;
+}
+
+export async function fetchSeriesAirInfo(tvdbId: number): Promise<{ airTime: string | null; airsDay: string | null }> {
+  const data = await get<{ data: { airsTime?: string | null; airsDays?: Record<string, boolean> | null } }>(`/series/${tvdbId}/extended`);
+  const airTime = parseAirTime(data.data.airsTime);
+  const days = data.data.airsDays;
+  let airsDay: string | null = null;
+  if (days) {
+    const found = Object.entries(days).find(([, v]) => v);
+    if (found) airsDay = found[0].charAt(0).toUpperCase() + found[0].slice(1) + 's';
+  }
+  return { airTime, airsDay };
 }

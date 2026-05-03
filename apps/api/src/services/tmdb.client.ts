@@ -1,4 +1,4 @@
-import { Movie, TvShow, Season, Episode, SearchResult } from '@trakt/types';
+import { Movie, TvShow, Season, Episode, SearchResult, CastMember } from '@trakt/types';
 
 const BASE = 'https://api.themoviedb.org/3';
 
@@ -112,9 +112,37 @@ export async function fetchShow(tmdbId: number): Promise<TvShow> {
   return transformShow(await get<Record<string, any>>(`/tv/${tmdbId}`));
 }
 
-export async function fetchShowWithSeasonCount(tmdbId: number): Promise<{ show: TvShow; seasonCount: number }> {
+export interface ShowFetchResult {
+  show: TvShow & { firstAirDate: string | null; originCountry: string | null; originalLanguage: string | null; runtimeMin: number | null };
+  seasonCount: number;
+}
+
+export async function fetchShowWithSeasonCount(tmdbId: number): Promise<ShowFetchResult> {
   const raw = await get<Record<string, any>>(`/tv/${tmdbId}`);
-  return { show: transformShow(raw), seasonCount: raw['number_of_seasons'] ?? 0 };
+  return {
+    show: {
+      ...transformShow(raw),
+      firstAirDate: raw['first_air_date'] ?? null,
+      originCountry: raw['origin_country']?.[0] ?? null,
+      originalLanguage: raw['original_language'] ?? null,
+      runtimeMin: raw['episode_run_time']?.[0] ?? null,
+    },
+    seasonCount: raw['number_of_seasons'] ?? 0,
+  };
+}
+
+export async function fetchShowCast(tmdbId: number): Promise<CastMember[]> {
+  const data = await get<{ cast: { id: number; name: string; profile_path: string | null; roles: { character: string; episode_count: number }[]; total_episode_count: number; order: number }[] }>(`/tv/${tmdbId}/aggregate_credits`);
+  return (data.cast ?? [])
+    .filter(m => m.total_episode_count >= 1)
+    .map(m => ({
+      tmdbId: m.id,
+      name: m.name,
+      profilePath: m.profile_path,
+      character: m.roles[0]?.character ?? '',
+      episodeCount: m.total_episode_count,
+      isRegular: m.order < 15 && m.total_episode_count >= 3,
+    }));
 }
 
 export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise<Season> {

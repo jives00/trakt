@@ -1,0 +1,11 @@
+ALTER TABLE tv_shows
+  ADD COLUMN first_air_date DATE NULL,
+  ADD COLUMN origin_country VARCHAR(10) NULL,
+  ADD COLUMN original_language VARCHAR(10) NULL,
+  ADD COLUMN runtime_min SMALLINT NULL,
+  ADD COLUMN air_time TIME NULL,
+  ADD COLUMN airs_day VARCHAR(20) NULL;
+
+ALTER TABLE credits
+  ADD COLUMN episode_count SMALLINT NULL,
+  ADD COLUMN is_regular TINYINT(1) NOT NULL DEFAULT 0;

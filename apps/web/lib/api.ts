@@ -1,6 +1,6 @@
 import type {
   SearchResult, Movie,
-  ShowDetail, EpisodeItem, EpisodeDetail,
+  ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary,
   HistoryItem, ProgressItem,
   CollectionItem, WatchlistItem,
   UserList, ListDetail,
@@ -10,7 +10,7 @@ import type {
   UserProfile,
 } from "@trakt/types";
 
-export type { ShowDetail, EpisodeItem, EpisodeDetail, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
+export type { ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
 
 const BASE = "";
 
@@ -104,6 +104,12 @@ export const api = {
     request<{ inCollection: boolean }>(`/api/shows/${tmdbId}/collection`, {
       method: inCollection ? "DELETE" : "POST", token,
     }),
+  getShowCast: (tmdbId: number, token: string) =>
+    request<{ cast: CastMember[] }>(`/api/shows/${tmdbId}/cast`, { token }),
+  getShowUpNext: (tmdbId: number, token: string) =>
+    request<{ episode: ShowEpisodeSummary | null }>(`/api/shows/${tmdbId}/up-next`, { token }),
+  getShowRecentEpisodes: (tmdbId: number, token: string) =>
+    request<{ episodes: ShowEpisodeSummary[] }>(`/api/shows/${tmdbId}/recent-episodes`, { token }),
 
   // Dashboard
   getUpNext: (token: string) =>

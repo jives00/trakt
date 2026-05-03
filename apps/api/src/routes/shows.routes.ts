@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons } from '../services/shows.service';
+import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes } from '../services/shows.service';
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
@@ -88,5 +88,23 @@ export async function showsRoutes(app: FastifyInstance) {
     const show = await getOrFetchShow(tmdbId);
     const added = await toggleCollection(userId(request), 'show', show.id);
     return { inCollection: added };
+  });
+
+  app.get('/shows/:tmdbId/cast', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const cast = await getOrFetchCast(tmdbId);
+    return { cast };
+  });
+
+  app.get('/shows/:tmdbId/up-next', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const episode = await getShowUpNext(userId(request), tmdbId);
+    return { episode };
+  });
+
+  app.get('/shows/:tmdbId/recent-episodes', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const episodes = await getShowRecentEpisodes(tmdbId, 2);
+    return { episodes };
   });
 }
