@@ -94,6 +94,12 @@ export interface EpisodeDetail extends EpisodeItem {
   seasonNumber: number;
 }
 
+export interface SeasonSummary {
+  seasonNumber: number;
+  episodeCount: number;
+  posterPath: string | null;
+}
+
 export interface SearchResult {
   tmdbId: number;
   mediaType: 'movie' | 'show';

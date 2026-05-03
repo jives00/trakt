@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes } from '../services/shows.service';
+import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList } from '../services/shows.service';
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
@@ -24,6 +24,13 @@ export async function showsRoutes(app: FastifyInstance) {
     const show = await getOrFetchShow(tmdbId);
     const status = await getShowStatus(userId(request), show.id);
     return { show, status };
+  });
+
+  app.get('/shows/:tmdbId/seasons', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    const seasons = await getShowSeasonList(tmdbId);
+    return { seasons };
   });
 
   app.get('/shows/:tmdbId/seasons/:season', auth, async (request: FastifyRequest, reply: FastifyReply) => {

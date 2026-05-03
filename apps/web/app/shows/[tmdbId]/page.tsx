@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type ShowDetail, type ShowStatus, type EpisodeItem, type CastMember, type ShowEpisodeSummary } from "@/lib/api";
+import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisodeSummary, type SeasonSummary } from "@/lib/api";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -71,8 +71,7 @@ export default function ShowDetailPage() {
   const [recentEps, setRecentEps] = useState<ShowEpisodeSummary[]>([]);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [castTab, setCastTab] = useState<"regulars" | "guests">("regulars");
-  const [openSeason, setOpenSeason] = useState<number | null>(null);
-  const [seasons, setSeasons] = useState<Record<number, { episodes: EpisodeItem[]; watchedIds: number[] }>>({});
+  const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
@@ -86,28 +85,8 @@ export default function ShowDetailPage() {
     api.getShowUpNext(id, token).then((d) => setUpNext(d.episode)).catch(() => setUpNext(null));
     api.getShowRecentEpisodes(id, token).then((d) => setRecentEps(d.episodes)).catch(() => {});
     api.getShowCast(id, token).then((d) => setCast(d.cast)).catch(() => {});
+    api.getShowSeasons(id, token).then((d) => setSeasons(d.seasons)).catch(() => {});
   }, [isLoading, token, tmdbId]);
-
-  async function loadSeason(n: number) {
-    if (seasons[n] || !token) return;
-    const data = await api.getSeason(Number(tmdbId), n, token);
-    setSeasons((s) => ({ ...s, [n]: { episodes: data.episodes, watchedIds: data.watchedEpisodeIds } }));
-  }
-
-  async function toggleSeason(n: number) {
-    await loadSeason(n);
-    setOpenSeason((cur) => (cur === n ? null : n));
-  }
-
-  async function handleEpisodeWatched(seasonNum: number, ep: EpisodeItem) {
-    const isWatched = seasons[seasonNum]?.watchedIds.includes(ep.id) ?? false;
-    const res = await api.toggleEpisodeWatched(Number(tmdbId), seasonNum, ep.episodeNumber, isWatched, token!);
-    setSeasons((s) => {
-      const cur = s[seasonNum] ?? { episodes: [], watchedIds: [] };
-      const watchedIds = res.watched ? [...cur.watchedIds, ep.id] : cur.watchedIds.filter((id) => id !== ep.id);
-      return { ...s, [seasonNum]: { ...cur, watchedIds } };
-    });
-  }
 
   async function handleWatchlist() {
     const res = await api.toggleShowWatchlist(Number(tmdbId), status!.inWatchlist, token!);
@@ -282,63 +261,26 @@ export default function ShowDetailPage() {
             )}
 
             {/* Seasons */}
-            {show.seasonCount > 0 && (
+            {seasons.length > 0 && (
               <section>
-                <div className="flex items-center gap-stack-lg border-b border-white/5 pb-2 mb-6 overflow-x-auto">
-                  {Array.from({ length: show.seasonCount }, (_, i) => i + 1).map((n) => (
-                    <button
-                      key={n}
-                      onClick={() => toggleSeason(n)}
-                      className={`text-h3 pb-2 whitespace-nowrap transition-colors border-b-2 ${
-                        openSeason === n ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
-                      }`}
-                    >
-                      Season {n}
-                    </button>
+                <h2 className="text-white font-black text-xl mb-6">Seasons</h2>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {seasons.map((s) => (
+                    <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
+                      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                        {s.posterPath ? (
+                          <Image src={`${TMDB_IMG}w342${s.posterPath}`} alt={`Season ${s.seasonNumber}`} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-white text-xs font-bold">Season {s.seasonNumber}</p>
+                      <p className="text-white/40 text-xs">{s.episodeCount} episode{s.episodeCount !== 1 ? "s" : ""}</p>
+                    </Link>
                   ))}
                 </div>
-
-                {openSeason !== null && seasons[openSeason] && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
-                    {seasons[openSeason].episodes.map((ep) => {
-                      const watched = seasons[openSeason].watchedIds.includes(ep.id);
-                      const stillUrl = ep.stillPath ? `${TMDB_IMG}w300${ep.stillPath}` : null;
-                      return (
-                        <div key={ep.id} className="bg-[#181818] border border-white/5 overflow-hidden hover:border-white/20 transition-all group">
-                          <div className="relative h-40 overflow-hidden">
-                            {stillUrl ? (
-                              <Image src={stillUrl} alt={ep.title ?? `Episode ${ep.episodeNumber}`} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
-                            ) : (
-                              <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                                <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
-                              </div>
-                            )}
-                            {ep.runtimeMin && (
-                              <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-[10px] font-bold text-white">{ep.runtimeMin} MIN</div>
-                            )}
-                            <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
-                              <div className="bg-[#e8002d] h-full" style={{ width: watched ? "100%" : "0%" }} />
-                            </div>
-                          </div>
-                          <div className="p-4 flex justify-between items-start">
-                            <div className="min-w-0">
-                              <h3 className="text-white font-bold text-sm line-clamp-1">
-                                {ep.episodeNumber}. {ep.title ?? `Episode ${ep.episodeNumber}`}
-                              </h3>
-                            </div>
-                            <button onClick={() => handleEpisodeWatched(openSeason, ep)} className="ml-2 shrink-0" aria-label={watched ? "Mark unwatched" : "Mark watched"}>
-                              <span className={`material-symbols-outlined text-sm ${watched ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {openSeason === null && (
-                  <p className="text-white/40 text-sm">Select a season above to view episodes.</p>
-                )}
               </section>
             )}
           </div>

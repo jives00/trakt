@@ -184,6 +184,18 @@ export async function getOrFetchEpisode(showTmdbId: number, seasonNumber: number
   return { episodeId: episode.id, showId, seasonId };
 }
 
+export async function getShowSeasonList(showTmdbId: number) {
+  const pool = getPool();
+  const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [showTmdbId]);
+  const show = showRows[0];
+  if (!show) throw new Error(`Show ${showTmdbId} not in DB`);
+  const [rows] = await pool.query<SeasonRow[]>(
+    'SELECT season_number, episode_count, poster_path FROM seasons WHERE show_id = ? AND season_number > 0 ORDER BY season_number',
+    [show.id],
+  );
+  return rows.map((r) => ({ seasonNumber: r.season_number, episodeCount: r.episode_count, posterPath: r.poster_path }));
+}
+
 export async function prefetchAllSeasons(showTmdbId: number): Promise<void> {
   const { seasonCount } = await fetchShowWithSeasonCount(showTmdbId);
   for (let n = 1; n <= seasonCount; n++) {

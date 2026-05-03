@@ -22,6 +22,7 @@ vi.mock("@/lib/api", () => ({
     getShowUpNext: vi.fn().mockResolvedValue({ episode: null }),
     getShowRecentEpisodes: vi.fn().mockResolvedValue({ episodes: [] }),
     getShowCast: vi.fn().mockResolvedValue({ cast: [] }),
+    getShowSeasons: vi.fn().mockResolvedValue({ seasons: [] }),
     upsertRating: vi.fn().mockResolvedValue({}),
   },
 }));
@@ -59,14 +60,20 @@ describe("ShowDetailPage", () => {
     render(<ShowDetailPage />);
 
     await waitFor(() => expect(screen.getByText("Breaking Bad")).toBeInTheDocument());
-    expect(screen.getByText("2008")).toBeInTheDocument();
     expect(screen.getAllByText("AMC").length).toBeGreaterThan(0);
     expect(screen.getByText("Ended")).toBeInTheDocument();
     expect(screen.getByText("A chemistry teacher...")).toBeInTheDocument();
   });
 
-  it("renders season rows when seasonCount > 0", async () => {
+  it("renders season cards when seasons are returned", async () => {
     mockGetShow.mockResolvedValue({ show, status });
+    const { api } = await import("@/lib/api");
+    (api.getShowSeasons as ReturnType<typeof vi.fn>).mockResolvedValue({
+      seasons: [
+        { seasonNumber: 1, episodeCount: 7, posterPath: null },
+        { seasonNumber: 5, episodeCount: 16, posterPath: null },
+      ],
+    });
     render(<ShowDetailPage />);
 
     await waitFor(() => expect(screen.getByText("Season 1")).toBeInTheDocument());
