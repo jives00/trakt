@@ -10,6 +10,7 @@
 ### Web
 - Show detail page: hover edit button on hero backdrop and poster opens TMDB image picker modal; selected image saves as override and updates page immediately `ac2c917`
 - Image picker modal: larger poster thumbnails (2→3→4 col grid), Escape key closes modal `771dfca`
+- Schedule section: poster images link to the show/movie detail page `bd62f50`
 
 ### Web
 - Show detail page: replace season accordion with poster grid linking to season detail; add GET /shows/:tmdbId/seasons endpoint returning season summaries `6c70e46`

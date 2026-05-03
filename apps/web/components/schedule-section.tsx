@@ -111,14 +111,20 @@ export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
   );
 }
 
+function entryHref(entry: ScheduleItem): string {
+  return entry.mediaType === "movie" ? `/movies/${entry.movieTmdbId}` : `/shows/${entry.showTmdbId}`;
+}
+
 function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[] }) {
   const initialPath = entries[0]?.posterPath ? `${TMDB_IMG}w154${entries[0].posterPath}` : null;
   const [slotA, setSlotA] = useState<string | null>(initialPath);
   const [slotB, setSlotB] = useState<string | null>(null);
   const [activeSlot, setActiveSlot] = useState<"a" | "b">("a");
+  const [activeHref, setActiveHref] = useState<string>(entries[0] ? entryHref(entries[0]) : "#");
 
   const handleHover = (i: number) => {
     const newPath = entries[i]?.posterPath ? `${TMDB_IMG}w154${entries[i].posterPath}` : null;
+    setActiveHref(entries[i] ? entryHref(entries[i]) : "#");
     if (activeSlot === "a") {
       setSlotB(newPath);
       setActiveSlot("b");
@@ -137,7 +143,7 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
           {formatDateHeader(day)}
         </div>
         {hasPoster && (
-          <div className="relative aspect-[2/3] overflow-hidden border border-white/10">
+          <Link href={activeHref} className="relative aspect-[2/3] overflow-hidden border border-white/10 block">
             {slotA && (
               <Image
                 src={slotA}
@@ -156,7 +162,7 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
                 sizes="80px"
               />
             )}
-          </div>
+          </Link>
         )}
       </div>
       <ScheduleColumn day={day} entries={entries} onHover={handleHover} />
