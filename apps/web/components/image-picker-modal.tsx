@@ -29,6 +29,13 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: 
       .finally(() => setLoading(false));
   }, [open, tmdbId, imageType, token]);
 
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
   async function handleSelect(path: string) {
     if (!token || saving) return;
     setSaving(path);
@@ -62,7 +69,7 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: 
           ) : images.length === 0 ? (
             <p className="text-white/40 text-sm text-center py-12">No images available.</p>
           ) : (
-            <div className={`grid gap-3 ${imageType === "hero" ? "grid-cols-2 md:grid-cols-3" : "grid-cols-3 md:grid-cols-5 lg:grid-cols-6"}`}>
+            <div className={`grid gap-3 ${imageType === "hero" ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
               {images.map((path) => (
                 <button
                   key={path}
@@ -77,7 +84,7 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: 
                     alt=""
                     fill
                     className="object-cover"
-                    sizes={imageType === "hero" ? "400px" : "160px"}
+                    sizes={imageType === "hero" ? "400px" : "260px"}
                   />
                   {saving === path && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
