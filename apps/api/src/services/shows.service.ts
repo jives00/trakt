@@ -1,7 +1,7 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast } from './tmdb.client';
+import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast } from './tmdb-shows.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
 import { applyImageOverrides } from './image-overrides.service';
 

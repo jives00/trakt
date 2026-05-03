@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getUpNext, getSchedule } from '../services/dashboard.service';
-import { getDashboardStats, getRecentItems } from '../services/stats.service';
+import { getUpNext } from '../services/up-next.service';
+import { getSchedule } from '../services/schedule.service';
+import { getDashboardStats, getRecentItems } from '../services/stats-summary.service';
 import { backfillAirTimes } from '../services/shows.service';
 import { getShowRecommendations, getMovieRecommendations } from '../services/recommendations.service';
 

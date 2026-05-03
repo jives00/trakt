@@ -1,7 +1,8 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { RecommendationItem } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchMovieRecommendations, fetchShowRecommendations } from './tmdb.client';
+import { fetchMovieRecommendations } from './tmdb-movies.client';
+import { fetchShowRecommendations } from './tmdb-shows.client';
 
 const SEEDS = 5;
 const LIMIT = 3;

@@ -22,7 +22,7 @@ The application uses a Material Design 3-inspired token system for its color pal
     *   `surface-container-high`: `# 282a2b`
     *   `surface-container-highest`: `#333535`
 *   **Primary & Accent:**
-    *   `primary`: `#ffb3af` (Light accent)
+    *   `primary`: `#cccccc` (Light accent / fallback text)
     *   `primary-container`: `#e8002d` (Bright red/pink for key actions/highlights)
 *   **Text:**
     *   `on-surface`: `#e2e2e2` (Main text)

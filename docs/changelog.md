@@ -3,6 +3,7 @@
 ## May 3, 2026
 
 ### API
+- Split oversized service files: stats.service → stats-helpers + stats-summary; dashboard.service → up-next + schedule; tmdb.client → tmdb-movies + tmdb-shows `3fac6b9`
 - Add image override picker: migration 008 adds media_image_overrides table (show+movie); GET /shows/:id/images fetches TMDB backdrop/poster options; PUT /shows/:id/image saves override; applyImageOverrides applied in getOrFetchShow; batchApplyImageOverrides applied in getUpNext, getSchedule, getRecentItems `ac2c917`
 - Add POST/DELETE /shows/:tmdbId/watched for bulk marking all episodes watched/unwatched; extend ShowStatus with watched flag `6d96737`
 

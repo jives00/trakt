@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { transformMovie, transformShow, transformSearchResult } from '../tmdb.client';
+import { transformMovie } from '../tmdb-movies.client';
+import { transformShow } from '../tmdb-shows.client';
+import { transformSearchResult } from '../tmdb.client';
 
 const movieFixture = {
   id: 550,

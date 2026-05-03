@@ -28,7 +28,7 @@ const config: Config = {
         outline: "#af8785",
         "outline-variant": "#5e3f3d",
         "surface-tint": "#ffb3af",
-        primary: "#ffb3af",
+        primary: "#cccccc",
         "on-primary": "#68000e",
         "primary-container": "#e8002d",
         "on-primary-container": "#fffaf9",

@@ -1,8 +1,8 @@
-import { Movie, TvShow, Season, Episode, SearchResult, CastMember } from '@trakt/types';
+import { SearchResult } from '@trakt/types';
 
 const BASE = 'https://api.themoviedb.org/3';
 
-async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
+export async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const url = new URL(`${BASE}${path}`);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   const res = await fetch(url.toString(), {
@@ -12,45 +12,6 @@ async function get<T>(path: string, params: Record<string, string> = {}): Promis
   });
   if (!res.ok) throw new Error(`TMDB ${res.status}: ${path}`);
   return res.json() as Promise<T>;
-}
-
-export function transformMovie(raw: Record<string, any>): Movie {
-  // Prefer US theatrical release date (type 3) over the default release_date field
-  const usTheatrical = (raw['release_dates']?.results as Record<string, any>[] | undefined)
-    ?.find((r: Record<string, any>) => r['iso_3166_1'] === 'US')
-    ?.release_dates?.find((d: Record<string, any>) => d['type'] === 3)
-    ?.release_date?.slice(0, 10) ?? null;
-
-  const releaseDate = usTheatrical ?? raw['release_date'] ?? null;
-
-  return {
-    id: 0,
-    tmdbId: raw['id'],
-    title: raw['title'] ?? '',
-    year: releaseDate ? Number(String(releaseDate).slice(0, 4)) : 0,
-    overview: raw['overview'] ?? '',
-    tagline: raw['tagline'] || null,
-    posterPath: raw['poster_path'] ?? null,
-    backdropPath: raw['backdrop_path'] ?? null,
-    runtimeMin: raw['runtime'] ?? null,
-    genres: (raw['genres'] ?? []).map((g: Record<string, any>) => g['name']),
-    releaseDate: releaseDate || null,
-  };
-}
-
-export function transformShow(raw: Record<string, any>): TvShow {
-  return {
-    id: 0,
-    tmdbId: raw['id'],
-    title: raw['name'] ?? '',
-    year: raw['first_air_date'] ? Number(String(raw['first_air_date']).slice(0, 4)) : 0,
-    overview: raw['overview'] ?? '',
-    posterPath: raw['poster_path'] ?? null,
-    backdropPath: raw['backdrop_path'] ?? null,
-    status: raw['status'] ?? null,
-    network: raw['networks']?.[0]?.['name'] ?? null,
-    genres: (raw['genres'] ?? []).map((g: Record<string, any>) => g['name']),
-  };
 }
 
 export function transformSearchResult(raw: Record<string, any>): SearchResult | null {
@@ -77,21 +38,6 @@ export function transformSearchResult(raw: Record<string, any>): SearchResult | 
   return null;
 }
 
-function transformEpisode(ep: Record<string, any>, showId = 0, seasonId = 0): Episode {
-  return {
-    id: 0,
-    showId,
-    seasonId,
-    episodeNumber: ep['episode_number'],
-    title: ep['name'] ?? '',
-    overview: ep['overview'] ?? null,
-    stillPath: ep['still_path'] ?? null,
-    airDate: ep['air_date'] ?? null,
-    airTime: ep['air_time'] ?? null,
-    runtimeMin: ep['runtime'] ?? null,
-  };
-}
-
 export async function searchTmdb(query: string): Promise<SearchResult[]> {
   const data = await get<{ results: Record<string, any>[] }>('/search/multi', {
     query,
@@ -100,70 +46,6 @@ export async function searchTmdb(query: string): Promise<SearchResult[]> {
   return data.results
     .map(transformSearchResult)
     .filter((r): r is SearchResult => r !== null);
-}
-
-export async function fetchMovie(tmdbId: number): Promise<Movie> {
-  return transformMovie(
-    await get<Record<string, any>>(`/movie/${tmdbId}`, { append_to_response: 'release_dates' }),
-  );
-}
-
-export async function fetchShow(tmdbId: number): Promise<TvShow> {
-  return transformShow(await get<Record<string, any>>(`/tv/${tmdbId}`));
-}
-
-export interface ShowFetchResult {
-  show: TvShow & { firstAirDate: string | null; originCountry: string | null; originalLanguage: string | null; runtimeMin: number | null };
-  seasonCount: number;
-}
-
-export async function fetchShowWithSeasonCount(tmdbId: number): Promise<ShowFetchResult> {
-  const raw = await get<Record<string, any>>(`/tv/${tmdbId}`);
-  return {
-    show: {
-      ...transformShow(raw),
-      firstAirDate: raw['first_air_date'] ?? null,
-      originCountry: raw['origin_country']?.[0] ?? null,
-      originalLanguage: raw['original_language'] ?? null,
-      runtimeMin: raw['episode_run_time']?.[0] ?? null,
-    },
-    seasonCount: raw['number_of_seasons'] ?? 0,
-  };
-}
-
-export async function fetchShowCast(tmdbId: number): Promise<CastMember[]> {
-  const data = await get<{ cast: { id: number; name: string; profile_path: string | null; roles: { character: string; episode_count: number }[]; total_episode_count: number; order: number }[] }>(`/tv/${tmdbId}/aggregate_credits`);
-  return (data.cast ?? [])
-    .filter(m => m.total_episode_count >= 1)
-    .map(m => ({
-      tmdbId: m.id,
-      name: m.name,
-      profilePath: m.profile_path,
-      character: m.roles[0]?.character ?? '',
-      episodeCount: m.total_episode_count,
-      isRegular: m.order < 15 && m.total_episode_count >= 3,
-    }));
-}
-
-export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise<Season> {
-  const raw = await get<Record<string, any>>(`/tv/${tmdbId}/season/${seasonNumber}`);
-  return {
-    id: 0,
-    showId: 0,
-    seasonNumber: raw['season_number'],
-    episodeCount: raw['episodes']?.length ?? 0,
-    overview: raw['overview'] ?? null,
-    posterPath: raw['poster_path'] ?? null,
-    airDate: raw['air_date'] ?? null,
-    episodes: (raw['episodes'] ?? []).map((ep: Record<string, any>) =>
-      transformEpisode(ep),
-    ),
-  };
-}
-
-export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
-  const data = await get<{ tvdb_id?: number | null }>(`/tv/${tmdbId}/external_ids`);
-  return data.tvdb_id ?? null;
 }
 
 export async function fetchMediaImages(
@@ -185,25 +67,4 @@ export async function fetchMediaImages(
     .slice(0, 24)
     .map((p) => p.file_path);
   return { backdrops, posters };
-}
-
-export async function fetchMovieRecommendations(tmdbId: number): Promise<{ id: number; title: string; release_date: string; poster_path: string | null; overview: string }[]> {
-  const data = await get<{ results: Record<string, any>[] }>(`/movie/${tmdbId}/recommendations`);
-  return data.results;
-}
-
-export async function fetchShowRecommendations(tmdbId: number): Promise<{ id: number; name: string; first_air_date: string; poster_path: string | null; overview: string }[]> {
-  const data = await get<{ results: Record<string, any>[] }>(`/tv/${tmdbId}/recommendations`);
-  return data.results;
-}
-
-export async function fetchEpisode(
-  tmdbId: number,
-  seasonNumber: number,
-  episodeNumber: number,
-): Promise<Episode> {
-  const raw = await get<Record<string, any>>(
-    `/tv/${tmdbId}/season/${seasonNumber}/episode/${episodeNumber}`,
-  );
-  return transformEpisode(raw);
 }

@@ -1,7 +1,7 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { Movie } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchMovie } from './tmdb.client';
+import { fetchMovie } from './tmdb-movies.client';
 
 interface MovieRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
