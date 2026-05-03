@@ -7,6 +7,7 @@
 
 ### Web
 - Show detail page: remove watchlist/collection from hero, move status to metadata section, add full-width Mark Watched toggle to sidebar, remove year/seasons sidebar rows `6d96737`
+- Show detail page: square image corners, top-align hero backdrop `d6a00ee`
 - Add DESIGN.md with visual identity, color palette, and UI/UX principles `eff5fb4`
 
 ## May 2, 2026

@@ -39,7 +39,7 @@ function EpisodeThumb({ ep, label, showLabel = true }: { ep: ShowEpisodeSummary;
       <div className="pb-3 mb-3 border-b border-white/5">
         <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-[#e8002d]" : "text-transparent border-transparent"}`}>{label}</span>
       </div>
-      <div className="bg-[#181818] border border-white/5 rounded-xl overflow-hidden">
+      <div className="bg-[#181818] border border-white/5 overflow-hidden">
         <div className="relative aspect-video overflow-hidden">
           {stillUrl ? (
             <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover" />
@@ -156,7 +156,7 @@ export default function ShowDetailPage() {
         {/* Hero */}
         <section className="relative h-[450px] md:h-[576px] w-full overflow-hidden">
           {backdropUrl ? (
-            <Image src={backdropUrl} alt={show.title} fill priority className="object-cover" />
+            <Image src={backdropUrl} alt={show.title} fill priority className="object-cover object-top" />
           ) : (
             <div className="w-full h-full bg-surface-container-low" />
           )}
@@ -166,7 +166,7 @@ export default function ShowDetailPage() {
           <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {show.posterPath && (
-                <div className="relative hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-white/10">
+                <div className="relative hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
                   <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt={show.title} fill className="object-cover" />
                 </div>
               )}
@@ -263,7 +263,7 @@ export default function ShowDetailPage() {
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                   {displayedCast.map((m) => (
                     <div key={m.tmdbId} className="text-center">
-                      <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-surface-container-high mb-2">
+                      <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2">
                         {m.profilePath ? (
                           <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill className="object-cover" />
                         ) : (
@@ -304,7 +304,7 @@ export default function ShowDetailPage() {
                       const watched = seasons[openSeason].watchedIds.includes(ep.id);
                       const stillUrl = ep.stillPath ? `${TMDB_IMG}w300${ep.stillPath}` : null;
                       return (
-                        <div key={ep.id} className="bg-[#181818] border border-white/5 rounded-2xl overflow-hidden hover:border-white/20 transition-all group">
+                        <div key={ep.id} className="bg-[#181818] border border-white/5 overflow-hidden hover:border-white/20 transition-all group">
                           <div className="relative h-40 overflow-hidden">
                             {stillUrl ? (
                               <Image src={stillUrl} alt={ep.title ?? `Episode ${ep.episodeNumber}`} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
