@@ -13,10 +13,10 @@ INSERT INTO tv_shows (id, tmdb_id, title, year, poster_path, status, season_coun
   (1, 91001, 'Test Show Alpha', 2020, '/sha.jpg', 'Ended',            2, '["Drama","Crime"]'),
   (2, 91002, 'Test Show Beta',  2021, '/shb.jpg', 'Returning Series', 1, '["Comedy"]');
 
-INSERT INTO seasons (id, show_id, season_number, episode_count) VALUES
-  (1, 1, 1, 3),
-  (2, 1, 2, 3),
-  (3, 2, 1, 2);
+INSERT INTO seasons (id, show_id, season_number, episode_count, fetched_at) VALUES
+  (1, 1, 1, 3, NOW()),
+  (2, 1, 2, 3, NOW()),
+  (3, 2, 1, 2, NOW());
 
 INSERT INTO episodes (id, season_id, show_id, episode_number, title, runtime_min, air_date) VALUES
   (1, 1, 1, 1, 'Pilot',     58, '2020-01-01'),

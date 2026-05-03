@@ -18,6 +18,19 @@ interface ShowRow extends RowDataPacket {
 interface SeasonRow extends RowDataPacket {
   id: number; show_id: number; season_number: number;
   episode_count: number; poster_path: string | null; air_date: string | null;
+  fetched_at: Date | null;
+}
+
+function seasonTtlDays(airDate: string | null): number {
+  if (!airDate) return 1;
+  const msSinceAir = Date.now() - new Date(airDate).getTime();
+  return msSinceAir < 60 * 86400000 ? 1 : 7;
+}
+
+function isSeasonStale(fetchedAt: Date | null, airDate: string | null): boolean {
+  if (!fetchedAt) return true;
+  const ageMs = Date.now() - new Date(fetchedAt).getTime();
+  return ageMs >= seasonTtlDays(airDate) * 86400000;
 }
 
 interface EpisodeRow extends RowDataPacket {
@@ -131,43 +144,58 @@ export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number)
     'SELECT * FROM seasons WHERE show_id = ? AND season_number = ?',
     [show.id, seasonNumber],
   );
+  const existing = seasonRows[0] ?? null;
+
   let seasonId: number;
 
-  if (seasonRows.length === 0) {
+  if (!existing || isSeasonStale(existing.fetched_at, existing.air_date)) {
     const tmdbSeason = await fetchSeason(showTmdbId, seasonNumber);
-    const [r] = await pool.query<ResultSetHeader>(
-      `INSERT INTO seasons (show_id, season_number, episode_count, poster_path, air_date)
-       VALUES (?, ?, ?, ?, ?)`,
-      [show.id, seasonNumber, tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate],
-    );
-    seasonId = r.insertId;
+
+    if (!existing) {
+      const [r] = await pool.query<ResultSetHeader>(
+        `INSERT INTO seasons (show_id, season_number, episode_count, poster_path, air_date, fetched_at)
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [show.id, seasonNumber, tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate],
+      );
+      seasonId = r.insertId;
+    } else {
+      seasonId = existing.id;
+      await pool.query(
+        `UPDATE seasons SET episode_count = ?, poster_path = ?, air_date = ?, fetched_at = NOW() WHERE id = ?`,
+        [tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate, seasonId],
+      );
+    }
 
     if (tmdbSeason.episodes) {
       let seriesAirTime: string | null = null;
-      try {
-        const tvdbId = await getOrCacheTvdbId(show.id, showTmdbId);
-        if (tvdbId) {
-          const { airTime, airsDay } = await fetchSeriesAirInfo(tvdbId);
-          seriesAirTime = airTime;
-          await pool.query(
-            'UPDATE tv_shows SET air_time = COALESCE(air_time, ?), airs_day = COALESCE(airs_day, ?) WHERE id = ?',
-            [airTime, airsDay, show.id],
-          );
+      if (!existing) {
+        try {
+          const tvdbId = await getOrCacheTvdbId(show.id, showTmdbId);
+          if (tvdbId) {
+            const { airTime, airsDay } = await fetchSeriesAirInfo(tvdbId);
+            seriesAirTime = airTime;
+            await pool.query(
+              'UPDATE tv_shows SET air_time = COALESCE(air_time, ?), airs_day = COALESCE(airs_day, ?) WHERE id = ?',
+              [airTime, airsDay, show.id],
+            );
+          }
+        } catch {
+          // TVDB failure is non-blocking — episodes are still inserted without air time
         }
-      } catch {
-        // TVDB failure is non-blocking — episodes are still inserted without air time
       }
 
       for (const ep of tmdbSeason.episodes) {
         await pool.query(
-          `INSERT IGNORE INTO episodes (show_id, season_id, episode_number, title, overview, still_path, air_date, runtime_min, air_time)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO episodes (show_id, season_id, episode_number, title, overview, still_path, air_date, runtime_min, air_time)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON DUPLICATE KEY UPDATE title = VALUES(title), overview = VALUES(overview),
+             still_path = VALUES(still_path), air_date = VALUES(air_date), runtime_min = VALUES(runtime_min)`,
           [show.id, seasonId, ep.episodeNumber, ep.title, ep.overview, ep.stillPath, ep.airDate, ep.runtimeMin, ep.airTime ?? seriesAirTime],
         );
       }
     }
   } else {
-    seasonId = seasonRows[0].id;
+    seasonId = existing.id;
   }
 
   const [episodes] = await pool.query<EpisodeRow[]>(
@@ -292,6 +320,20 @@ export async function getShowUpNext(userId: number, tmdbId: number): Promise<Sho
 
 export async function getShowRecentEpisodes(tmdbId: number, limit = 2): Promise<ShowEpisodeSummary[]> {
   const pool = getPool();
+
+  interface StaleCheckRow extends RowDataPacket { seasonNumber: number; fetchedAt: Date | null; airDate: string | null }
+  const [staleCheck] = await pool.query<StaleCheckRow[]>(`
+    SELECT seas.season_number AS seasonNumber, seas.fetched_at AS fetchedAt, seas.air_date AS airDate
+    FROM episodes e
+    JOIN seasons seas ON seas.id = e.season_id
+    JOIN tv_shows s ON s.id = seas.show_id AND s.tmdb_id = ?
+    WHERE e.air_date <= CURDATE()
+    ORDER BY e.air_date DESC, seas.season_number DESC, e.episode_number DESC LIMIT 1
+  `, [tmdbId]);
+  if (staleCheck.length > 0 && isSeasonStale(staleCheck[0].fetchedAt, staleCheck[0].airDate)) {
+    await getOrFetchSeason(tmdbId, staleCheck[0].seasonNumber);
+  }
+
   const [rows] = await pool.query<EpSummaryRow[]>(`
     SELECT e.id AS episodeId, seas.season_number AS seasonNumber, e.episode_number AS episodeNumber,
            e.title AS episodeTitle, e.air_date AS airDate, e.still_path AS stillPath, e.runtime_min AS runtimeMin

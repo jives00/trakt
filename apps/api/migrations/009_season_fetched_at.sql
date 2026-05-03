@@ -1,0 +1,1 @@
+ALTER TABLE seasons ADD COLUMN fetched_at DATETIME NULL;
