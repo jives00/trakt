@@ -187,7 +187,7 @@ function ScheduleColumn({
         {entries.map((entry, i) => (
           <div key={i} onMouseEnter={() => onHover?.(i)}>
             {i > 0 && (
-              <div className="h-px bg-white/10 my-2" />
+              <div className="h-px bg-white/10 my-4" />
             )}
             <ScheduleEntry entry={entry} />
           </div>

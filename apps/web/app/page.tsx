@@ -76,7 +76,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
             backgroundAttachment: 'fixed',
-            filter: 'blur(3px) brightness(0.6)',
+            filter: 'blur(3px) brightness(0.8)',
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
@@ -137,7 +137,7 @@ function RecentCard({ item }: { item: RecentItem }) {
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
         {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
-          <p className="text-[#e8002d] text-[10px] font-black uppercase tracking-widest mb-1">
+          <p className="text-white text-[10px] font-black uppercase tracking-widest mb-1">
             S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}
           </p>
         )}

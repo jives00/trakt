@@ -65,7 +65,12 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
          e.air_date AS airDate,
          ROW_NUMBER() OVER (
            PARTITION BY s.id
-           ORDER BY seas.season_number, e.episode_number
+           ORDER BY
+             CASE WHEN seas.season_number > last_watched.season_number THEN 0
+                  WHEN seas.season_number = last_watched.season_number AND e.episode_number > last_watched.episode_number THEN 0
+                  ELSE 1 END,
+             seas.season_number,
+             e.episode_number
          ) AS rn
        FROM tv_shows s
        JOIN ${TRACKED} tracked ON tracked.media_id = s.id
@@ -73,16 +78,17 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        JOIN episodes e   ON e.season_id  = seas.id
        LEFT JOIN watch_history wh
          ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
+       JOIN (
+         SELECT seas2.show_id,
+                seas2.season_number,
+                e2.episode_number,
+                ROW_NUMBER() OVER (PARTITION BY seas2.show_id ORDER BY wh2.watched_at DESC) AS rn2
+         FROM watch_history wh2
+         JOIN episodes e2   ON e2.id = wh2.media_id
+         JOIN seasons seas2 ON seas2.id = e2.season_id
+         WHERE wh2.media_type = 'episode' AND wh2.user_id = ?
+       ) last_watched ON last_watched.show_id = s.id AND last_watched.rn2 = 1
        WHERE wh.id IS NULL
-         AND EXISTS (
-           SELECT 1 FROM watch_history wh2
-           JOIN episodes e2 ON e2.id = wh2.media_id
-           JOIN seasons seas2 ON seas2.id = e2.season_id
-           WHERE wh2.media_type = 'episode'
-             AND seas2.show_id = s.id
-             AND wh2.user_id = ?
-           LIMIT 1
-         )
      ) sub
      WHERE rn = 1
      ORDER BY showTitle

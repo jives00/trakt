@@ -3,6 +3,15 @@
 ## May 2, 2026
 
 ### API
+- Fix up-next query to surface episode after most recently watched, not globally lowest unwatched `67b3a3c`
+
+### Web
+- Schedule section: increase divider padding between same-day entries `67b3a3c`
+- Recently watched: change season/episode label color from red to white `67b3a3c`
+- Hero background: lighten brightness from 0.6 to 0.8 `67b3a3c`
+- Fix schedule-section test timezone bug (use local date parts instead of toISOString) `67b3a3c`
+
+### API
 - Recommendations service: seed from recent watch history, call TMDB recommendations, deduplicate, filter already-watched; two new dashboard routes for shows and movies `e5cbad2`
 - Recently watched query returns episode `still_path` and movie `tagline` `e5cbad2`
 - Add `fetchMovieRecommendations` and `fetchShowRecommendations` to TMDB client `e5cbad2`
