@@ -166,6 +166,27 @@ export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
   return data.tvdb_id ?? null;
 }
 
+export async function fetchMediaImages(
+  mediaType: 'show' | 'movie',
+  tmdbId: number,
+): Promise<{ backdrops: string[]; posters: string[] }> {
+  const path = mediaType === 'show' ? `/tv/${tmdbId}/images` : `/movie/${tmdbId}/images`;
+  const data = await get<{
+    backdrops: { file_path: string; vote_average: number; iso_639_1: string | null }[];
+    posters: { file_path: string; vote_average: number; iso_639_1: string | null }[];
+  }>(path);
+  const backdrops = (data.backdrops ?? [])
+    .sort((a, b) => b.vote_average - a.vote_average)
+    .slice(0, 24)
+    .map((b) => b.file_path);
+  const posters = (data.posters ?? [])
+    .filter((p) => !p.iso_639_1 || p.iso_639_1 === 'en')
+    .sort((a, b) => b.vote_average - a.vote_average)
+    .slice(0, 24)
+    .map((p) => p.file_path);
+  return { backdrops, posters };
+}
+
 export async function fetchMovieRecommendations(tmdbId: number): Promise<{ id: number; title: string; release_date: string; poster_path: string | null; overview: string }[]> {
   const data = await get<{ results: Record<string, any>[] }>(`/movie/${tmdbId}/recommendations`);
   return data.results;

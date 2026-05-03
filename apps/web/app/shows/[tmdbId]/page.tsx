@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisodeSummary, type SeasonSummary } from "@/lib/api";
+import { ImagePickerModal } from "@/components/image-picker-modal";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -62,6 +63,20 @@ function EpisodeThumb({ ep, label, showLabel = true }: { ep: ShowEpisodeSummary;
   );
 }
 
+function EditImageButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40"
+    >
+      <span className="bg-black/70 border border-white/20 rounded-full p-2 text-white backdrop-blur-sm">
+        <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
+      </span>
+    </button>
+  );
+}
+
 export default function ShowDetailPage() {
   const { tmdbId } = useParams<{ tmdbId: string }>();
   const { token, isLoading } = useAuth();
@@ -75,6 +90,7 @@ export default function ShowDetailPage() {
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
+  const [picker, setPicker] = useState<"hero" | "poster" | null>(null);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -109,6 +125,12 @@ export default function ShowDetailPage() {
     await api.upsertRating("show", Number(tmdbId), r, token).catch(() => {});
   }
 
+  function handleImageSaved(imageType: "hero" | "poster", path: string) {
+    setShow((s) => s
+      ? { ...s, backdropPath: imageType === "hero" ? path : s.backdropPath, posterPath: imageType === "poster" ? path : s.posterPath }
+      : null);
+  }
+
   if (error) return <p className="text-error">{error}</p>;
   if (!show || !status) return <p className="text-on-surface-variant">Loading…</p>;
 
@@ -133,7 +155,7 @@ export default function ShowDetailPage() {
     <div className="w-full flex-1 overflow-x-hidden">
       <div className="-mx-margin-page -mt-stack-lg">
         {/* Hero */}
-        <section className="relative h-[450px] md:h-[576px] w-full overflow-hidden">
+        <section className="relative h-[450px] md:h-[576px] w-full overflow-hidden group/hero">
           {backdropUrl ? (
             <Image src={backdropUrl} alt={show.title} fill priority className="object-cover object-top" />
           ) : (
@@ -142,11 +164,22 @@ export default function ShowDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
 
+          {/* Hero edit button */}
+          <button
+            onClick={() => setPicker("hero")}
+            aria-label="Change backdrop image"
+            className="absolute top-14 right-16 z-20 flex items-center gap-1.5 bg-black/60 border border-white/20 rounded-full px-3 py-2 text-white backdrop-blur-sm opacity-20 group-hover/hero:opacity-100 transition-opacity hover:border-[#e8002d]/60 hover:text-[#e8002d]"
+          >
+            <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
+            <span className="text-sm font-bold">Backdrop</span>
+          </button>
+
           <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {show.posterPath && (
-                <div className="relative hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
+                <div className="relative group/poster hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
                   <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt={show.title} fill className="object-cover" />
+                  <EditImageButton onClick={() => setPicker("poster")} label="Change poster image" />
                 </div>
               )}
               <div className="min-w-0">
@@ -347,6 +380,16 @@ export default function ShowDetailPage() {
           </div>
         </div>
       </div>
+
+      {picker && (
+        <ImagePickerModal
+          open
+          onClose={() => setPicker(null)}
+          tmdbId={Number(tmdbId)}
+          imageType={picker}
+          onSaved={(path) => handleImageSaved(picker, path)}
+        />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { getPool } from '../db';
+import { batchApplyImageOverrides } from './image-overrides.service';
 import {
   StatsAllTime, StatsYear, StatsMonth,
   DashboardDailyStats, DashboardStats, DashboardGenre, RecentItem, TopShow, TopGenre, DailyActivity,
@@ -372,5 +373,17 @@ export async function getRecentItems(userId: number, limit = 10): Promise<Recent
      LIMIT ?`,
     [userId, limit],
   );
-  return rows as RecentItem[];
+
+  const overrides = await batchApplyImageOverrides(
+    (rows as any[]).map(r => ({
+      mediaType: r.mediaType === 'movie' ? 'movie' as const : 'show' as const,
+      tmdbId: r.tmdbId,
+    })),
+  );
+
+  return (rows as any[]).map(r => {
+    const mt = r.mediaType === 'movie' ? 'movie' : 'show';
+    const ovr = overrides.get(`${mt}:${r.tmdbId}`) ?? {};
+    return { ...r, posterPath: ovr.posterPath ?? r.posterPath } as RecentItem;
+  });
 }

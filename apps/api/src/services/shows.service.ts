@@ -3,6 +3,7 @@ import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary } from '@trakt/types
 import { getPool } from '../db';
 import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast } from './tmdb.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
+import { applyImageOverrides } from './image-overrides.service';
 
 interface ShowRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
@@ -63,12 +64,12 @@ export async function getOrFetchShow(tmdbId: number) {
         `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ? WHERE id = ?`,
         [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
-      return rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc);
+      return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc));
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
       await pool.query('UPDATE tv_shows SET season_count = ? WHERE id = ?', [seasonCount, row.id]);
-      return rowToShow(row, seasonCount);
+      return applyImageOverrides('show', rowToShow(row, seasonCount));
     }
     const show = rowToShow(row, row.season_count);
     if (show.runtimeMin === null) {
@@ -81,7 +82,7 @@ export async function getOrFetchShow(tmdbId: number) {
         await pool.query('UPDATE tv_shows SET runtime_min = ? WHERE id = ?', [show.runtimeMin, row.id]);
       }
     }
-    return show;
+    return applyImageOverrides('show', show);
   }
 
   const { show, seasonCount } = await fetchShowWithSeasonCount(tmdbId);
@@ -95,7 +96,7 @@ export async function getOrFetchShow(tmdbId: number) {
      show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin],
   );
   const [inserted] = await pool.query<ShowRow[]>('SELECT * FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
-  return rowToShow(inserted[0], seasonCount);
+  return applyImageOverrides('show', rowToShow(inserted[0], seasonCount));
 }
 
 interface ExternalIdRow extends RowDataPacket { external_id: string }

@@ -116,6 +116,14 @@ export const api = {
     request<{ episode: ShowEpisodeSummary | null }>(`/api/shows/${tmdbId}/up-next`, { token }),
   getShowRecentEpisodes: (tmdbId: number, token: string) =>
     request<{ episodes: ShowEpisodeSummary[] }>(`/api/shows/${tmdbId}/recent-episodes`, { token }),
+  getShowImages: (tmdbId: number, token: string) =>
+    request<{ backdrops: string[]; posters: string[] }>(`/api/shows/${tmdbId}/images`, { token }),
+  setShowImage: (tmdbId: number, imageType: "hero" | "poster", path: string, token: string) =>
+    request<{ ok: boolean }>(`/api/shows/${tmdbId}/image`, {
+      method: "PUT",
+      body: JSON.stringify({ imageType, path }),
+      token,
+    }),
 
   // Dashboard
   getUpNext: (token: string) =>

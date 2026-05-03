@@ -3,7 +3,11 @@
 ## May 3, 2026
 
 ### API
+- Add image override picker: migration 008 adds media_image_overrides table (show+movie); GET /shows/:id/images fetches TMDB backdrop/poster options; PUT /shows/:id/image saves override; applyImageOverrides applied in getOrFetchShow; batchApplyImageOverrides applied in getUpNext, getSchedule, getRecentItems `ac2c917`
 - Add POST/DELETE /shows/:tmdbId/watched for bulk marking all episodes watched/unwatched; extend ShowStatus with watched flag `6d96737`
+
+### Web
+- Show detail page: hover edit button on hero backdrop and poster opens TMDB image picker modal; selected image saves as override and updates page immediately `ac2c917`
 
 ### Web
 - Show detail page: replace season accordion with poster grid linking to season detail; add GET /shows/:tmdbId/seasons endpoint returning season summaries `6c70e46`

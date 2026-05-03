@@ -6,6 +6,7 @@ import {
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
   markShowWatched, unmarkShowWatched,
 } from '../services/user-media.service';
+import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -126,5 +127,21 @@ export async function showsRoutes(app: FastifyInstance) {
     const tmdbId = Number(params(request).tmdbId);
     const episodes = await getShowRecentEpisodes(tmdbId, 2);
     return { episodes };
+  });
+
+  app.get('/shows/:tmdbId/images', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    const images = await getAvailableImages('show', tmdbId);
+    return images;
+  });
+
+  app.put('/shows/:tmdbId/image', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
+    const { imageType, path } = request.body as { imageType: 'hero' | 'poster'; path: string };
+    if (!['hero', 'poster'].includes(imageType) || !path) return reply.status(400).send({ error: 'Invalid body' });
+    await setImageOverride('show', tmdbId, imageType, path);
+    return { ok: true };
   });
 }

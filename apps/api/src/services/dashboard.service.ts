@@ -1,5 +1,6 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { getPool } from '../db';
+import { batchApplyImageOverrides } from './image-overrides.service';
 
 export interface UpNextItem {
   showTmdbId: number;
@@ -118,11 +119,20 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
 
   const countMap = new Map(counts.map(c => [(c as any).id, { watchedCount: (c as any).watchedCount, totalAired: (c as any).totalAired }]));
 
-  return rows.map(row => ({
-    ...(row as UpNextItem),
-    watchedCount: countMap.get((row as any).show_id)?.watchedCount ?? 0,
-    totalAired: countMap.get((row as any).show_id)?.totalAired ?? 0,
-  }));
+  const overrides = await batchApplyImageOverrides(
+    rows.map(r => ({ mediaType: 'show' as const, tmdbId: (r as any).showTmdbId })),
+  );
+
+  return rows.map(row => {
+    const ovr = overrides.get(`show:${(row as any).showTmdbId}`) ?? {};
+    return {
+      ...(row as UpNextItem),
+      posterPath: ovr.posterPath ?? (row as any).posterPath,
+      backdropPath: ovr.backdropPath ?? (row as any).backdropPath,
+      watchedCount: countMap.get((row as any).show_id)?.watchedCount ?? 0,
+      totalAired: countMap.get((row as any).show_id)?.totalAired ?? 0,
+    };
+  });
 }
 
 const TRACKED_MOVIES = `(
@@ -179,5 +189,17 @@ export async function getSchedule(
      LIMIT 100`,
     [userId, userId, range, userId, userId, range],
   );
-  return rows as ScheduleEntry[];
+
+  const overridePairs = (rows as ScheduleEntry[]).map(r => ({
+    mediaType: (r.mediaType === 'episode' ? 'show' : 'movie') as 'show' | 'movie',
+    tmdbId: r.mediaType === 'episode' ? r.showTmdbId! : r.movieTmdbId!,
+  }));
+  const overrides = await batchApplyImageOverrides(overridePairs);
+
+  return (rows as ScheduleEntry[]).map(r => {
+    const mt = r.mediaType === 'episode' ? 'show' : 'movie';
+    const id = r.mediaType === 'episode' ? r.showTmdbId! : r.movieTmdbId!;
+    const ovr = overrides.get(`${mt}:${id}`) ?? {};
+    return { ...r, posterPath: ovr.posterPath ?? r.posterPath };
+  });
 }
