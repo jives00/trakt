@@ -22,8 +22,8 @@ interface SeasonRow extends RowDataPacket {
 
 interface EpisodeRow extends RowDataPacket {
   id: number; season_id: number; show_id: number;
-  episode_number: number; title: string | null; air_date: string | null;
-  still_path: string | null; runtime_min: number | null;
+  episode_number: number; title: string | null; overview: string | null;
+  air_date: string | null; still_path: string | null; runtime_min: number | null;
 }
 
 function rowToShow(row: ShowRow, seasonCount?: number): ShowDetail & { id: number } {

@@ -48,6 +48,7 @@ export async function showsRoutes(app: FastifyInstance) {
         id: e.id,
         episodeNumber: e.episode_number,
         title: e.title,
+        overview: e.overview,
         airDate: e.air_date,
         stillPath: e.still_path,
         runtimeMin: e.runtime_min,

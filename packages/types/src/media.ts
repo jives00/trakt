@@ -82,6 +82,7 @@ export interface EpisodeItem {
   id: number;
   episodeNumber: number;
   title: string | null;
+  overview: string | null;
   airDate: string | null;
   stillPath: string | null;
   runtimeMin: number | null;

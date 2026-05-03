@@ -298,6 +298,19 @@ export default function ShowDetailPage() {
               <section>
                 <h2 className="text-white font-black text-xl mb-6">Seasons</h2>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
+                    <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                      {show.posterPath ? (
+                        <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-white text-xs font-bold">All Seasons</p>
+                    <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
+                  </Link>
                   {seasons.map((s) => (
                     <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
                       <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
