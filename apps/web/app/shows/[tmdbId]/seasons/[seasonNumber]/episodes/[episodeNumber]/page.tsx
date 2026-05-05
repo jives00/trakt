@@ -80,7 +80,9 @@ export default function EpisodeDetailPage() {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-white/60 text-lg font-semibold mb-1">Season {sn}</p>
+                <Link href={`/shows/${tmdbId}/seasons/${sn}`} className="hover:opacity-80 transition-opacity">
+                  <p className="text-white/60 text-lg font-semibold mb-1">Season {sn}</p>
+                </Link>
                 <Link href={`/shows/${tmdbId}`} className="hover:opacity-80 transition-opacity">
                   <h1 className="text-h1 font-black text-white drop-shadow-2xl">{show.title}</h1>
                 </Link>
@@ -100,11 +102,8 @@ export default function EpisodeDetailPage() {
           <div className="lg:col-span-8 space-y-10">
             {/* Episode Still */}
             {stillUrl && (
-              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-white/5 rounded-lg">
+              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-white/5">
                 <Image src={stillUrl} alt={episode.title ?? ""} fill className="object-cover" />
-                <div className="absolute top-3 left-3 bg-black/80 px-3 py-1 rounded text-xs font-bold text-white">
-                  S{String(sn).padStart(2, "0")} E{String(ep).padStart(2, "0")}
-                </div>
               </section>
             )}
 
@@ -138,18 +137,6 @@ export default function EpisodeDetailPage() {
               <section>
                 <h2 className="text-white font-black text-xl mb-6">Cast</h2>
                 <div className="space-y-8">
-                  {guestStars.length > 0 && (
-                    <div>
-                      {regulars.length > 0 && (
-                        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Guest Stars</p>
-                      )}
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                        {guestStars.map((member) => (
-                          <CastCard key={`${member.tmdbId}-guest`} member={member} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   {regulars.length > 0 && (
                     <div>
                       {guestStars.length > 0 && (
@@ -158,6 +145,18 @@ export default function EpisodeDetailPage() {
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                         {regulars.map((member) => (
                           <CastCard key={`${member.tmdbId}-regular`} member={member} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {guestStars.length > 0 && (
+                    <div>
+                      {regulars.length > 0 && (
+                        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Guest Stars</p>
+                      )}
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                        {guestStars.map((member) => (
+                          <CastCard key={`${member.tmdbId}-guest`} member={member} />
                         ))}
                       </div>
                     </div>

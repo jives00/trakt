@@ -422,6 +422,7 @@ export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episo
   const showId = showRows[0].id;
 
   const guestStars = await fetchEpisodeCredits(tmdbId, seasonNumber, episodeNumber);
+  const guestStarIds = new Set(guestStars.map(g => g.tmdbId));
 
   const [regularRows] = await pool.query<PersonRow[]>(`
     SELECT p.tmdb_id, p.name, p.profile_path, c.character, c.episode_count, c.is_regular
@@ -430,14 +431,16 @@ export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episo
     ORDER BY c.episode_count DESC LIMIT 50
   `, [showId]);
 
-  const regulars = regularRows.map(r => ({
-    tmdbId: r.tmdb_id,
-    name: r.name,
-    profilePath: r.profile_path,
-    character: r.character ?? '',
-    episodeCount: r.episode_count ?? 0,
-    isRegular: true,
-  }));
+  const regulars = regularRows
+    .filter(r => !guestStarIds.has(r.tmdb_id))
+    .map(r => ({
+      tmdbId: r.tmdb_id,
+      name: r.name,
+      profilePath: r.profile_path,
+      character: r.character ?? '',
+      episodeCount: r.episode_count ?? 0,
+      isRegular: true,
+    }));
 
-  return [...guestStars, ...regulars];
+  return [...regulars, ...guestStars];
 }
