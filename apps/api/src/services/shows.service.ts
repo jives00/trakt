@@ -1,7 +1,7 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
-import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary } from '@trakt/types';
+import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary, EpisodeDetail } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast } from './tmdb-shows.client';
+import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast, fetchEpisodeCredits } from './tmdb-shows.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
 import { applyImageOverrides } from './image-overrides.service';
 
@@ -382,4 +382,62 @@ export async function backfillAirTimes(): Promise<{ updated: number; failed: num
   }
 
   return { updated, failed };
+}
+
+export async function getEpisodeDetail(tmdbId: number, seasonNumber: number, episodeNumber: number) {
+  const pool = getPool();
+  const [showRows] = await pool.query<ShowRow[]>('SELECT id, tmdb_id, title FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  if (!showRows.length) throw new Error(`Show ${tmdbId} not in DB`);
+  const show = showRows[0];
+
+  const [episodeRows] = await pool.query<RowDataPacket[]>(
+    `SELECT e.id, e.episode_number, e.title, e.overview, e.air_date, e.still_path, e.runtime_min
+     FROM episodes e
+     JOIN seasons s ON s.id = e.season_id AND s.show_id = ? AND s.season_number = ?
+     WHERE e.episode_number = ?`,
+    [show.id, seasonNumber, episodeNumber],
+  );
+  if (!episodeRows.length) throw new Error(`Episode S${seasonNumber}E${episodeNumber} not found`);
+
+  const ep = episodeRows[0] as any;
+  const episode: EpisodeDetail = {
+    id: ep.id,
+    episodeNumber: ep.episode_number,
+    title: ep.title,
+    overview: ep.overview,
+    airDate: ep.air_date ? String(ep.air_date).slice(0, 10) : null,
+    stillPath: ep.still_path,
+    runtimeMin: ep.runtime_min,
+    showTmdbId: show.tmdb_id,
+    showTitle: show.title,
+    seasonNumber,
+  };
+  return { episode, episodeId: ep.id, showId: show.id };
+}
+
+export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episodeNumber: number): Promise<CastMember[]> {
+  const pool = getPool();
+  const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  if (!showRows.length) return [];
+  const showId = showRows[0].id;
+
+  const guestStars = await fetchEpisodeCredits(tmdbId, seasonNumber, episodeNumber);
+
+  const [regularRows] = await pool.query<PersonRow[]>(`
+    SELECT p.tmdb_id, p.name, p.profile_path, c.character, c.episode_count, c.is_regular
+    FROM credits c JOIN people p ON p.id = c.person_id
+    WHERE c.media_type = 'show' AND c.media_id = ? AND c.role = 'cast' AND c.is_regular = 1
+    ORDER BY c.episode_count DESC LIMIT 50
+  `, [showId]);
+
+  const regulars = regularRows.map(r => ({
+    tmdbId: r.tmdb_id,
+    name: r.name,
+    profilePath: r.profile_path,
+    character: r.character ?? '',
+    episodeCount: r.episode_count ?? 0,
+    isRegular: true,
+  }));
+
+  return [...guestStars, ...regulars];
 }

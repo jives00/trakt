@@ -121,7 +121,11 @@ function RecentSection({ items }: { items: RecentItem[] }) {
 
 function RecentCard({ item }: { item: RecentItem }) {
   const isEpisode = item.mediaType === "episode";
-  const href = item.tmdbId ? (isEpisode ? `/shows/${item.tmdbId}` : `/movies/${item.tmdbId}`) : "#";
+  const href = item.tmdbId
+    ? isEpisode && item.seasonNumber != null && item.episodeNumber != null
+      ? `/shows/${item.tmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`
+      : isEpisode ? `/shows/${item.tmdbId}` : `/movies/${item.tmdbId}`
+    : "#";
   const imagePath = isEpisode ? (item.stillPath ?? item.posterPath) : item.posterPath;
   const posterUrl = imagePath ? `${TMDB_IMG}w500${imagePath}` : null;
   const title = isEpisode ? (item.showTitle ?? item.title) : item.title;

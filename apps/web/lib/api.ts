@@ -112,6 +112,8 @@ export const api = {
     request<{ seasons: SeasonSummary[] }>(`/api/shows/${tmdbId}/seasons`, { token }),
   getShowCast: (tmdbId: number, token: string) =>
     request<{ cast: CastMember[] }>(`/api/shows/${tmdbId}/cast`, { token }),
+  getEpisodeCast: (tmdbId: number, season: number, ep: number, token: string) =>
+    request<{ cast: CastMember[] }>(`/api/shows/${tmdbId}/seasons/${season}/episodes/${ep}/cast`, { token }),
   getShowUpNext: (tmdbId: number, token: string) =>
     request<{ episode: ShowEpisodeSummary | null }>(`/api/shows/${tmdbId}/up-next`, { token }),
   getShowRecentEpisodes: (tmdbId: number, token: string) =>

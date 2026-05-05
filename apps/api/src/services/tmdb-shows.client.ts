@@ -104,3 +104,21 @@ export async function fetchEpisode(
   );
   return transformEpisode(raw);
 }
+
+export async function fetchEpisodeCredits(
+  tmdbId: number,
+  seasonNumber: number,
+  episodeNumber: number,
+): Promise<CastMember[]> {
+  const data = await get<{ cast: { id: number; name: string; profile_path: string | null; character: string; order: number }[] }>(
+    `/tv/${tmdbId}/season/${seasonNumber}/episode/${episodeNumber}/credits`,
+  );
+  return (data.cast ?? []).map((m) => ({
+    tmdbId: m.id,
+    name: m.name,
+    profilePath: m.profile_path,
+    character: m.character ?? '',
+    episodeCount: 1,
+    isRegular: false,
+  }));
+}

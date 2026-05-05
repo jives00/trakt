@@ -62,7 +62,7 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
 function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episodeId: number) => Promise<void> }) {
   const { token } = useAuth();
   const [isMarking, setIsMarking] = useState(false);
-  const href = `/shows/${item.showTmdbId}`;
+  const href = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
 
   const handleMarkAsWatched = async (e: React.MouseEvent) => {
     e.preventDefault();

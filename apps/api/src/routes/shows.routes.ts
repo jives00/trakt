@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList } from '../services/shows.service';
+import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
@@ -69,6 +69,27 @@ export async function showsRoutes(app: FastifyInstance) {
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
     await unmarkEpisodeWatched(userId(request), episodeId);
     return { watched: false, episodeId };
+  });
+
+  app.get('/shows/:tmdbId/seasons/:season/episodes/:ep', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const seasonNumber = Number(params(request).season);
+    const episodeNumber = Number(params(request).ep);
+    if (!tmdbId || !seasonNumber || !episodeNumber) return reply.status(400).send({ error: 'Invalid params' });
+    const { episode, episodeId, showId } = await getEpisodeDetail(tmdbId, seasonNumber, episodeNumber);
+    const uid = userId(request);
+    const watchedEpisodeIds = await getWatchedEpisodeIds(uid, showId);
+    const watched = watchedEpisodeIds.includes(episodeId);
+    return { episode, watched };
+  });
+
+  app.get('/shows/:tmdbId/seasons/:season/episodes/:ep/cast', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const seasonNumber = Number(params(request).season);
+    const episodeNumber = Number(params(request).ep);
+    if (!tmdbId || !seasonNumber || !episodeNumber) return reply.status(400).send({ error: 'Invalid params' });
+    const cast = await getEpisodeCast(tmdbId, seasonNumber, episodeNumber);
+    return { cast };
   });
 
   app.post('/shows/:tmdbId/watched', auth, async (request: FastifyRequest) => {

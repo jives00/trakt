@@ -33,33 +33,36 @@ function formatCountry(code: string | null): string | null {
   try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code; } catch { return code; }
 }
 
-function EpisodeThumb({ ep, label, showLabel = true }: { ep: ShowEpisodeSummary; label: string; showLabel?: boolean }) {
+function EpisodeThumb({ showTmdbId, ep, label, showLabel = true }: { showTmdbId: number; ep: ShowEpisodeSummary; label: string; showLabel?: boolean }) {
   const stillUrl = ep.stillPath ? `${TMDB_IMG}w300${ep.stillPath}` : null;
+  const href = `/shows/${showTmdbId}/seasons/${ep.seasonNumber}/episodes/${ep.episodeNumber}`;
   return (
-    <div>
-      <div className="pb-3 mb-3 border-b border-white/5">
-        <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-[#e8002d]" : "text-transparent border-transparent"}`}>{label}</span>
-      </div>
-      <div className="bg-[#181818] border border-white/5 overflow-hidden">
-        <div className="relative aspect-video overflow-hidden">
-          {stillUrl ? (
-            <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover" />
-          ) : (
-            <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-              <span className="material-symbols-outlined text-2xl text-white/20">tv</span>
-            </div>
-          )}
-          {ep.runtimeMin && (
-            <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[9px] font-bold text-white">{ep.runtimeMin}m</div>
-          )}
+    <Link href={href}>
+      <div>
+        <div className="pb-3 mb-3 border-b border-white/5">
+          <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-[#e8002d]" : "text-transparent border-transparent"}`}>{label}</span>
         </div>
-        <div className="p-3">
-          <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-0.5">S{ep.seasonNumber} E{ep.episodeNumber}</p>
-          <p className="text-white text-base font-bold line-clamp-1">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
-          {ep.airDate && <p className="text-white/40 text-xs mt-0.5">{formatDate(ep.airDate)}</p>}
+        <div className="bg-[#181818] border border-white/5 overflow-hidden hover:border-white/10 transition-colors cursor-pointer">
+          <div className="relative aspect-video overflow-hidden">
+            {stillUrl ? (
+              <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover" />
+            ) : (
+              <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl text-white/20">tv</span>
+              </div>
+            )}
+            {ep.runtimeMin && (
+              <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[9px] font-bold text-white">{ep.runtimeMin}m</div>
+            )}
+          </div>
+          <div className="p-3">
+            <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-0.5">S{ep.seasonNumber} E{ep.episodeNumber}</p>
+            <p className="text-white text-base font-bold line-clamp-1">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
+            {ep.airDate && <p className="text-white/40 text-xs mt-0.5">{formatDate(ep.airDate)}</p>}
+          </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -250,7 +253,7 @@ export default function ShowDetailPage() {
               <section>
                 <div className="grid grid-cols-3 gap-4">
                   {episodeEls.slice(0, 3).map(({ ep, label }, i) => (
-                    <EpisodeThumb key={ep.episodeId} ep={ep} label={label} showLabel={i < 2} />
+                    <EpisodeThumb key={ep.episodeId} showTmdbId={Number(tmdbId)} ep={ep} label={label} showLabel={i < 2} />
                   ))}
                 </div>
               </section>
