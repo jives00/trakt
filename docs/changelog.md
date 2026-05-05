@@ -7,6 +7,7 @@
 - Up Next: navigation arrows conditionally appear only when items exceed page width; display logic based on scroll state `0215657`
 - Recommendations: remove glass-panel background, remove Browse link, add red vertical accent line to section header `0215657`
 - Cast members now clickable on show, season, and episode pages: opening their TMDB person page in a new tab with hover effects (border/image scale/text color) `be7159d`
+- Up Next: improved fade-in/fade-out animations with proper state tracking for removed cards; Schedule: fixed initial image load animation `5d78aa5`
 
 ## May 4, 2026
 

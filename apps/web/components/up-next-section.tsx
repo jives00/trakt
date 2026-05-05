@@ -12,6 +12,8 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) {
   const { token } = useAuth();
   const [items, setItems] = useState(initialItems);
+  const [removingEpisodeId, setRemovingEpisodeId] = useState<number | null>(null);
+  const [removingIndex, setRemovingIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -59,15 +61,24 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
     );
   }
 
-  const handleEpisodeWatched = async (episodeId: number) => {
-    setItems((prev) => prev.filter((item) => item.episodeId !== episodeId));
+  const onRemovalStart = (episodeId: number) => {
+    const index = items.findIndex(it => it.episodeId === episodeId);
+    setRemovingEpisodeId(episodeId);
+    setRemovingIndex(index);
+  };
 
+  const handleEpisodeWatched = async (episodeId: number) => {
     if (token) {
       try {
         const updated = await api.getUpNext(token);
         setItems(updated);
+        setTimeout(() => {
+          setRemovingEpisodeId(null);
+          setRemovingIndex(null);
+        }, 50);
       } catch (error) {
-        console.error("Failed to refresh up-next list:", error);
+        setRemovingEpisodeId(null);
+        setRemovingIndex(null);
       }
     }
   };
@@ -95,35 +106,79 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
           </div>
         )}
       </div>
-      <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {items.map((item) => <UpNextCard key={item.episodeId} item={item} onWatched={handleEpisodeWatched} />)}
+      <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ scrollBehavior: "smooth" }}>
+        {items.map((item, index) => {
+          const shouldFadeIn = removingIndex >= 0 && index === removingIndex && item.episodeId !== removingEpisodeId;
+          return (
+            <UpNextCard
+              key={item.episodeId}
+              item={item}
+              onRemovalStart={onRemovalStart}
+              onWatched={handleEpisodeWatched}
+              fadeIn={shouldFadeIn}
+            />
+          );
+        })}
       </div>
     </section>
   );
 }
 
-function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episodeId: number) => Promise<void> }) {
+function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextItem; onRemovalStart: (episodeId: number) => void; onWatched: (episodeId: number) => Promise<void>; fadeIn?: boolean }) {
   const { token } = useAuth();
   const [isMarking, setIsMarking] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [showContent, setShowContent] = useState(!fadeIn);
+
+  useEffect(() => {
+    if (fadeIn) {
+      const timer = setTimeout(() => {
+        setShowContent(true);
+      }, 10);
+      return () => clearTimeout(timer);
+    }
+  }, [fadeIn]);
   const episodeHref = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
   const showHref = `/shows/${item.showTmdbId}`;
+
+  useEffect(() => {
+    if (!isRemoving) return;
+    const timer = setTimeout(async () => {
+      if (token) {
+        try {
+          await onWatched(item.episodeId);
+        } catch (error) {
+          console.error("Failed to remove card:", error);
+          setIsRemoving(false);
+        }
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [isRemoving, token, item.episodeId, onWatched]);
 
   const handleMarkAsWatched = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!token || isMarking) return;
 
+    onRemovalStart(item.episodeId);
     setIsMarking(true);
+    setIsRemoving(true);
     try {
       await api.toggleEpisodeWatched(item.showTmdbId, item.seasonNumber, item.episodeNumber, false, token);
-      await onWatched(item.episodeId);
     } catch (error) {
-      console.error("Failed to mark as watched:", error);
       setIsMarking(false);
+      setIsRemoving(false);
     }
   };
 
   return (
-    <div className="flex-none w-56">
+    <div
+      className={`flex-none w-56 transition-all duration-700`}
+      style={{
+        opacity: fadeIn && !showContent ? 0 : isRemoving ? 0 : 1,
+        transform: isRemoving ? "scale(0.95)" : "scale(1)"
+      }}
+    >
       <Link href={episodeHref} className="group relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02] block">
         {item.posterPath ? (
           <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />

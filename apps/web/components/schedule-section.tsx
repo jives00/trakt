@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ScheduleItem } from "@trakt/types";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
@@ -117,21 +117,37 @@ function entryHref(entry: ScheduleItem): string {
 }
 
 function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[] }) {
-  const initialPath = entries[0]?.posterPath ? `${TMDB_IMG}w154${entries[0].posterPath}` : null;
-  const [slotA, setSlotA] = useState<string | null>(initialPath);
+  const [slotA, setSlotA] = useState<string | null>(null);
   const [slotB, setSlotB] = useState<string | null>(null);
   const [activeSlot, setActiveSlot] = useState<"a" | "b">("a");
   const [activeHref, setActiveHref] = useState<string>(entries[0] ? entryHref(entries[0]) : "#");
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const initialPath = entries[0]?.posterPath ? `${TMDB_IMG}w154${entries[0].posterPath}` : null;
+    setSlotA(initialPath);
+  }, [entries]);
 
   const handleHover = (i: number) => {
     const newPath = entries[i]?.posterPath ? `${TMDB_IMG}w154${entries[i].posterPath}` : null;
     setActiveHref(entries[i] ? entryHref(entries[i]) : "#");
+
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+    }
+
     if (activeSlot === "a") {
       setSlotB(newPath);
-      setActiveSlot("b");
+      transitionTimeoutRef.current = setTimeout(() => {
+        setActiveSlot("b");
+        transitionTimeoutRef.current = null;
+      }, 50);
     } else {
       setSlotA(newPath);
-      setActiveSlot("a");
+      transitionTimeoutRef.current = setTimeout(() => {
+        setActiveSlot("a");
+        transitionTimeoutRef.current = null;
+      }, 50);
     }
   };
 
