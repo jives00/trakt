@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
@@ -12,6 +12,39 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) {
   const { token } = useAuth();
   const [items, setItems] = useState(initialItems);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const checkScroll = () => {
+      if (scrollContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        setCanScrollLeft(scrollLeft > 0);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+      }
+    };
+
+    checkScroll();
+    const container = scrollContainerRef.current;
+    container?.addEventListener("scroll", checkScroll);
+    window.addEventListener("resize", checkScroll);
+
+    return () => {
+      container?.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
+    };
+  }, [items]);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 300;
+      scrollContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -43,16 +76,26 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <SectionHeading>Up Next</SectionHeading>
-        <div className="flex gap-2">
-          <button className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined text-sm">chevron_left</span>
-          </button>
-          <button className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors">
-            <span className="material-symbols-outlined text-sm">chevron_right</span>
-          </button>
-        </div>
+        {(canScrollLeft || canScrollRight) && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => scroll("left")}
+              disabled={!canScrollLeft}
+              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-sm">chevron_left</span>
+            </button>
+            <button
+              onClick={() => scroll("right")}
+              disabled={!canScrollRight}
+              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <span className="material-symbols-outlined text-sm">chevron_right</span>
+            </button>
+          </div>
+        )}
       </div>
-      <div className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => <UpNextCard key={item.episodeId} item={item} onWatched={handleEpisodeWatched} />)}
       </div>
     </section>
@@ -62,7 +105,8 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
 function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episodeId: number) => Promise<void> }) {
   const { token } = useAuth();
   const [isMarking, setIsMarking] = useState(false);
-  const href = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
+  const episodeHref = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
+  const showHref = `/shows/${item.showTmdbId}`;
 
   const handleMarkAsWatched = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,8 +123,8 @@ function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episode
   };
 
   return (
-    <Link href={href} className="group flex-none w-56">
-      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02]">
+    <div className="flex-none w-56">
+      <Link href={episodeHref} className="group relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02] block">
         {item.posterPath ? (
           <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
         ) : (
@@ -106,17 +150,19 @@ function UpNextCard({ item, onWatched }: { item: UpNextItem; onWatched: (episode
             />
           )}
         </div>
-      </div>
+      </Link>
       <div className="mt-2 px-0.5 flex justify-between items-start">
         <div className="min-w-0">
-          <p className="truncate text-base font-semibold text-on-surface">{item.showTitle}</p>
-          <p className="text-sm text-on-surface-variant">
+          <Link href={showHref} className="truncate text-base font-semibold text-on-surface hover:text-primary-container transition-colors block">
+            {item.showTitle}
+          </Link>
+          <Link href={episodeHref} className="text-sm text-on-surface-variant hover:text-primary-container transition-colors block">
             S{item.seasonNumber}E{item.episodeNumber}
             {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
-          </p>
+          </Link>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

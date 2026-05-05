@@ -60,8 +60,8 @@ describe("UpNextSection", () => {
         <UpNextSection items={[makeItem({ showTmdbId: 42, seasonNumber: 1, episodeNumber: 2 })]} />
       </AuthProvider>
     );
-    const link = screen.getByRole("link", { name: /test show/i });
-    expect(link).toHaveAttribute("href", "/shows/42/seasons/1/episodes/2");
+    const episodeLink = screen.getByRole("link", { name: /s1e2/i });
+    expect(episodeLink).toHaveAttribute("href", "/shows/42/seasons/1/episodes/2");
   });
 
   it("shows episode label", () => {

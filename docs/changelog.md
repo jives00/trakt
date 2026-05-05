@@ -1,5 +1,12 @@
 # Changelog
 
+## May 5, 2026
+
+### Web
+- Up Next and Schedule sections: split navigation so show names navigate to show page while episode number/title/poster navigate to episode detail page `0215657`
+- Up Next: navigation arrows conditionally appear only when items exceed page width; display logic based on scroll state `0215657`
+- Recommendations: remove glass-panel background, remove Browse link, add red vertical accent line to section header `0215657`
+
 ## May 4, 2026
 
 ### API

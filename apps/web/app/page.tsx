@@ -169,12 +169,12 @@ function RecommendationsSection({ showRecs, movieRecs }: { showRecs: Recommendat
 
 function RecPanel({ title, items, linkPrefix }: { title: string; items: RecommendationItem[]; linkPrefix: string }) {
   return (
-    <div className="glass-panel rounded-xl overflow-hidden">
-      <div className="p-5 border-b border-white/5 flex justify-between items-center">
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="block h-8 w-1 rounded-full bg-[#e8002d]" />
         <h3 className="text-h3 font-bold text-white">{title}</h3>
-        <Link href="/search" className="text-[#e8002d] text-xs font-bold uppercase hover:underline">Browse</Link>
       </div>
-      <div className="grid grid-cols-3 gap-3 p-4">
+      <div className="grid grid-cols-3 gap-3">
         {items.map((item) => (
           <Link key={item.tmdbId} href={`${linkPrefix}/${item.tmdbId}`} className="group relative">
             <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-[1.02]">

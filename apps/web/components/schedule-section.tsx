@@ -112,7 +112,8 @@ export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
 }
 
 function entryHref(entry: ScheduleItem): string {
-  return entry.mediaType === "movie" ? `/movies/${entry.movieTmdbId}` : `/shows/${entry.showTmdbId}`;
+  if (entry.mediaType === "movie") return `/movies/${entry.movieTmdbId}`;
+  return `/shows/${entry.showTmdbId}/seasons/${entry.seasonNumber}/episodes/${entry.episodeNumber}`;
 }
 
 function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[] }) {
@@ -217,20 +218,27 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
     );
   }
 
+  const episodeHref = `/shows/${entry.showTmdbId}/seasons/${entry.seasonNumber}/episodes/${entry.episodeNumber}`;
+  const showHref = `/shows/${entry.showTmdbId}`;
+
   return (
-    <Link href={`/shows/${entry.showTmdbId}`} className="group">
-      <p className="text-lg font-bold leading-tight text-on-surface group-hover:text-primary-container mb-1">
-        {entry.showTitle}
-      </p>
-      <p className="text-xs text-on-surface-variant">
-        S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
-        {entry.episodeTitle && ` · ${entry.episodeTitle}`}
-      </p>
+    <div>
+      <Link href={showHref} className="group">
+        <p className="text-lg font-bold leading-tight text-on-surface group-hover:text-primary-container mb-1">
+          {entry.showTitle}
+        </p>
+      </Link>
+      <Link href={episodeHref} className="group">
+        <p className="text-xs text-on-surface-variant group-hover:text-primary-container">
+          S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
+          {entry.episodeTitle && ` · ${entry.episodeTitle}`}
+        </p>
+      </Link>
       {(entry.airTime || entry.network) && (
         <p className="text-xs text-on-surface-variant">
           {entry.airTime && formatTime(entry.airTime)} {entry.airTime && entry.network ? 'on' : ''} {entry.network}
         </p>
       )}
-    </Link>
+    </div>
   );
 }
