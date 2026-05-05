@@ -56,6 +56,8 @@ export default function EpisodeDetailPage() {
     setRefreshingCast(true);
     try {
       await api.refreshShowCast(Number(tmdbId), token);
+      const castData = await api.getEpisodeCast(Number(tmdbId), sn, ep, token);
+      setCast(castData.cast);
     } catch (err) {
       console.error("Failed to refresh cast:", err);
     } finally {

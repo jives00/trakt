@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
+import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
@@ -141,7 +141,7 @@ export async function showsRoutes(app: FastifyInstance) {
 
   app.post('/shows/:tmdbId/cast/refresh', auth, async (request: FastifyRequest) => {
     const tmdbId = Number(params(request).tmdbId);
-    const cast = await getOrFetchCast(tmdbId);
+    const cast = await forceRefreshShowCast(tmdbId);
     return { cast };
   });
 

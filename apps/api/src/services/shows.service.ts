@@ -1,7 +1,7 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary, EpisodeDetail } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast, fetchEpisodeCredits } from './tmdb-shows.client';
+import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast, fetchSeasonCast, fetchEpisodeGuestStars } from './tmdb-shows.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
 import { applyImageOverrides } from './image-overrides.service';
 
@@ -295,6 +295,18 @@ export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
   }));
 }
 
+export async function forceRefreshShowCast(tmdbId: number): Promise<CastMember[]> {
+  const pool = getPool();
+  const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  if (!showRows.length) return [];
+  const showId = showRows[0].id;
+
+  await pool.query('DELETE FROM credits WHERE media_type = "show" AND media_id = ?', [showId]);
+  await pool.query('UPDATE tv_shows SET cast_fetched_at = NULL WHERE id = ?', [showId]);
+
+  return getOrFetchCast(tmdbId);
+}
+
 export async function getShowUpNext(userId: number, tmdbId: number): Promise<ShowEpisodeSummary | null> {
   const pool = getPool();
   const [showRows] = await pool.query<RowDataPacket[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
@@ -430,31 +442,18 @@ export async function getEpisodeDetail(tmdbId: number, seasonNumber: number, epi
 }
 
 export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episodeNumber: number): Promise<CastMember[]> {
-  const pool = getPool();
-  const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
-  if (!showRows.length) return [];
-  const showId = showRows[0].id;
+  try {
+    const [seasonCast, guests] = await Promise.all([
+      fetchSeasonCast(tmdbId, seasonNumber),
+      fetchEpisodeGuestStars(tmdbId, seasonNumber, episodeNumber),
+    ]);
 
-  const guestStars = await fetchEpisodeCredits(tmdbId, seasonNumber, episodeNumber);
-  const guestStarIds = new Set(guestStars.map(g => g.tmdbId));
+    const guestIds = new Set(guests.map(g => g.tmdbId));
+    const regulars = seasonCast.filter(m => !guestIds.has(m.tmdbId));
 
-  const [regularRows] = await pool.query<PersonRow[]>(`
-    SELECT p.tmdb_id, p.name, p.profile_path, c.character, c.episode_count, c.is_regular
-    FROM credits c JOIN people p ON p.id = c.person_id
-    WHERE c.media_type = 'show' AND c.media_id = ? AND c.role = 'cast' AND c.is_regular = 1
-    ORDER BY c.episode_count DESC LIMIT 50
-  `, [showId]);
-
-  const regulars = regularRows
-    .filter(r => !guestStarIds.has(r.tmdb_id))
-    .map(r => ({
-      tmdbId: r.tmdb_id,
-      name: r.name,
-      profilePath: r.profile_path,
-      character: r.character ?? '',
-      episodeCount: r.episode_count ?? 0,
-      isRegular: true,
-    }));
-
-  return [...regulars, ...guestStars];
+    return [...regulars, ...guests];
+  } catch (err) {
+    console.error('Error fetching episode cast:', err);
+    return [];
+  }
 }

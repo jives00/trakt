@@ -64,7 +64,7 @@ export async function fetchShowCast(tmdbId: number): Promise<CastMember[]> {
       profilePath: m.profile_path,
       character: m.roles[0]?.character ?? '',
       episodeCount: m.total_episode_count,
-      isRegular: m.order < 15 && m.total_episode_count >= 3,
+      isRegular: m.order < 12,
     }));
 }
 
@@ -82,6 +82,21 @@ export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise
       transformEpisode(ep),
     ),
   };
+}
+
+export async function fetchSeasonCast(tmdbId: number, seasonNumber: number): Promise<CastMember[]> {
+  const data = await get<{
+    cast: { id: number; name: string; profile_path: string | null; character: string }[];
+  }>(`/tv/${tmdbId}/season/${seasonNumber}/credits`);
+
+  return (data.cast ?? []).map((m) => ({
+    tmdbId: m.id,
+    name: m.name,
+    profilePath: m.profile_path,
+    character: m.character ?? '',
+    episodeCount: 1,
+    isRegular: true,
+  }));
 }
 
 export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
@@ -105,15 +120,16 @@ export async function fetchEpisode(
   return transformEpisode(raw);
 }
 
-export async function fetchEpisodeCredits(
+export async function fetchEpisodeGuestStars(
   tmdbId: number,
   seasonNumber: number,
   episodeNumber: number,
 ): Promise<CastMember[]> {
-  const data = await get<{ cast: { id: number; name: string; profile_path: string | null; character: string; order: number }[] }>(
-    `/tv/${tmdbId}/season/${seasonNumber}/episode/${episodeNumber}/credits`,
-  );
-  return (data.cast ?? []).map((m) => ({
+  const data = await get<{
+    guest_stars: { id: number; name: string; profile_path: string | null; character: string }[];
+  }>(`/tv/${tmdbId}/season/${seasonNumber}/episode/${episodeNumber}/credits`);
+
+  return (data.guest_stars ?? []).map((m) => ({
     tmdbId: m.id,
     name: m.name,
     profilePath: m.profile_path,

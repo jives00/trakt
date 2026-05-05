@@ -1,5 +1,16 @@
 # Changelog
 
+## May 4, 2026
+
+### API
+- Use TMDB's native season/episode credits endpoints for cast distinction: fetch series regulars from /tv/{id}/season/{season}/credits, episode guest stars from /tv/{id}/season/{season}/episode/{ep}/credits; removes complex logic trying to infer regular vs guest status; episode cast now uses TMDB's actual designations for accuracy `8c6b262`
+- Change series regular determination: mark top 12 cast members as regulars (by cast order) instead of top 15 with 3+ episodes requirement; simplifies logic to rely on TMDB's cast ordering `8c6b262`
+- Add forceRefreshShowCast to clear cached cast data before re-fetching; fixes refresh button to actually update stale cast data instead of returning cached results `8c6b262`
+
+### Web
+- Episode detail page: add manual refresh button for cast data; clicking refreshes from TMDB and refetches episode cast so regulars/guests distinction updates immediately `8c6b262`
+- Up-next section: fix test to expect episode detail link instead of show detail link `8c6b262`
+
 ## May 3, 2026
 
 ### API
@@ -28,6 +39,7 @@
 
 ### Web
 - Show detail page redesign: metadata grid, episode highlights (Up Next + 2 recently aired), cast tabs (Series Regulars / Guest Stars), overflow-x-hidden hero fix, runtime fallback from episodes table `2093eed`
+- Add episode detail pages at /shows/{id}/seasons/{n}/episodes/{ep}: full episode metadata with hero, still image, description, and cast (guest stars + series regulars); episode cast live-fetched from TMDB; pages linked from all episode entry points (show detail up next/recently aired cards, dashboard up next section, recently watched section, season detail episode list); API adds fetchEpisodeCredits, getEpisodeDetail, getEpisodeCast; web updates EpisodeThumb, UpNextCard, RecentCard to link to episode detail `46424c1`
 
 ### Web
 - Schedule section: increase divider padding between same-day entries `67b3a3c`

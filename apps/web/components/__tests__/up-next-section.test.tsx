@@ -54,14 +54,14 @@ describe("UpNextSection", () => {
     expect(screen.getAllByText("Show B")).toHaveLength(2);
   });
 
-  it("links to the show detail page", () => {
+  it("links to the episode detail page", () => {
     render(
       <AuthProvider>
-        <UpNextSection items={[makeItem({ showTmdbId: 42 })]} />
+        <UpNextSection items={[makeItem({ showTmdbId: 42, seasonNumber: 1, episodeNumber: 2 })]} />
       </AuthProvider>
     );
     const link = screen.getByRole("link", { name: /test show/i });
-    expect(link).toHaveAttribute("href", "/shows/42");
+    expect(link).toHaveAttribute("href", "/shows/42/seasons/1/episodes/2");
   });
 
   it("shows episode label", () => {
