@@ -139,6 +139,12 @@ export async function showsRoutes(app: FastifyInstance) {
     return { cast };
   });
 
+  app.post('/shows/:tmdbId/cast/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const cast = await getOrFetchCast(tmdbId);
+    return { cast };
+  });
+
   app.get('/shows/:tmdbId/up-next', auth, async (request: FastifyRequest) => {
     const tmdbId = Number(params(request).tmdbId);
     const episode = await getShowUpNext(userId(request), tmdbId);

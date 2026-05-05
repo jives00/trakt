@@ -25,6 +25,7 @@ export default function EpisodeDetailPage() {
   const [watched, setWatched] = useState(false);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [error, setError] = useState("");
+  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -48,6 +49,18 @@ export default function EpisodeDetailPage() {
     if (!token) return;
     const res = await api.toggleEpisodeWatched(Number(tmdbId), sn, ep, watched, token);
     setWatched(res.watched);
+  }
+
+  async function handleRefreshCast() {
+    if (!token) return;
+    setRefreshingCast(true);
+    try {
+      await api.refreshShowCast(Number(tmdbId), token);
+    } catch (err) {
+      console.error("Failed to refresh cast:", err);
+    } finally {
+      setRefreshingCast(false);
+    }
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -135,7 +148,17 @@ export default function EpisodeDetailPage() {
             {/* Cast */}
             {cast.length > 0 && (
               <section>
-                <h2 className="text-white font-black text-xl mb-6">Cast</h2>
+                <div className="flex gap-6 items-center justify-between mb-6">
+                  <h2 className="text-white font-black text-xl">Cast</h2>
+                  <button
+                    onClick={handleRefreshCast}
+                    disabled={refreshingCast}
+                    className="text-white/40 hover:text-white/60 disabled:opacity-50 transition-colors"
+                    title="Refresh cast from TMDB"
+                  >
+                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 0" }}>refresh</span>
+                  </button>
+                </div>
                 <div className="space-y-8">
                   {regulars.length > 0 && (
                     <div>

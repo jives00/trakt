@@ -243,17 +243,30 @@ interface EpSummaryRow extends RowDataPacket {
   stillPath: string | null; runtimeMin: number | null;
 }
 
+function isCastStale(fetchedAt: Date | null): boolean {
+  if (!fetchedAt) return true;
+  const ageMs = Date.now() - new Date(fetchedAt).getTime();
+  return ageMs >= 30 * 86400000;
+}
+
 export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
   const pool = getPool();
-  const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  const [showRows] = await pool.query<ShowRow[]>('SELECT id, cast_fetched_at FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
   if (!showRows.length) return [];
-  const showId = showRows[0].id;
+  const showRow = showRows[0];
+  const showId = showRow.id;
+  const castFetchedAt = (showRow as any).cast_fetched_at;
 
   const [existing] = await pool.query<RowDataPacket[]>(
     'SELECT COUNT(*) AS cnt FROM credits WHERE media_type = "show" AND media_id = ?', [showId],
   );
-  if (Number((existing[0] as any).cnt) === 0) {
+  const hasExisting = Number((existing[0] as any).cnt) > 0;
+
+  if (!hasExisting || isCastStale(castFetchedAt)) {
     const tmdbCast = await fetchShowCast(tmdbId);
+    if (hasExisting) {
+      await pool.query('DELETE FROM credits WHERE media_type = "show" AND media_id = ?', [showId]);
+    }
     for (const m of tmdbCast) {
       await pool.query('INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES (?, ?, ?)', [m.tmdbId, m.name, m.profilePath]);
       const [pRows] = await pool.query<RowDataPacket[]>('SELECT id FROM people WHERE tmdb_id = ?', [m.tmdbId]);
@@ -262,6 +275,7 @@ export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
         [showId, (pRows[0] as any).id, m.character, m.episodeCount, m.isRegular ? 1 : 0],
       );
     }
+    await pool.query('UPDATE tv_shows SET cast_fetched_at = NOW() WHERE id = ?', [showId]);
   }
 
   const [rows] = await pool.query<PersonRow[]>(`

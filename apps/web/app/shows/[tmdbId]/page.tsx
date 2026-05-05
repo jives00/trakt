@@ -94,6 +94,7 @@ export default function ShowDetailPage() {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
   const [picker, setPicker] = useState<"hero" | "poster" | null>(null);
+  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -132,6 +133,19 @@ export default function ShowDetailPage() {
     setShow((s) => s
       ? { ...s, backdropPath: imageType === "hero" ? path : s.backdropPath, posterPath: imageType === "poster" ? path : s.posterPath }
       : null);
+  }
+
+  async function handleRefreshCast() {
+    if (!token) return;
+    setRefreshingCast(true);
+    try {
+      const result = await api.refreshShowCast(Number(tmdbId), token);
+      setCast(result.cast);
+    } catch (err) {
+      console.error("Failed to refresh cast:", err);
+    } finally {
+      setRefreshingCast(false);
+    }
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -262,18 +276,28 @@ export default function ShowDetailPage() {
             {/* Cast */}
             {cast.length > 0 && (
               <section>
-                <div className="flex gap-6 border-b border-white/5 mb-6">
-                  {(["regulars", "guests"] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setCastTab(tab)}
-                      className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                        castTab === tab ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
-                      }`}
-                    >
-                      {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
-                    </button>
-                  ))}
+                <div className="flex gap-6 border-b border-white/5 mb-6 justify-between items-center">
+                  <div className="flex gap-6">
+                    {(["regulars", "guests"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setCastTab(tab)}
+                        className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                          castTab === tab ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
+                        }`}
+                      >
+                        {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleRefreshCast}
+                    disabled={refreshingCast}
+                    className="text-white/40 hover:text-white/60 disabled:opacity-50 transition-colors"
+                    title="Refresh cast from TMDB"
+                  >
+                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 0" }}>refresh</span>
+                  </button>
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                   {displayedCast.map((m) => (

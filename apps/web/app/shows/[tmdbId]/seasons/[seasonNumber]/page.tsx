@@ -45,6 +45,7 @@ export default function SeasonDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [error, setError] = useState("");
+  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -96,6 +97,18 @@ export default function SeasonDetailPage() {
         });
       })
       .catch(() => {});
+  }
+
+  async function handleRefreshCast() {
+    if (!token) return;
+    setRefreshingCast(true);
+    try {
+      await api.refreshShowCast(Number(tmdbId), token);
+    } catch (err) {
+      console.error("Failed to refresh cast:", err);
+    } finally {
+      setRefreshingCast(false);
+    }
   }
 
   if (error) return <p className="text-error">{error}</p>;
