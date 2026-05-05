@@ -301,20 +301,26 @@ export default function ShowDetailPage() {
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                   {displayedCast.map((m) => (
-                    <div key={m.tmdbId} className="text-center">
-                      <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2">
+                    <a
+                      key={m.tmdbId}
+                      href={`https://www.themoviedb.org/person/${m.tmdbId}-${m.name.toLowerCase().replace(/\s+/g, "-")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-center group cursor-pointer"
+                    >
+                      <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
                         {m.profilePath ? (
-                          <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill className="object-cover" />
+                          <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="material-symbols-outlined text-2xl text-white/20">person</span>
                           </div>
                         )}
                       </div>
-                      <p className="text-white text-xs font-bold line-clamp-1">{m.name}</p>
+                      <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
                       <p className="text-white/40 text-sm line-clamp-1">{m.character}</p>
                       <p className="text-white/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </section>

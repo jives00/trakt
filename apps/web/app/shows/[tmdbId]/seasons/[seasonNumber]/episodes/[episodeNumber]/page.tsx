@@ -231,18 +231,23 @@ export default function EpisodeDetailPage() {
 function CastCard({ member }: { member: CastMember }) {
   const photoUrl = member.profilePath ? `${TMDB_IMG}w185${member.profilePath}` : null;
   return (
-    <div className="text-center">
-      <div className="relative aspect-[2/3] mb-2 overflow-hidden bg-surface-container-high rounded border border-white/5">
+    <a
+      href={`https://www.themoviedb.org/person/${member.tmdbId}-${member.name.toLowerCase().replace(/\s+/g, "-")}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-center group cursor-pointer"
+    >
+      <div className="relative aspect-[2/3] mb-2 overflow-hidden bg-surface-container-high rounded border border-white/5 group-hover:border-white/20 transition-colors">
         {photoUrl ? (
-          <Image src={photoUrl} alt={member.name} fill className="object-cover" />
+          <Image src={photoUrl} alt={member.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <span className="material-symbols-outlined text-2xl text-white/20">person</span>
           </div>
         )}
       </div>
-      <p className="text-white text-xs font-semibold line-clamp-2">{member.name}</p>
+      <p className="text-white text-xs font-semibold line-clamp-2 group-hover:text-[#e8002d] transition-colors">{member.name}</p>
       <p className="text-white/50 text-[10px] line-clamp-2 mt-0.5">{member.character}</p>
-    </div>
+    </a>
   );
 }

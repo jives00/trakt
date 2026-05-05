@@ -6,6 +6,7 @@
 - Up Next and Schedule sections: split navigation so show names navigate to show page while episode number/title/poster navigate to episode detail page `0215657`
 - Up Next: navigation arrows conditionally appear only when items exceed page width; display logic based on scroll state `0215657`
 - Recommendations: remove glass-panel background, remove Browse link, add red vertical accent line to section header `0215657`
+- Cast members now clickable on show, season, and episode pages: opening their TMDB person page in a new tab with hover effects (border/image scale/text color) `be7159d`
 
 ## May 4, 2026
 
