@@ -271,7 +271,7 @@ export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
       await pool.query('INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES (?, ?, ?)', [m.tmdbId, m.name, m.profilePath]);
       const [pRows] = await pool.query<RowDataPacket[]>('SELECT id FROM people WHERE tmdb_id = ?', [m.tmdbId]);
       await pool.query(
-        'INSERT IGNORE INTO credits (media_type, media_id, person_id, `character`, `role`, `order`, episode_count, is_regular) VALUES ("show", ?, ?, ?, "cast", 0, ?, ?)',
+        'INSERT INTO credits (media_type, media_id, person_id, `character`, `role`, `order`, episode_count, is_regular) VALUES ("show", ?, ?, ?, "cast", 0, ?, ?) ON DUPLICATE KEY UPDATE `character` = VALUES(`character`), episode_count = VALUES(episode_count), is_regular = VALUES(is_regular)',
         [showId, (pRows[0] as any).id, m.character, m.episodeCount, m.isRegular ? 1 : 0],
       );
     }
@@ -279,7 +279,7 @@ export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
   }
 
   const [rows] = await pool.query<PersonRow[]>(`
-    SELECT p.tmdb_id, p.name, p.profile_path, c.character, c.episode_count, c.is_regular
+    SELECT DISTINCT p.tmdb_id, p.name, p.profile_path, c.character, c.episode_count, c.is_regular
     FROM credits c JOIN people p ON p.id = c.person_id
     WHERE c.media_type = 'show' AND c.media_id = ? AND c.role = 'cast'
     ORDER BY c.episode_count DESC LIMIT 100

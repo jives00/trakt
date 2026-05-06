@@ -2,6 +2,9 @@
 
 ## May 5, 2026
 
+### API
+- Fix duplicate cast members: add UNIQUE constraint to credits table on (media_type, media_id, person_id, role); use INSERT ... ON DUPLICATE KEY UPDATE to prevent inserting same person multiple times with different is_regular values; add DISTINCT to cast SELECT query as safety measure `24b5455`
+
 ### Web
 - Up Next and Schedule sections: split navigation so show names navigate to show page while episode number/title/poster navigate to episode detail page `0215657`
 - Up Next: navigation arrows conditionally appear only when items exceed page width; display logic based on scroll state `0215657`
