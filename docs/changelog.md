@@ -1,5 +1,23 @@
 # Changelog
 
+## May 6, 2026
+
+### API
+- Trakt OAuth device-code flow: initiateDeviceCodeFlow() and checkAuthorizationStatus() for interactive authorization; caches device code in memory with expiry; stores tokens in trakt_tokens table on user approval; auto-refreshes tokens on expiry `64efc9a`
+- Emby scrobbling service: handleEmbyScrobble() parses webhook payloads, calculates progress %, applies watch thresholds (80% movie, 70% episode), checks scrobble_exclusions, upserts to watch_history with same-day dedup on (user_id, media_type, media_id, DATE) `64efc9a`
+- Stremio addon routes: GET /stremio-addon/manifest.json returns addon metadata; GET /stremio-addon/subtitles/{type}/{id}/{extra}.json validates IMDB ID format and starts background poll loop `64efc9a`
+- Scrobble exclusion system: POST/GET/DELETE /api/settings/exclusions endpoints with per-integration title exclusions; Zod schemas for Emby, Stremio, Kodi payloads `64efc9a`
+- Settings endpoints: GET /api/settings/api-key returns scrobbleApiKey; GET /api/settings/trakt-auth returns connection status; POST routes to initiate and check Trakt OAuth flow `64efc9a`
+- Trakt API requests now include User-Agent header to bypass Cloudflare blocks; token refresh endpoint handles 409 (code expired) as expected state `64efc9a`
+- Database pool initialization: production services now import from db.ts instead of test helpers to correctly read .env configuration; fixes port configuration issues `64efc9a`
+
+### Web
+- Integrations page: add Trakt OAuth modal with device code display (copyable) and https://trakt.tv/activate URL; 2-second polling for authorization status `64efc9a`
+- Trakt connection button: "Connect Trakt" initiates device code flow; displays "✓ Trakt Connected" when authorized; auto-closes modal on successful auth `64efc9a`
+- Exclusion UI: per-integration exclusion list with title display, media type badge, and remove button; refetches after deletion `64efc9a`
+- API key display: fetch from GET /api/settings/api-key with toggle visibility button; shows masked by default `64efc9a`
+- Auth fix: all authenticated API calls now include Authorization Bearer token from useAuth() hook stored in memory; useMemo prevents infinite fetch loops `64efc9a`
+
 ## May 5, 2026
 
 ### API
