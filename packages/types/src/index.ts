@@ -7,3 +7,6 @@ export * from './lists';
 export * from './ratings';
 export * from './stats';
 export * from './user';
+export * from './emby';
+export * from './stremio';
+export * from './exclusions';

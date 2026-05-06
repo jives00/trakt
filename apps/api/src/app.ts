@@ -15,6 +15,10 @@ import { listsRoutes } from './routes/lists.routes';
 import { ratingsRoutes } from './routes/ratings.routes';
 import { statsRoutes } from './routes/stats.routes';
 import { userRoutes } from './routes/user.routes';
+import { exclusionsRoutes } from './routes/exclusions.routes';
+import { scrobbleRoutes } from './routes/scrobble.routes';
+import { stremioAddonRoutes } from './routes/stremio-addon.routes';
+import { settingsRoutes } from './routes/settings.routes';
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false });
@@ -41,6 +45,10 @@ void app.register(corsPlugin, {
   void app.register(ratingsRoutes, { prefix: '/api' });
   void app.register(statsRoutes, { prefix: '/api' });
   void app.register(userRoutes, { prefix: '/api' });
+  void app.register(exclusionsRoutes, { prefix: '/api' });
+  void app.register(scrobbleRoutes, { prefix: '/api' });
+  void app.register(settingsRoutes, { prefix: '/api' });
+  void app.register(stremioAddonRoutes, { prefix: '/stremio-addon' });
 
   return app;
 }

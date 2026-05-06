@@ -11,3 +11,10 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
     throw err;
   }
 }
+
+export async function authenticateScrobble(request: FastifyRequest, reply: FastifyReply) {
+  const key = request.headers['x-api-key'];
+  if (!key || key !== process.env.SCROBBLE_API_KEY) {
+    return reply.status(401).send({ error: 'Unauthorized' });
+  }
+}

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS trakt_tokens (
+  id INT PRIMARY KEY,
+  access_token VARCHAR(500) NOT NULL,
+  refresh_token VARCHAR(500) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

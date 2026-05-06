@@ -22,7 +22,7 @@ const TABLES = [
   'notes', 'ratings', 'list_items', 'lists',
   'watchlist', 'collection', 'watch_history',
   'episodes', 'seasons', 'tv_shows', 'movies',
-  'refresh_tokens', 'users',
+  'refresh_tokens', 'users', 'trakt_tokens',
 ];
 
 const SEED_SQL = readFileSync(
