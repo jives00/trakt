@@ -3,6 +3,7 @@
 ## May 6, 2026
 
 ### API
+- Movie metadata and credits: add origin_country, original_language, production_company columns; new endpoints GET /api/movies/{tmdbId}/cast and /crew fetch from TMDB and cache in credits table; fetchMovieCredits() returns cast and crew members with profile photos; crew filtered to key roles (Director, Writer, Producer, Cinematographer, Editor, Composer, Designer, Sound) `7a05a0d`
 - Recommendation diversity: collect all recommendations from all 5 seed shows/movies, then randomly sample 3 instead of stopping at first 3 `cbe3239`
 - Stremio scrobbling fix: store Trakt username during OAuth (fetch from /users/me after auth); use stored username to poll /users/{username}/watching; calculate progress % from started_at/expires_at elapsed time (Trakt API doesn't return progress field); allow all CORS origins since sensitive endpoints are JWT-protected `a218d13`
 - Trakt OAuth device-code flow: initiateDeviceCodeFlow() and checkAuthorizationStatus() for interactive authorization; caches device code in memory with expiry; stores tokens in trakt_tokens table on user approval; auto-refreshes tokens on expiry `64efc9a`
@@ -14,6 +15,7 @@
 - Database pool initialization: production services now import from db.ts instead of test helpers to correctly read .env configuration; fixes port configuration issues `64efc9a`
 
 ### Web
+- Movie detail pages: full redesign with hero (backdrop, poster, genres, title, overview), metadata row (Premiered, Runtime, Country, Language, Studio), cast/crew tabs with profile photos and placeholder icons, sidebar with watchlist/collection/watched toggles, 1-10 star rating, TMDB link `7a05a0d`
 - Integrations page: add Trakt OAuth modal with device code display (copyable) and https://trakt.tv/activate URL; 2-second polling for authorization status `64efc9a`
 - Trakt connection button: "Connect Trakt" initiates device code flow; displays "✓ Trakt Connected" when authorized; auto-closes modal on successful auth `64efc9a`
 - Exclusion UI: per-integration exclusion list with title display, media type badge, and remove button; refetches after deletion `64efc9a`

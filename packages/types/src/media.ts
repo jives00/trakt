@@ -12,6 +12,28 @@ export interface Movie {
   tagline?: string | null;
 }
 
+export interface MovieDetail extends Movie {
+  originCountry: string | null;
+  originalLanguage: string | null;
+  productionCompany: string | null;
+}
+
+export interface MovieCastMember {
+  tmdbId: number;
+  name: string;
+  profilePath: string | null;
+  character: string;
+  order: number;
+}
+
+export interface CrewMember {
+  tmdbId: number;
+  name: string;
+  profilePath: string | null;
+  job: string;
+  department: string;
+}
+
 export interface TvShow {
   id: number;
   tmdbId: number;

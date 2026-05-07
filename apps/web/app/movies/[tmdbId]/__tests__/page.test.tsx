@@ -5,6 +5,8 @@ import MovieDetailPage from "../page";
 import type { Movie } from "@trakt/types";
 
 const mockGetMovie = vi.fn();
+const mockGetMovieCast = vi.fn();
+const mockGetMovieCrew = vi.fn();
 const mockToggleWatched = vi.fn();
 const mockToggleWatchlist = vi.fn();
 const mockToggleCollection = vi.fn();
@@ -20,6 +22,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/api", () => ({
   api: {
     getMovie: (...args: unknown[]) => mockGetMovie(...args),
+    getMovieCast: (...args: unknown[]) => mockGetMovieCast(...args),
+    getMovieCrew: (...args: unknown[]) => mockGetMovieCrew(...args),
     toggleMovieWatched: (...args: unknown[]) => mockToggleWatched(...args),
     toggleMovieWatchlist: (...args: unknown[]) => mockToggleWatchlist(...args),
     toggleMovieCollection: (...args: unknown[]) => mockToggleCollection(...args),
@@ -50,14 +54,15 @@ const status = { inWatchlist: false, inCollection: false, watched: false };
 describe("MovieDetailPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetMovieCast.mockResolvedValue({ cast: [] });
+    mockGetMovieCrew.mockResolvedValue({ crew: [] });
   });
 
-  it("renders movie title, year, genres, and overview", async () => {
+  it("renders movie title, genres, and overview", async () => {
     mockGetMovie.mockResolvedValue({ movie, status });
     render(<MovieDetailPage />);
 
     await waitFor(() => expect(screen.getByText("Fight Club")).toBeInTheDocument());
-    expect(screen.getByText("1999")).toBeInTheDocument();
     expect(screen.getByText("Drama")).toBeInTheDocument();
     expect(screen.getByText("An insomniac office worker...")).toBeInTheDocument();
   });
@@ -89,8 +94,8 @@ describe("MovieDetailPage", () => {
     mockToggleWatchlist.mockResolvedValue({ inWatchlist: true });
     render(<MovieDetailPage />);
 
-    await waitFor(() => screen.getByText("+ Watchlist"));
-    await userEvent.click(screen.getByText("+ Watchlist"));
+    await waitFor(() => screen.getByText("Watchlist"));
+    await userEvent.click(screen.getByText("Watchlist"));
 
     expect(mockToggleWatchlist).toHaveBeenCalledWith(550, false, "test-token");
   });

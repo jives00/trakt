@@ -1,6 +1,7 @@
 import type {
   SearchResult, Movie,
   ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary,
+  MovieDetail, MovieCastMember, CrewMember,
   HistoryItem, ProgressItem,
   CollectionItem, WatchlistItem,
   UserList, ListDetail,
@@ -10,7 +11,7 @@ import type {
   UserProfile,
 } from "@trakt/types";
 
-export type { ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
+export type { ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieDetail, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
 
 const BASE = "";
 
@@ -67,6 +68,10 @@ export const api = {
   // Movies
   getMovie: (tmdbId: number, token: string) =>
     request<{ movie: Movie & { id: number }; status: MovieStatus }>(`/api/movies/${tmdbId}`, { token }),
+  getMovieCast: (tmdbId: number, token: string) =>
+    request<{ cast: MovieCastMember[] }>(`/api/movies/${tmdbId}/cast`, { token }),
+  getMovieCrew: (tmdbId: number, token: string) =>
+    request<{ crew: CrewMember[] }>(`/api/movies/${tmdbId}/crew`, { token }),
   toggleMovieWatched: (tmdbId: number, watched: boolean, token: string) =>
     request<{ watched: boolean }>(`/api/movies/${tmdbId}/watched`, {
       method: watched ? "DELETE" : "POST", token,

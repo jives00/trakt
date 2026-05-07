@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchMovie } from '../services/movies.service';
+import { getOrFetchMovie, getOrFetchMovieCast, getOrFetchMovieCrew } from '../services/movies.service';
 import {
   getMovieStatus, toggleWatchlist, toggleCollection,
   markMovieWatched, unmarkMovieWatched,
@@ -61,5 +61,17 @@ export async function moviesRoutes(app: FastifyInstance) {
     const movie = await getOrFetchMovie(tmdbId);
     const added = await toggleCollection(userId(request), 'movie', movie.id);
     return { inCollection: added };
+  });
+
+  app.get('/movies/:tmdbId/cast', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const cast = await getOrFetchMovieCast(tmdbId);
+    return { cast };
+  });
+
+  app.get('/movies/:tmdbId/crew', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const crew = await getOrFetchMovieCrew(tmdbId);
+    return { crew };
   });
 }
