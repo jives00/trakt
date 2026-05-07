@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type EpisodeItem } from "@/lib/api";
 import { EpisodeRow } from "../episode-row";
+import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -45,7 +46,6 @@ export default function SeasonDetailPage() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [error, setError] = useState("");
-  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -99,16 +99,16 @@ export default function SeasonDetailPage() {
       .catch(() => {});
   }
 
-  async function handleRefreshCast() {
+  async function handleRefreshEpisodes() {
     if (!token) return;
-    setRefreshingCast(true);
-    try {
-      await api.refreshShowCast(Number(tmdbId), token);
-    } catch (err) {
-      console.error("Failed to refresh cast:", err);
-    } finally {
-      setRefreshingCast(false);
-    }
+    await api.refreshShowSeasons(Number(tmdbId), token);
+    const result = await api.getSeason(Number(tmdbId), sn, token);
+    setEpisodes(result.episodes);
+    setWatchedIds(new Set(result.watchedEpisodeIds));
+  }
+
+  async function handleRefreshAll() {
+    await handleRefreshEpisodes();
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -289,6 +289,13 @@ export default function SeasonDetailPage() {
               >
                 View on TMDB
               </Link>
+
+              <div className="border-t border-white/10 pt-4">
+                <RefreshButton sections={[
+                  { label: "All Data", onRefresh: handleRefreshAll },
+                  { label: "Episodes", onRefresh: handleRefreshEpisodes },
+                ]} />
+              </div>
             </div>
           </div>
         </div>

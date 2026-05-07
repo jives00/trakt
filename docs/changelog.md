@@ -13,6 +13,7 @@
 - Settings endpoints: GET /api/settings/api-key returns scrobbleApiKey; GET /api/settings/trakt-auth returns connection status; POST routes to initiate and check Trakt OAuth flow `64efc9a`
 - Trakt API requests now include User-Agent header to bypass Cloudflare blocks; token refresh endpoint handles 409 (code expired) as expected state `64efc9a`
 - Database pool initialization: production services now import from db.ts instead of test helpers to correctly read .env configuration; fixes port configuration issues `64efc9a`
+- Refresh endpoints: POST /api/movies/{id}/metadata/refresh, POST /api/movies/{id}/cast/refresh for movies; POST /api/shows/{id}/metadata/refresh, POST /api/shows/{id}/seasons/refresh, POST /api/shows/{id}/seasons/{season}/episodes/refresh for shows; force-refresh clears cached data and re-fetches from TMDB `8548c0f`
 
 ### Web
 - Movie detail pages: full redesign with hero (backdrop, poster, genres, title, overview), metadata row (Premiered, Runtime, Country, Language, Studio), cast/crew tabs with profile photos and placeholder icons, sidebar with watchlist/collection/watched toggles, 1-10 star rating, TMDB link `7a05a0d`
@@ -21,6 +22,7 @@
 - Exclusion UI: per-integration exclusion list with title display, media type badge, and remove button; refetches after deletion `64efc9a`
 - API key display: fetch from GET /api/settings/api-key with toggle visibility button; shows masked by default `64efc9a`
 - Auth fix: all authenticated API calls now include Authorization Bearer token from useAuth() hook stored in memory; useMemo prevents infinite fetch loops `64efc9a`
+- Refresh data button: add split-button component to movie/show/season/episode sidebars; main action refreshes all data, dropdown lists section-specific options (metadata, cast, seasons, episodes); auto-prefetch seasons on show page load if empty; loading indicators with skeleton loaders for cast and seasons `8548c0f`
 
 ## May 5, 2026
 

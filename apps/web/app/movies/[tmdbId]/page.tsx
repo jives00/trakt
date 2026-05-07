@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type Movie, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
+import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -65,6 +66,24 @@ export default function MovieDetailPage() {
     if (!token) return;
     setRating(r);
     await api.upsertRating("movie", Number(tmdbId), r, token).catch(() => {});
+  }
+
+  async function handleRefreshMovieMetadata() {
+    if (!token) return;
+    const result = await api.refreshMovieMetadata(Number(tmdbId), token);
+    setMovie(result.movie);
+  }
+
+  async function handleRefreshMovieCast() {
+    if (!token) return;
+    const result = await api.refreshMovieCast(Number(tmdbId), token);
+    setCast(result.cast);
+    setCrew(result.crew);
+  }
+
+  async function handleRefreshAll() {
+    await handleRefreshMovieMetadata();
+    await handleRefreshMovieCast();
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -257,6 +276,14 @@ export default function MovieDetailPage() {
               >
                 View on TMDB
               </Link>
+
+              <div className="border-t border-white/10 pt-4">
+                <RefreshButton sections={[
+                  { label: "All Data", onRefresh: handleRefreshAll },
+                  { label: "Metadata", onRefresh: handleRefreshMovieMetadata },
+                  { label: "Cast & Crew", onRefresh: handleRefreshMovieCast },
+                ]} />
+              </div>
             </div>
           </div>
         </div>

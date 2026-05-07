@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisodeSummary, type SeasonSummary } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
+import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -89,12 +90,13 @@ export default function ShowDetailPage() {
   const [recentEps, setRecentEps] = useState<ShowEpisodeSummary[]>([]);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [castTab, setCastTab] = useState<"regulars" | "guests">("regulars");
+  const [castLoading, setCastLoading] = useState(false);
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
+  const [seasonsLoading, setSeasonsLoading] = useState(false);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
   const [picker, setPicker] = useState<"hero" | "poster" | null>(null);
-  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -104,8 +106,25 @@ export default function ShowDetailPage() {
       .catch(() => setError("Failed to load show."));
     api.getShowUpNext(id, token).then((d) => setUpNext(d.episode)).catch(() => setUpNext(null));
     api.getShowRecentEpisodes(id, token).then((d) => setRecentEps(d.episodes)).catch(() => {});
-    api.getShowCast(id, token).then((d) => setCast(d.cast)).catch(() => {});
-    api.getShowSeasons(id, token).then((d) => setSeasons(d.seasons)).catch(() => {});
+
+    setCastLoading(true);
+    api.getShowCast(id, token)
+      .then((d) => setCast(d.cast))
+      .catch(() => {})
+      .finally(() => setCastLoading(false));
+
+    setSeasonsLoading(true);
+    api.getShowSeasons(id, token)
+      .then((d) => {
+        setSeasons(d.seasons);
+        if (d.seasons.length === 0) {
+          return api.refreshShowSeasons(id, token).then(() => api.getShowSeasons(id, token));
+        }
+        return Promise.resolve(d);
+      })
+      .then((d) => setSeasons(d.seasons))
+      .catch(() => {})
+      .finally(() => setSeasonsLoading(false));
   }, [isLoading, token, tmdbId]);
 
   async function handleWatchlist() {
@@ -135,17 +154,29 @@ export default function ShowDetailPage() {
       : null);
   }
 
+  async function handleRefreshShowMetadata() {
+    if (!token) return;
+    const result = await api.refreshShowMetadata(Number(tmdbId), token);
+    setShow(result.show);
+  }
+
+  async function handleRefreshSeasons() {
+    if (!token) return;
+    await api.refreshShowSeasons(Number(tmdbId), token);
+    const seasonsData = await api.getShowSeasons(Number(tmdbId), token);
+    setSeasons(seasonsData.seasons);
+  }
+
   async function handleRefreshCast() {
     if (!token) return;
-    setRefreshingCast(true);
-    try {
-      const result = await api.refreshShowCast(Number(tmdbId), token);
-      setCast(result.cast);
-    } catch (err) {
-      console.error("Failed to refresh cast:", err);
-    } finally {
-      setRefreshingCast(false);
-    }
+    const result = await api.refreshShowCast(Number(tmdbId), token);
+    setCast(result.cast);
+  }
+
+  async function handleRefreshAll() {
+    await handleRefreshShowMetadata();
+    await handleRefreshCast();
+    await handleRefreshSeasons();
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -274,91 +305,113 @@ export default function ShowDetailPage() {
             )}
 
             {/* Cast */}
-            {cast.length > 0 && (
+            {(cast.length > 0 || castLoading) && (
               <section>
                 <div className="flex gap-6 border-b border-white/5 mb-6 justify-between items-center">
                   <div className="flex gap-6">
-                    {(["regulars", "guests"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setCastTab(tab)}
-                        className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                          castTab === tab ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
-                        }`}
-                      >
-                        {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
-                      </button>
+                    {cast.length > 0 ? (
+                      (["regulars", "guests"] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setCastTab(tab)}
+                          className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                            castTab === tab ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
+                          }`}
+                        >
+                          {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-white/40 text-sm">Loading cast…</span>
+                    )}
+                  </div>
+                </div>
+                {castLoading && cast.length === 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="text-center">
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                        <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
+                        <div className="h-2 bg-surface-container-high rounded animate-pulse" />
+                      </div>
                     ))}
                   </div>
-                  <button
-                    onClick={handleRefreshCast}
-                    disabled={refreshingCast}
-                    className="text-white/40 hover:text-white/60 disabled:opacity-50 transition-colors"
-                    title="Refresh cast from TMDB"
-                  >
-                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 0" }}>refresh</span>
-                  </button>
-                </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                  {displayedCast.map((m) => (
-                    <a
-                      key={m.tmdbId}
-                      href={`https://www.themoviedb.org/person/${m.tmdbId}-${m.name.toLowerCase().replace(/\s+/g, "-")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-center group cursor-pointer"
-                    >
-                      <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
-                        {m.profilePath ? (
-                          <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-2xl text-white/20">person</span>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
-                      <p className="text-white/40 text-sm line-clamp-1">{m.character}</p>
-                      <p className="text-white/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
-                    </a>
-                  ))}
-                </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {displayedCast.map((m) => (
+                      <a
+                        key={m.tmdbId}
+                        href={`https://www.themoviedb.org/person/${m.tmdbId}-${m.name.toLowerCase().replace(/\s+/g, "-")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-center group cursor-pointer"
+                      >
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                          {m.profilePath ? (
+                            <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="material-symbols-outlined text-2xl text-white/20">person</span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
+                        <p className="text-white/40 text-sm line-clamp-1">{m.character}</p>
+                        <p className="text-white/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
+                      </a>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 
             {/* Seasons */}
-            {seasons.length > 0 && (
+            {(seasons.length > 0 || seasonsLoading) && (
               <section>
-                <h2 className="text-white font-black text-xl mb-6">Seasons</h2>
+                <h2 className="text-white font-black text-xl mb-6">Seasons {seasonsLoading && seasons.length === 0 && <span className="text-white/40 text-lg font-normal">(loading…)</span>}</h2>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
-                    <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
-                      {show.posterPath ? (
-                        <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                  {seasonsLoading && seasons.length === 0 ? (
+                    <>
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i}>
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                          <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
+                          <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                         </div>
-                      )}
-                    </div>
-                    <p className="text-white text-xs font-bold">All Seasons</p>
-                    <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
-                  </Link>
-                  {seasons.map((s) => (
-                    <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
-                      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
-                        {s.posterPath ? (
-                          <Image src={`${TMDB_IMG}w342${s.posterPath}`} alt={`Season ${s.seasonNumber}`} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
+                        <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                          {show.posterPath ? (
+                            <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-white text-xs font-bold">All Seasons</p>
+                        <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
+                      </Link>
+                      {seasons.map((s) => (
+                        <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                            {s.posterPath ? (
+                              <Image src={`${TMDB_IMG}w342${s.posterPath}`} alt={`Season ${s.seasonNumber}`} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <p className="text-white text-xs font-bold">Season {s.seasonNumber}</p>
-                      <p className="text-white/40 text-xs">{s.episodeCount} episode{s.episodeCount !== 1 ? "s" : ""}</p>
-                    </Link>
-                  ))}
+                          <p className="text-white text-xs font-bold">Season {s.seasonNumber}</p>
+                          <p className="text-white/40 text-xs">{s.episodeCount} episode{s.episodeCount !== 1 ? "s" : ""}</p>
+                        </Link>
+                      ))}
+                    </>
+                  )}
                 </div>
               </section>
             )}
@@ -422,6 +475,15 @@ export default function ShowDetailPage() {
               >
                 View on TMDB
               </Link>
+
+              <div className="border-t border-white/10 pt-4">
+                <RefreshButton sections={[
+                  { label: "All Data", onRefresh: handleRefreshAll },
+                  { label: "Metadata", onRefresh: handleRefreshShowMetadata },
+                  { label: "Cast", onRefresh: handleRefreshCast },
+                  { label: "Seasons", onRefresh: handleRefreshSeasons },
+                ]} />
+              </div>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchMovie, getOrFetchMovieCast, getOrFetchMovieCrew } from '../services/movies.service';
+import { getOrFetchMovie, getOrFetchMovieCast, getOrFetchMovieCrew, forceRefreshMovieMetadata, forceRefreshMovieCast } from '../services/movies.service';
 import {
   getMovieStatus, toggleWatchlist, toggleCollection,
   markMovieWatched, unmarkMovieWatched,
@@ -73,5 +73,19 @@ export async function moviesRoutes(app: FastifyInstance) {
     const tmdbId = Number((request.params as any).tmdbId);
     const crew = await getOrFetchMovieCrew(tmdbId);
     return { crew };
+  });
+
+  app.post('/movies/:tmdbId/metadata/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
+    const movie = await forceRefreshMovieMetadata(tmdbId);
+    return { movie };
+  });
+
+  app.post('/movies/:tmdbId/cast/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
+    const { cast, crew } = await forceRefreshMovieCast(tmdbId);
+    return { cast, crew };
   });
 }

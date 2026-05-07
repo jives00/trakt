@@ -134,6 +134,20 @@ export const api = {
       token,
     }),
 
+  // Movie Refresh
+  refreshMovieMetadata: (tmdbId: number, token: string) =>
+    request<{ movie: Movie & { id: number } }>(`/api/movies/${tmdbId}/metadata/refresh`, { method: "POST", token }),
+  refreshMovieCast: (tmdbId: number, token: string) =>
+    request<{ cast: MovieCastMember[]; crew: CrewMember[] }>(`/api/movies/${tmdbId}/cast/refresh`, { method: "POST", token }),
+
+  // Show Refresh
+  refreshShowMetadata: (tmdbId: number, token: string) =>
+    request<{ show: ShowDetail }>(`/api/shows/${tmdbId}/metadata/refresh`, { method: "POST", token }),
+  refreshShowSeasons: (tmdbId: number, token: string) =>
+    request<{ ok: boolean }>(`/api/shows/${tmdbId}/seasons/refresh`, { method: "POST", token }),
+  refreshSeasonEpisodes: (tmdbId: number, season: number, token: string) =>
+    request<{ seasonId: number; showId: number; episodes: EpisodeItem[] }>(`/api/shows/${tmdbId}/seasons/${season}/episodes/refresh`, { method: "POST", token }),
+
   // Dashboard
   getUpNext: (token: string) =>
     request<UpNextItem[]>("/api/dashboard/up-next", { token }),

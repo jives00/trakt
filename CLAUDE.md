@@ -4,6 +4,8 @@
 
 Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Exposes a scrobbling API so Emby, Kodi, and Stremio can push watch events automatically. Single-user only — no community or social features. Metadata sourced from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2.
 
+**Current Status:** Phase 2 (Scrobbling + Integrations) complete. Building detail pages and UI enhancements in Phase 3.
+
 ---
 
 ## Directory Map
@@ -37,22 +39,17 @@ docs/                 Documentation, screenshots, and design guidelines
 
 ## Environment Variables (`.env` at repo root — never commit)
 
-```
-TMDB_API_KEY          TMDB read access token (JWT) — movies, shows, cast, posters, trailers
-TVDB_API_KEY          TVDB API key — episode-level detail, air dates, episode stills
-OMDB_API_KEY          OMDB key — aggregated ratings (IMDB, RT, Metacritic)
-FANART_API_KEY        Fanart.tv key — clearlogo, clearart, disc art, banners
+**Metadata APIs:** `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY`, `FANART_API_KEY` — fetched in parallel on cache miss.
 
-DB_HOST=localhost  MySQL is installed directly on EC2 — not a Docker container
-DB_PORT / DB_NAME / DB_USER / DB_PASSWORD              MySQL connection
-JWT_SECRET            Signs access tokens (short-lived, 15 min)
-ADMIN_USERNAME        Seeded at startup — the only user account
-ADMIN_PASSWORD        Seeded at startup
-SCROBBLE_API_KEY      Sent in X-Api-Key header by Kodi/Emby/Stremio
-NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewrite handles routing)
-```
+**Database:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` — MySQL on EC2 (not Docker).
 
-`.env.example` is committed to the repo as a template.
+**Auth:** `JWT_SECRET` (access token, 15 min TTL), `ADMIN_USERNAME`, `ADMIN_PASSWORD` (seeded at startup, single user).
+
+**Integrations:** `SCROBBLE_API_KEY` (X-Api-Key header for Kodi/Emby/Stremio), `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` (Stremio polling).
+
+**Web:** `NEXT_PUBLIC_API_URL` (leave unset in dev — next.config.mjs proxies `/api/*`).
+
+See `.env.example` for template.
 
 ---
 
@@ -61,18 +58,24 @@ NEXT_PUBLIC_API_URL   Base URL for API calls (leave unset in dev — proxy rewri
 ### API routes (`apps/api/src/routes/`)
 
 - One file per route group: `movies.routes.ts`, `shows.routes.ts`, `auth.routes.ts`, etc.
-- Route handlers are thin: validate input → call service → return result. No business logic in handlers.
-- Services live in `apps/api/src/services/` — one file per domain.
-- DB access is raw SQL via `mysql2`. No ORM.
-- Migrations are plain `.sql` files in `apps/api/migrations/`.
+- Route handlers: validate input → call service → return result. No business logic in handlers.
+- Services: `apps/api/src/services/` — one file per domain.
+- DB: raw SQL via `mysql2` (no ORM). Migrations in `apps/api/migrations/` as `.sql` files.
 
 ### Auth
 
-- `POST /api/auth/login` → short-lived JWT access token (response body) + opaque refresh token (HttpOnly cookie named `refreshToken`)
-- All protected routes require `Authorization: Bearer <accessToken>`
-- Web stores access token in memory (not localStorage). Mobile uses Expo SecureStore.
-- `apps/web/middleware.ts` checks for the `refreshToken` cookie server-side and redirects to `/login` if absent
-- `apps/web/next.config.mjs` proxies `/api/*` through Next.js so the cookie is on the same origin in dev (CRITICAL: `NEXT_PUBLIC_API_URL` must be **unset** for this to work)
+- Login: `POST /api/auth/login` → access token (response) + refresh token (HttpOnly `refreshToken` cookie).
+- Protected routes: `Authorization: Bearer <accessToken>` required.
+- Token storage: Web (memory), Mobile (Expo SecureStore).
+- Middleware: `apps/web/middleware.ts` enforces refresh token cookie; redirects to `/login` if missing. Next.js proxies `/api/*` in dev (requires `NEXT_PUBLIC_API_URL` unset).
+
+### Scrobbling Integrations
+
+**Kodi:** Sends `X-Api-Key: SCROBBLE_API_KEY` header to `POST /api/scrobble/kodi` with media type, ID, and progress.
+
+**Emby:** Webhook at `POST /api/scrobble/emby` triggered by `PlaybackProgress` and `PlaybackStopped` events. Upsert strategy: `(user_id, media_type, media_id, DATE(watched_at))` to collapse one viewing into one row. Completion threshold: 80% movies, 70% episodes.
+
+**Stremio:** Addon mounted at `/stremio-addon` (manifests + stream handlers). Scrobbling: subtitles trigger → poll `GET /users/{username}/watching` until 204 (watched). Uses `TRAKT_CLIENT_ID` + `TRAKT_CLIENT_SECRET` for OAuth token.
 
 ### Metadata sourcing
 
@@ -99,21 +102,18 @@ Common `pnpm` commands:
 
 ---
 
-## Testing`
+## Testing
 
-**Test-first rule:** Before writing feature code for a phase, write the tests for that phase first. Tests define the contract; code makes them pass.
+**Test-first rule:** Write tests for feature code before implementing. Tests define the contract.
 
 | Layer | Tool |
 |---|---|
-| API integration | Vitest + Supertest — always hit the real `trakt_test` MySQL DB, never mock it |
-| Web components | Vitest + React Testing Library (uses vitest.setup.ts) |
-| Web E2E | Playwright |
+| API | Vitest + Supertest (hit real `trakt_test` DB, never mock) |
+| Web | Vitest + React Testing Library + Playwright (E2E) |
 | Mobile | Jest + React Native Testing Library |
 | Kodi addon | pytest |
 
-Tests are co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`, etc.
-
-`apps/api/src/test/helpers.ts` exports `resetDb()` and `closePool()`. Call `resetDb()` in `beforeEach` to truncate all tables and re-apply `migrations/test-seed.sql`.
+Tests co-located: `src/routes/__tests__/`, `src/services/__tests__/`, etc. API tests: call `resetDb()` in `beforeEach` to truncate and reapply seed (exported from `apps/api/src/test/helpers.ts`).
 
 ---
 
@@ -121,28 +121,16 @@ Tests are co-located with source: `src/routes/__tests__/`, `src/services/__tests
 
 ### 1. Think Before Coding
 
-Before implementing: state assumptions explicitly. If uncertain, ask. If multiple interpretations exist, present them — don't pick silently. If a simpler approach exists, say so. If something is unclear, stop and name what's confusing.
+State assumptions explicitly. If uncertain, ask. Present multiple interpretations — don't pick silently. If something is unclear, stop and name it.
 
 ### 2. Simplicity First
 
-Minimum code that solves the problem. Nothing speculative.
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
+Minimum code that solves the problem. No features beyond what was asked. No abstractions for single-use code. No error handling for impossible scenarios.
 
 ### 3. Goal-Driven Execution
 
-Transform tasks into verifiable goals before starting. For multi-step tasks, state a plan:
+For multi-step tasks, state a plan with verifiable steps before starting.
 
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-```
+### 4. Code Style
 
-### 4. Code conventions that reduce future reads
-
-- No large comments or docstrings (coding standards already enforce this). Comments add tokens Claude has to read without adding information good names don't already carry.
-- Short files. If a file exceeds ~150 lines, it's probably doing too much — split it. Claude reads the whole file to understand any part of it.
-- No speculative abstractions (also in coding standards). A helper used once is dead weight Claude has to read and reason about.
+No large comments or docstrings — good names already carry the meaning. Short files (~150 lines max; if larger, split). One comment per file is the norm, not the exception.

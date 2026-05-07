@@ -125,3 +125,21 @@ export async function getOrFetchMovieCrew(tmdbId: number): Promise<CrewMember[]>
     department: r.department ?? '',
   }));
 }
+
+export async function forceRefreshMovieMetadata(tmdbId: number): Promise<Movie & { id: number }> {
+  const pool = getPool();
+  await pool.query('DELETE FROM movies WHERE tmdb_id = ?', [tmdbId]);
+  return getOrFetchMovie(tmdbId);
+}
+
+export async function forceRefreshMovieCast(tmdbId: number): Promise<{ cast: MovieCastMember[]; crew: CrewMember[] }> {
+  const pool = getPool();
+  const [movieRows] = await pool.query<MovieRow[]>('SELECT id FROM movies WHERE tmdb_id = ?', [tmdbId]);
+  if (!movieRows.length) return { cast: [], crew: [] };
+  const movieId = movieRows[0].id;
+
+  await pool.query('DELETE FROM credits WHERE media_type = "movie" AND media_id = ?', [movieId]);
+  const cast = await getOrFetchMovieCast(tmdbId);
+  const crew = await getOrFetchMovieCrew(tmdbId);
+  return { cast, crew };
+}

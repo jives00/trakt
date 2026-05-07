@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember } from "@/lib/api";
+import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -25,7 +26,6 @@ export default function EpisodeDetailPage() {
   const [watched, setWatched] = useState(false);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [error, setError] = useState("");
-  const [refreshingCast, setRefreshingCast] = useState(false);
 
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
@@ -51,18 +51,34 @@ export default function EpisodeDetailPage() {
     setWatched(res.watched);
   }
 
+  async function handleRefreshEpisodeData() {
+    if (!token) return;
+    const result = await api.refreshSeasonEpisodes(Number(tmdbId), sn, token);
+    const episodeData = result.episodes.find(e => e.episodeNumber === ep);
+    if (episodeData) {
+      setEpisode({
+        episodeNumber: episodeData.episodeNumber,
+        title: episodeData.title,
+        overview: episodeData.overview,
+        airDate: episodeData.airDate,
+        stillPath: episodeData.stillPath,
+        runtimeMin: episodeData.runtimeMin,
+        showTmdbId: Number(tmdbId),
+        showTitle: show!.title,
+        seasonNumber: sn,
+      });
+    }
+  }
+
   async function handleRefreshCast() {
     if (!token) return;
-    setRefreshingCast(true);
-    try {
-      await api.refreshShowCast(Number(tmdbId), token);
-      const castData = await api.getEpisodeCast(Number(tmdbId), sn, ep, token);
-      setCast(castData.cast);
-    } catch (err) {
-      console.error("Failed to refresh cast:", err);
-    } finally {
-      setRefreshingCast(false);
-    }
+    const castData = await api.getEpisodeCast(Number(tmdbId), sn, ep, token);
+    setCast(castData.cast);
+  }
+
+  async function handleRefreshAll() {
+    await handleRefreshEpisodeData();
+    await handleRefreshCast();
   }
 
   if (error) return <p className="text-error">{error}</p>;
@@ -150,16 +166,8 @@ export default function EpisodeDetailPage() {
             {/* Cast */}
             {cast.length > 0 && (
               <section>
-                <div className="flex gap-6 items-center justify-between mb-6">
+                <div className="mb-6">
                   <h2 className="text-white font-black text-xl">Cast</h2>
-                  <button
-                    onClick={handleRefreshCast}
-                    disabled={refreshingCast}
-                    className="text-white/40 hover:text-white/60 disabled:opacity-50 transition-colors"
-                    title="Refresh cast from TMDB"
-                  >
-                    <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 0" }}>refresh</span>
-                  </button>
                 </div>
                 <div className="space-y-8">
                   {regulars.length > 0 && (
@@ -220,6 +228,14 @@ export default function EpisodeDetailPage() {
               >
                 View on TMDB
               </Link>
+
+              <div className="border-t border-white/10 pt-4">
+                <RefreshButton sections={[
+                  { label: "All Data", onRefresh: handleRefreshAll },
+                  { label: "Episode Data", onRefresh: handleRefreshEpisodeData },
+                  { label: "Cast", onRefresh: handleRefreshCast },
+                ]} />
+              </div>
             </div>
           </div>
         </div>

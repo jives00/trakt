@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
+import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, forceRefreshShowMetadata, forceRefreshShowSeasons, forceRefreshEpisode, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
   getShowStatus, toggleWatchlist, toggleCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
@@ -171,5 +171,27 @@ export async function showsRoutes(app: FastifyInstance) {
     if (!['hero', 'poster'].includes(imageType) || !path) return reply.status(400).send({ error: 'Invalid body' });
     await setImageOverride('show', tmdbId, imageType, path);
     return { ok: true };
+  });
+
+  app.post('/shows/:tmdbId/metadata/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
+    const show = await forceRefreshShowMetadata(tmdbId);
+    return { show };
+  });
+
+  app.post('/shows/:tmdbId/seasons/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
+    await forceRefreshShowSeasons(tmdbId);
+    return { ok: true };
+  });
+
+  app.post('/shows/:tmdbId/seasons/:season/episodes/refresh', auth, async (request: FastifyRequest) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const season = Number(params(request).season);
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0 || !Number.isInteger(season)) return { error: 'Invalid params' };
+    const { seasonId, showId, episodes } = await forceRefreshEpisode(tmdbId, season);
+    return { seasonId, showId, episodes };
   });
 }

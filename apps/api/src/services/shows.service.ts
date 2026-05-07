@@ -457,3 +457,25 @@ export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episo
     return [];
   }
 }
+
+export async function forceRefreshShowMetadata(tmdbId: number): Promise<ShowDetail & { id: number }> {
+  const pool = getPool();
+  await pool.query('DELETE FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  return getOrFetchShow(tmdbId);
+}
+
+export async function forceRefreshShowSeasons(tmdbId: number): Promise<void> {
+  const pool = getPool();
+  const show = await getOrFetchShow(tmdbId);
+
+  await pool.query('UPDATE seasons SET fetched_at = NULL WHERE show_id = ?', [show.id]);
+  await prefetchAllSeasons(tmdbId);
+}
+
+export async function forceRefreshEpisode(tmdbId: number, seasonNumber: number): Promise<{ seasonId: number; showId: number; episodes: any[] }> {
+  const pool = getPool();
+  const show = await getOrFetchShow(tmdbId);
+
+  await pool.query('UPDATE seasons SET fetched_at = NULL WHERE show_id = ? AND season_number = ?', [show.id, seasonNumber]);
+  return getOrFetchSeason(tmdbId, seasonNumber);
+}
