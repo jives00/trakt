@@ -1,5 +1,7 @@
 import { getPool } from '../db';
-import { isScrobbleExcluded } from './scrobble.service';
+import { isScrobbleExcluded, upsertWatchHistory } from './scrobble.service';
+import { getOrFetchMovie } from './movies.service';
+import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 
 interface StoredToken {
   accessToken: string;
@@ -140,7 +142,7 @@ export async function startPollLoop(
         progress?: number;
         type: 'movie' | 'episode';
         movie?: { ids: { tmdb: number } };
-        episode?: { ids: { tmdb: number } };
+        episode?: { ids: { tmdb: number }; season: number; number: number };
         show?: { ids: { tmdb: number } };
       };
 
@@ -163,15 +165,20 @@ export async function startPollLoop(
         if (progressPct >= WATCH_THRESHOLD.movie) {
           const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
           if (!isExcluded) {
-            await upsertWatchHistory('movie', tmdbId, progressPct);
+            const movie = await getOrFetchMovie(tmdbId);
+            await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
           }
         }
-      } else if (data.type === 'episode' && data.show) {
+      } else if (data.type === 'episode' && data.show && data.episode) {
         const showTmdbId = data.show.ids.tmdb;
+        const seasonNumber = data.episode.season;
+        const episodeNumber = data.episode.number;
         if (progressPct >= WATCH_THRESHOLD.episode) {
           const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
           if (!isExcluded) {
-            await upsertWatchHistory('episode', showTmdbId, progressPct);
+            await getOrFetchShow(showTmdbId);
+            const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
+            await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
           }
         }
       }
@@ -199,31 +206,3 @@ export function stopPollLoop(imdbId: string): void {
   }
 }
 
-async function upsertWatchHistory(
-  mediaType: 'movie' | 'episode',
-  mediaId: number,
-  progressPct: number
-): Promise<void> {
-  const pool = getPool();
-
-  const existingRow = await pool.query(
-    `SELECT id FROM watch_history
-     WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-    [mediaType, mediaId]
-  );
-
-  if ((existingRow[0] as any[]).length > 0) {
-    await pool.query(
-      `UPDATE watch_history
-       SET progress_pct = ?, watched_at = NOW(), source = 'stremio'
-       WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-      [progressPct, mediaType, mediaId]
-    );
-  } else {
-    await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
-       VALUES (1, ?, ?, ?, 'stremio', NOW())`,
-      [mediaType, mediaId, progressPct]
-    );
-  }
-}

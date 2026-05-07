@@ -811,6 +811,11 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 4. Build `apps/stremio-addon/` using stremio-addon-sdk; add `stremio-addon` Docker Compose service (port 7000)
 5. Exclusion UI on the Integrations page (search-to-add by show/movie name, per-integration lists)
 
+**Stremio Testing Notes:**
+- Dev testing: Stremio on the same machine as the dev server uses `http://localhost:3002/stremio-addon` (API on port 3002)
+- **TODO (Phase 3):** Test Stremio on devices on the same network by configuring the addon to use the dev machine's local IP (e.g. `http://192.168.1.X:3002/stremio-addon`)
+- **TODO (Phase 3):** Update Stremio addon configuration to use the production domain instead of localhost when deployed to EC2 (e.g. `https://yourdomain.com/stremio-addon/manifest.json`)
+
 ### Phase 3 — Production
 
 **EC2 Deployment:**
@@ -819,6 +824,11 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 3. Caddy automatically provisions Let's Encrypt TLS for your domain
 4. Point DNS A record at Elastic IP if not already done
 5. Verify HTTPS works and all services are reachable
+
+**Stremio Configuration for Production:**
+- Update the Stremio addon manifest URL in all devices from `http://localhost:3002/stremio-addon` to `https://yourdomain.com/stremio-addon/manifest.json`
+- Test the addon by playing content on a device and verifying scrobbles appear in watch history
+- Verify the addon works on devices on different networks (not just localhost or same LAN)
 
 **GitHub Actions auto-deploy** (see CI/CD section) handles all subsequent deployments on push to `main`.
 

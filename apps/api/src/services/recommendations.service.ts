@@ -52,10 +52,10 @@ export async function getShowRecommendations(userId: number): Promise<Recommenda
         posterPath: r.poster_path ?? null,
         overview: r.overview ?? '',
       });
-      if (results.length >= LIMIT) return results;
     }
   }
-  return results;
+
+  return results.length <= LIMIT ? results : randomSample(results, LIMIT);
 }
 
 export async function getMovieRecommendations(userId: number): Promise<RecommendationItem[]> {
@@ -101,8 +101,13 @@ export async function getMovieRecommendations(userId: number): Promise<Recommend
         posterPath: r.poster_path ?? null,
         overview: r.overview ?? '',
       });
-      if (results.length >= LIMIT) return results;
     }
   }
-  return results;
+
+  return results.length <= LIMIT ? results : randomSample(results, LIMIT);
+}
+
+function randomSample<T>(arr: T[], count: number): T[] {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
 }

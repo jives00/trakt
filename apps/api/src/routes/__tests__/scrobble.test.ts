@@ -84,8 +84,12 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.body).toEqual({});
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550 AND media_type = "movie"');
-      expect((rows as any[]).length).toBe(1);
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      expect(movies.length).toBe(1);
+      const movieId = movies[0].id;
+
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "movie"', [movieId]);
+      expect(rows.length).toBe(1);
 
       const row = (rows as any[])[0];
       expect(row.progress_pct).toBe(90);
@@ -113,7 +117,9 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.status).toBe(200);
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550 AND media_type = "movie"');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies.length > 0 ? movies[0].id : null;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "movie"', [movieId]);
       expect((rows as any[]).length).toBe(0);
     });
 
@@ -138,7 +144,11 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.status).toBe(200);
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550 AND media_type = "movie"');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      expect(movies.length).toBe(1);
+      const movieId = movies[0].id;
+
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "movie"', [movieId]);
       expect((rows as any[]).length).toBe(1);
     });
 
@@ -193,7 +203,9 @@ describe('POST /api/scrobble/emby', () => {
 
       expect(res.status).toBe(200);
 
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies.length > 0 ? movies[0].id : null;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows as any[]).length).toBe(0);
     });
   });
@@ -222,7 +234,19 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.status).toBe(200);
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 1399 AND media_type = "episode"');
+      const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 1399');
+      expect(shows.length).toBe(1);
+      const showId = shows[0].id;
+
+      const [seasons] = await pool.query<any[]>('SELECT id FROM seasons WHERE show_id = ? AND season_number = 1', [showId]);
+      expect(seasons.length).toBe(1);
+      const seasonId = seasons[0].id;
+
+      const [episodes] = await pool.query<any[]>('SELECT id FROM episodes WHERE season_id = ? AND episode_number = 1', [seasonId]);
+      expect(episodes.length).toBe(1);
+      const episodeId = episodes[0].id;
+
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "episode"', [episodeId]);
       expect((rows as any[]).length).toBe(1);
 
       const row = (rows as any[])[0];
@@ -253,7 +277,7 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.status).toBe(200);
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 1399');
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_type = "episode"');
       expect((rows as any[]).length).toBe(0);
     });
 
@@ -280,7 +304,19 @@ describe('POST /api/scrobble/emby', () => {
       expect(res.status).toBe(200);
 
       const pool = getPool();
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 1399');
+      const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 1399');
+      expect(shows.length).toBe(1);
+      const showId = shows[0].id;
+
+      const [seasons] = await pool.query<any[]>('SELECT id FROM seasons WHERE show_id = ? AND season_number = 1', [showId]);
+      expect(seasons.length).toBe(1);
+      const seasonId = seasons[0].id;
+
+      const [episodes] = await pool.query<any[]>('SELECT id FROM episodes WHERE season_id = ? AND episode_number = 1', [seasonId]);
+      expect(episodes.length).toBe(1);
+      const episodeId = episodes[0].id;
+
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [episodeId]);
       expect((rows as any[]).length).toBe(1);
     });
 
@@ -339,8 +375,18 @@ describe('POST /api/scrobble/emby', () => {
 
       expect(res.status).toBe(200);
 
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 1399');
-      expect((rows as any[]).length).toBe(0);
+      const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 1399');
+      const showId = shows.length > 0 ? shows[0].id : null;
+      if (showId) {
+        const [seasons] = await pool.query<any[]>('SELECT id FROM seasons WHERE show_id = ? AND season_number = 1', [showId]);
+        if (seasons.length > 0) {
+          const [episodes] = await pool.query<any[]>('SELECT id FROM episodes WHERE season_id = ? AND episode_number = 1', [seasons[0].id]);
+          if (episodes.length > 0) {
+            const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [episodes[0].id]);
+            expect((rows as any[]).length).toBe(0);
+          }
+        }
+      }
     });
   });
 
@@ -364,7 +410,11 @@ describe('POST /api/scrobble/emby', () => {
         .set('X-Api-Key', SCROBBLE_API_KEY)
         .send(moviePayload);
 
-      const [rows1] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      expect(movies.length).toBe(1);
+      const movieId = movies[0].id;
+
+      const [rows1] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows1 as any[]).length).toBe(1);
       expect((rows1 as any[])[0].progress_pct).toBe(80);
 
@@ -386,7 +436,7 @@ describe('POST /api/scrobble/emby', () => {
         .set('X-Api-Key', SCROBBLE_API_KEY)
         .send(moviePayload2);
 
-      const [rows2] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [rows2] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows2 as any[]).length).toBe(1);
       expect((rows2 as any[])[0].progress_pct).toBe(90);
     });
@@ -415,7 +465,9 @@ describe('POST /api/scrobble/emby', () => {
         .set('X-Api-Key', SCROBBLE_API_KEY)
         .send(moviePayload);
 
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies.length > 0 ? movies[0].id : null;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows as any[]).length).toBe(1);
     });
   });
@@ -500,7 +552,9 @@ describe('POST /api/scrobble/emby', () => {
 
       expect(res.status).toBe(200);
 
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies.length > 0 ? movies[0].id : null;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows as any[])[0].progress_pct).toBe(90);
     });
 
@@ -523,7 +577,9 @@ describe('POST /api/scrobble/emby', () => {
         .set('X-Api-Key', SCROBBLE_API_KEY)
         .send(moviePayload);
 
-      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = 550');
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies.length > 0 ? movies[0].id : null;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows as any[])[0].progress_pct).toBe(83);
     });
   });

@@ -1,5 +1,7 @@
 import { getPool } from '../db';
 import type { EmbyWebhookPayload } from '@trakt/types';
+import { getOrFetchMovie } from './movies.service';
+import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 
 const WATCH_THRESHOLD = { movie: 80, episode: 70 };
 
@@ -14,17 +16,19 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
     const { Item, PlaybackInfo } = payload;
     const progressPct = Math.round((PlaybackInfo.PlaybackPositionTicks / Item.RunTimeTicks) * 100);
 
-    let mediaId: number | null = null;
-    let mediaType: 'movie' | 'show' | null = null;
+    let tmdbId: number | null = null;
+    let mediaType: 'movie' | 'episode' | null = null;
+    let seasonNumber: number | null = null;
+    let episodeNumber: number | null = null;
 
     if (Item.Type === 'Movie') {
       mediaType = 'movie';
       const tmdbIdStr = Item.ProviderIds?.Tmdb;
       if (tmdbIdStr) {
-        mediaId = parseInt(tmdbIdStr, 10);
+        tmdbId = parseInt(tmdbIdStr, 10);
       }
 
-      if (!mediaId) {
+      if (!tmdbId) {
         return;
       }
 
@@ -35,10 +39,13 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       mediaType = 'episode';
       const tmdbIdStr = Item.SeriesProviderIds?.Tmdb;
       if (tmdbIdStr) {
-        mediaId = parseInt(tmdbIdStr, 10);
+        tmdbId = parseInt(tmdbIdStr, 10);
       }
 
-      if (!mediaId) {
+      seasonNumber = Item.ParentIndexNumber || null;
+      episodeNumber = Item.IndexNumber || null;
+
+      if (!tmdbId || seasonNumber === null || episodeNumber === null) {
         return;
       }
 
@@ -47,37 +54,26 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       }
     }
 
-    if (!mediaId || !mediaType) {
+    if (!tmdbId || !mediaType) {
       return;
     }
 
-    const pool = getPool();
-
-    const isExcluded = await isScrobbleExcluded(mediaId, mediaType, 'emby');
+    const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
     if (isExcluded) {
       return;
     }
 
-    const existingRow = await pool.query(
-      `SELECT id FROM watch_history
-       WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-      [mediaType, mediaId]
-    );
-
-    if ((existingRow[0] as any[]).length > 0) {
-      await pool.query(
-        `UPDATE watch_history
-         SET progress_pct = ?, watched_at = NOW(), source = 'emby'
-         WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-        [progressPct, mediaType, mediaId]
-      );
+    let mediaIdDb: number;
+    if (mediaType === 'movie') {
+      const movie = await getOrFetchMovie(tmdbId);
+      mediaIdDb = movie.id;
     } else {
-      await pool.query(
-        `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
-         VALUES (1, ?, ?, ?, 'emby', NOW())`,
-        [mediaType, mediaId, progressPct]
-      );
+      await getOrFetchShow(tmdbId);
+      const episode = await getOrFetchEpisode(tmdbId, seasonNumber!, episodeNumber!);
+      mediaIdDb = episode.episodeId;
     }
+
+    await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
   } catch (err) {
     console.error('Error in handleEmbyScrobble:', err);
     throw err;
@@ -97,4 +93,34 @@ export async function isScrobbleExcluded(
     [tmdbId, exclusionMediaType, integration]
   );
   return (rows as any[]).length > 0;
+}
+
+export async function upsertWatchHistory(
+  source: 'emby' | 'stremio' | 'kodi',
+  mediaType: 'movie' | 'episode',
+  mediaIdDb: number,
+  progressPct: number
+): Promise<void> {
+  const pool = getPool();
+
+  const existingRow = await pool.query(
+    `SELECT id FROM watch_history
+     WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+    [mediaType, mediaIdDb]
+  );
+
+  if ((existingRow[0] as any[]).length > 0) {
+    await pool.query(
+      `UPDATE watch_history
+       SET progress_pct = ?, watched_at = NOW(), source = ?
+       WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+      [progressPct, source, mediaType, mediaIdDb]
+    );
+  } else {
+    await pool.query(
+      `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
+       VALUES (1, ?, ?, ?, ?, NOW())`,
+      [mediaType, mediaIdDb, progressPct, source]
+    );
+  }
 }

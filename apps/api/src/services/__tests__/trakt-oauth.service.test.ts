@@ -87,6 +87,7 @@ describe('Trakt OAuth Service', () => {
       mockFetch.mockClear();
 
       // Check authorization - user authorized
+      // First mock: token endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -97,6 +98,14 @@ describe('Trakt OAuth Service', () => {
           refresh_token: 'trakt-refresh-token',
           scope: 'public private',
           created_at: Math.floor(Date.now() / 1000),
+        }),
+      });
+
+      // Second mock: user info endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          username: 'testuser',
         }),
       });
 
@@ -195,6 +204,7 @@ describe('Trakt OAuth Service', () => {
       expect(status.status).toBe('pending');
 
       // Step 3: User authorizes, check again
+      // First mock: token endpoint
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
@@ -205,6 +215,14 @@ describe('Trakt OAuth Service', () => {
           refresh_token: 'new-refresh-token',
           scope: 'public private',
           created_at: Math.floor(Date.now() / 1000),
+        }),
+      });
+
+      // Second mock: user info endpoint
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          username: 'testuser',
         }),
       });
 

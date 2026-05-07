@@ -3,6 +3,7 @@
 ## May 6, 2026
 
 ### API
+- Recommendation diversity: collect all recommendations from all 5 seed shows/movies, then randomly sample 3 instead of stopping at first 3 `cbe3239`
 - Stremio scrobbling fix: store Trakt username during OAuth (fetch from /users/me after auth); use stored username to poll /users/{username}/watching; calculate progress % from started_at/expires_at elapsed time (Trakt API doesn't return progress field); allow all CORS origins since sensitive endpoints are JWT-protected `a218d13`
 - Trakt OAuth device-code flow: initiateDeviceCodeFlow() and checkAuthorizationStatus() for interactive authorization; caches device code in memory with expiry; stores tokens in trakt_tokens table on user approval; auto-refreshes tokens on expiry `64efc9a`
 - Emby scrobbling service: handleEmbyScrobble() parses webhook payloads, calculates progress %, applies watch thresholds (80% movie, 70% episode), checks scrobble_exclusions, upserts to watch_history with same-day dedup on (user_id, media_type, media_id, DATE) `64efc9a`
