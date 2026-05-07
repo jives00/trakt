@@ -1,5 +1,14 @@
 # Changelog
 
+## May 7, 2026
+
+### API
+- Movie image endpoints: GET /api/movies/{tmdbId}/images and PUT /api/movies/{tmdbId}/image to fetch available backdrop/poster images and set custom overrides (same pattern as show endpoints) `dd51aa8`
+
+### Web
+- Movie detail pages: add cast loading skeleton with loading state; fix race condition by fetching cast after movie is inserted into database; add hero backdrop and poster image edit buttons with image picker modal `dd51aa8`
+- Image picker modal: accept mediaType prop to support both show and movie queries; use appropriate API methods (getShowImages/setShowImage vs getMovieImages/setMovieImage) `dd51aa8`
+
 ## May 6, 2026
 
 ### API

@@ -12,10 +12,11 @@ interface Props {
   onClose: () => void;
   tmdbId: number;
   imageType: "hero" | "poster";
+  mediaType: "show" | "movie";
   onSaved: (path: string) => void;
 }
 
-export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: Props) {
+export function ImagePickerModal({ open, onClose, tmdbId, imageType, mediaType, onSaved }: Props) {
   const { token } = useAuth();
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -24,10 +25,11 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: 
   useEffect(() => {
     if (!open || !token) return;
     setLoading(true);
-    api.getShowImages(tmdbId, token)
+    const getImages = mediaType === "show" ? api.getShowImages : api.getMovieImages;
+    getImages(tmdbId, token)
       .then((data) => setImages(imageType === "hero" ? data.backdrops : data.posters))
       .finally(() => setLoading(false));
-  }, [open, tmdbId, imageType, token]);
+  }, [open, tmdbId, imageType, mediaType, token]);
 
   useEffect(() => {
     if (!open) return;
@@ -39,7 +41,8 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, onSaved }: 
   async function handleSelect(path: string) {
     if (!token || saving) return;
     setSaving(path);
-    await api.setShowImage(tmdbId, imageType, path, token).catch(() => {});
+    const setImage = mediaType === "show" ? api.setShowImage : api.setMovieImage;
+    await setImage(tmdbId, imageType, path, token).catch(() => {});
     onSaved(path);
     setSaving(null);
     onClose();

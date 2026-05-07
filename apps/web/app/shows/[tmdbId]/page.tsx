@@ -495,6 +495,7 @@ export default function ShowDetailPage() {
           onClose={() => setPicker(null)}
           tmdbId={Number(tmdbId)}
           imageType={picker}
+          mediaType="show"
           onSaved={(path) => handleImageSaved(picker, path)}
         />
       )}

@@ -133,6 +133,14 @@ export const api = {
       body: JSON.stringify({ imageType, path }),
       token,
     }),
+  getMovieImages: (tmdbId: number, token: string) =>
+    request<{ backdrops: string[]; posters: string[] }>(`/api/movies/${tmdbId}/images`, { token }),
+  setMovieImage: (tmdbId: number, imageType: "hero" | "poster", path: string, token: string) =>
+    request<{ ok: boolean }>(`/api/movies/${tmdbId}/image`, {
+      method: "PUT",
+      body: JSON.stringify({ imageType, path }),
+      token,
+    }),
 
   // Movie Refresh
   refreshMovieMetadata: (tmdbId: number, token: string) =>

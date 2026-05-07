@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type Movie, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
+import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
@@ -25,6 +26,20 @@ function formatCountry(code: string | null): string | null {
   try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code; } catch { return code; }
 }
 
+function EditImageButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40"
+    >
+      <span className="bg-black/70 border border-white/20 rounded-full p-2 text-white backdrop-blur-sm">
+        <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
+      </span>
+    </button>
+  );
+}
+
 export default function MovieDetailPage() {
   const { tmdbId } = useParams<{ tmdbId: string }>();
   const { token, isLoading } = useAuth();
@@ -33,18 +48,34 @@ export default function MovieDetailPage() {
   const [cast, setCast] = useState<MovieCastMember[]>([]);
   const [crew, setCrew] = useState<CrewMember[]>([]);
   const [tab, setTab] = useState<"cast" | "crew">("cast");
+  const [castLoading, setCastLoading] = useState(false);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
+  const [picker, setPicker] = useState<"hero" | "poster" | null>(null);
 
   useEffect(() => {
-    if (isLoading || !token || !tmdbId) return;
+    if (!tmdbId) return;
     const id = Number(tmdbId);
+
+    if (isLoading || !token) {
+      setCastLoading(true);
+      return;
+    }
+
     api.getMovie(id, token)
-      .then((data) => { setMovie(data.movie); setStatus(data.status); })
+      .then((data) => {
+        setMovie(data.movie);
+        setStatus(data.status);
+
+        setCastLoading(true);
+        api.getMovieCast(id, token)
+          .then((d) => setCast(d.cast))
+          .catch(() => {})
+          .finally(() => setCastLoading(false));
+        api.getMovieCrew(id, token).then((d) => setCrew(d.crew)).catch(() => {});
+      })
       .catch(() => setError("Failed to load movie."));
-    api.getMovieCast(id, token).then((d) => setCast(d.cast)).catch(() => {});
-    api.getMovieCrew(id, token).then((d) => setCrew(d.crew)).catch(() => {});
   }, [isLoading, token, tmdbId]);
 
   async function handleWatchlist() {
@@ -68,6 +99,12 @@ export default function MovieDetailPage() {
     await api.upsertRating("movie", Number(tmdbId), r, token).catch(() => {});
   }
 
+  function handleImageSaved(imageType: "hero" | "poster", path: string) {
+    setMovie((m) => m
+      ? { ...m, backdropPath: imageType === "hero" ? path : m.backdropPath, posterPath: imageType === "poster" ? path : m.posterPath }
+      : null);
+  }
+
   async function handleRefreshMovieMetadata() {
     if (!token) return;
     const result = await api.refreshMovieMetadata(Number(tmdbId), token);
@@ -86,17 +123,49 @@ export default function MovieDetailPage() {
     await handleRefreshMovieCast();
   }
 
-  if (error) return <p className="text-error">{error}</p>;
-  if (!movie || !status) return <p className="text-on-surface-variant">Loading…</p>;
+  async function handleRefreshMovieCastOnly() {
+    if (!token) return;
+    const result = await api.refreshMovieCast(Number(tmdbId), token);
+    setCast(result.cast);
+  }
 
-  const backdropUrl = movie.backdropPath ? `${TMDB_IMG}w1280${movie.backdropPath}` : null;
+  if (error) return <p className="text-error">{error}</p>;
+
+  const backdropUrl = movie?.backdropPath ? `${TMDB_IMG}w1280${movie.backdropPath}` : null;
   const displayedCast = tab === "cast" ? cast : crew;
+
+  if (!movie || !status) {
+    return (
+      <div className="w-full flex-1 overflow-x-hidden">
+        {castLoading && (cast.length === 0 && crew.length === 0) ? (
+          <div className="max-w-page mx-auto px-margin-page mt-12 pb-16">
+            <section>
+              <div className="flex gap-6 border-b border-white/5 mb-6">
+                <span className="text-white/40 text-sm">Loading cast…</span>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="text-center">
+                    <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                    <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
+                    <div className="h-2 bg-surface-container-high rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+        ) : (
+          <p className="text-on-surface-variant">Loading…</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex-1 overflow-x-hidden">
       <div className="-mx-margin-page -mt-stack-lg">
         {/* Hero */}
-        <section className="relative h-[450px] md:h-[576px] w-full overflow-hidden">
+        <section className="relative h-[450px] md:h-[576px] w-full overflow-hidden group/hero">
           {backdropUrl ? (
             <Image src={backdropUrl} alt={movie.title} fill priority className="object-cover object-top" />
           ) : (
@@ -105,11 +174,22 @@ export default function MovieDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
 
+          {/* Hero edit button */}
+          <button
+            onClick={() => setPicker("hero")}
+            aria-label="Change backdrop image"
+            className="absolute top-14 right-16 z-20 flex items-center gap-1.5 bg-black/60 border border-white/20 rounded-full px-3 py-2 text-white backdrop-blur-sm opacity-20 group-hover/hero:opacity-100 transition-opacity hover:border-[#e8002d]/60 hover:text-[#e8002d]"
+          >
+            <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
+            <span className="text-sm font-bold">Backdrop</span>
+          </button>
+
           <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {movie.posterPath && (
-                <div className="relative hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
+                <div className="relative group/poster hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
                   <Image src={`${TMDB_IMG}w342${movie.posterPath}`} alt={movie.title} fill className="object-cover" />
+                  <EditImageButton onClick={() => setPicker("poster")} label="Change poster image" />
                 </div>
               )}
               <div className="min-w-0">
@@ -167,53 +247,69 @@ export default function MovieDetailPage() {
             </section>
 
             {/* Cast/Crew Tabs */}
-            {(cast.length > 0 || crew.length > 0) && (
+            {(cast.length > 0 || crew.length > 0 || castLoading) && (
               <section>
                 <div className="flex gap-6 border-b border-white/5 mb-6 justify-between items-center">
                   <div className="flex gap-6">
-                    {(["cast", "crew"] as const).map((t) => (
-                      <button
-                        key={t}
-                        onClick={() => setTab(t)}
-                        className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                          tab === t ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
-                        }`}
-                      >
-                        {t === "cast" ? `Cast (${cast.length})` : `Crew (${crew.length})`}
-                      </button>
-                    ))}
+                    {cast.length > 0 || crew.length > 0 ? (
+                      (["cast", "crew"] as const).map((t) => (
+                        <button
+                          key={t}
+                          onClick={() => setTab(t)}
+                          className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
+                            tab === t ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
+                          }`}
+                        >
+                          {t === "cast" ? `Cast (${cast.length})` : `Crew (${crew.length})`}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-white/40 text-sm">Loading cast…</span>
+                    )}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                  {displayedCast.map((m) => (
-                    <a
-                      key={m.tmdbId}
-                      href={`https://www.themoviedb.org/person/${m.tmdbId}-${m.name.toLowerCase().replace(/\s+/g, "-")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-center group cursor-pointer"
-                    >
-                      <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
-                        {m.profilePath ? (
-                          <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-2xl text-white/20">person</span>
-                          </div>
-                        )}
+                {castLoading && cast.length === 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="text-center">
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                        <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
+                        <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                       </div>
-                      <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
-                      {tab === "cast" ? (
-                        <p className="text-white/40 text-sm line-clamp-1">{(m as MovieCastMember).character}</p>
-                      ) : (
-                        <>
-                          <p className="text-white/40 text-xs line-clamp-1">{(m as CrewMember).job}</p>
-                          <p className="text-white/30 text-xs">{(m as CrewMember).department}</p>
-                        </>
-                      )}
-                    </a>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                    {displayedCast.map((m) => (
+                      <a
+                        key={m.tmdbId}
+                        href={`https://www.themoviedb.org/person/${m.tmdbId}-${m.name.toLowerCase().replace(/\s+/g, "-")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-center group cursor-pointer"
+                      >
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                          {m.profilePath ? (
+                            <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="material-symbols-outlined text-2xl text-white/20">person</span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
+                        {tab === "cast" ? (
+                          <p className="text-white/40 text-sm line-clamp-1">{(m as MovieCastMember).character}</p>
+                        ) : (
+                          <>
+                            <p className="text-white/40 text-xs line-clamp-1">{(m as CrewMember).job}</p>
+                            <p className="text-white/30 text-xs">{(m as CrewMember).department}</p>
+                          </>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
           </div>
@@ -281,13 +377,24 @@ export default function MovieDetailPage() {
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Metadata", onRefresh: handleRefreshMovieMetadata },
-                  { label: "Cast & Crew", onRefresh: handleRefreshMovieCast },
+                  { label: "Cast", onRefresh: handleRefreshMovieCastOnly },
                 ]} />
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {picker && (
+        <ImagePickerModal
+          open
+          onClose={() => setPicker(null)}
+          tmdbId={Number(tmdbId)}
+          imageType={picker}
+          mediaType="movie"
+          onSaved={(path) => handleImageSaved(picker, path)}
+        />
+      )}
     </div>
   );
 }
