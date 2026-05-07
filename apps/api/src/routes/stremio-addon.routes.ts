@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { startPollLoop, stopPollLoop } from '../services/trakt-poll.service';
+import { startPollLoop, stopPollLoop, getTraktToken } from '../services/trakt-poll.service';
 
 const MANIFEST = {
   id: 'community.trakt-personal',
@@ -30,7 +30,10 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
 
       if (contentType) {
         try {
-          startPollLoop(id, contentType, 'user');
+          const token = await getTraktToken();
+          if (token?.username) {
+            startPollLoop(id, contentType, token.username);
+          }
         } catch (err) {
           console.error('Failed to start poll loop:', err);
         }

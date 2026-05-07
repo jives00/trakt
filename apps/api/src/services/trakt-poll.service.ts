@@ -5,6 +5,7 @@ interface StoredToken {
   accessToken: string;
   refreshToken: string;
   expiresAt: Date;
+  username?: string;
 }
 
 const TRAKT_API = 'https://api.trakt.tv';
@@ -18,7 +19,7 @@ let pollers: Map<string, NodeJS.Timeout> = new Map();
 export async function getTraktToken(): Promise<StoredToken | null> {
   const pool = getPool();
   const [rows] = await pool.query(
-    'SELECT access_token, refresh_token, expires_at FROM trakt_tokens WHERE id = 1'
+    'SELECT access_token, refresh_token, expires_at, username FROM trakt_tokens WHERE id = 1'
   );
 
   if ((rows as any[]).length === 0) {
@@ -30,19 +31,21 @@ export async function getTraktToken(): Promise<StoredToken | null> {
     accessToken: row.access_token,
     refreshToken: row.refresh_token,
     expiresAt: new Date(row.expires_at),
+    username: row.username,
   };
 }
 
 export async function setTraktToken(token: StoredToken): Promise<void> {
   const pool = getPool();
   await pool.query(
-    `INSERT INTO trakt_tokens (id, access_token, refresh_token, expires_at)
-     VALUES (1, ?, ?, ?)
+    `INSERT INTO trakt_tokens (id, access_token, refresh_token, expires_at, username)
+     VALUES (1, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
      access_token = VALUES(access_token),
      refresh_token = VALUES(refresh_token),
-     expires_at = VALUES(expires_at)`,
-    [token.accessToken, token.refreshToken, token.expiresAt]
+     expires_at = VALUES(expires_at),
+     username = VALUES(username)`,
+    [token.accessToken, token.refreshToken, token.expiresAt, token.username || null]
   );
 }
 
@@ -126,21 +129,34 @@ export async function startPollLoop(
       }
 
       if (!res.ok) {
-        console.error(`Trakt watching endpoint error: ${res.status}`);
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
         return;
       }
 
       const data = (await res.json()) as {
-        progress: number;
+        started_at?: string;
+        expires_at?: string;
+        progress?: number;
         type: 'movie' | 'episode';
         movie?: { ids: { tmdb: number } };
         episode?: { ids: { tmdb: number } };
         show?: { ids: { tmdb: number } };
       };
 
-      const progressPct = Math.round(data.progress);
+      // Calculate progress from elapsed time (Trakt API doesn't return progress directly)
+      let progressPct = data.progress ? Math.round(data.progress) : 50;
+      if (data.started_at && data.expires_at && !data.progress) {
+        const start = new Date(data.started_at).getTime();
+        const end = new Date(data.expires_at).getTime();
+        const now = Date.now();
+        const elapsed = now - start;
+        const total = end - start;
+        if (total > 0) {
+          progressPct = Math.round((elapsed / total) * 100);
+          progressPct = Math.min(99, progressPct); // Cap at 99% until it's actually done
+        }
+      }
 
       if (data.type === 'movie' && data.movie) {
         const tmdbId = data.movie.ids.tmdb;

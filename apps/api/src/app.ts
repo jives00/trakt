@@ -24,7 +24,7 @@ export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false });
 
 void app.register(corsPlugin, {
-    origin: process.env.WEB_ORIGIN ?? 'http://localhost:3000',
+    origin: true, // Allow all origins; sensitive endpoints are JWT-protected
     credentials: true,
   });
   void app.register(cookiePlugin);

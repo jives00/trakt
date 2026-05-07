@@ -106,11 +106,28 @@ export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
 
     const data = (await res.json()) as TokenResponse;
 
-    // Store the token
+    // Fetch user info to get username
+    const userRes = await fetch(`${TRAKT_API}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${data.access_token}`,
+        'trakt-api-version': '2',
+        'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
+        'User-Agent': 'TraktClone/1.0 (+https://github.com/)',
+      },
+    });
+
+    let username = undefined;
+    if (userRes.ok) {
+      const userData = (await userRes.json()) as { username?: string };
+      username = userData.username;
+    }
+
+    // Store the token with username
     await setTraktToken({
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       expiresAt: new Date(data.created_at * 1000 + data.expires_in * 1000),
+      username,
     });
 
     deviceCodeCache = null;

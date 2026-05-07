@@ -10,11 +10,10 @@ Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch
 
 ```
 apps/api/             Fastify API server (Node 24, TypeScript)           
-  - src/routes/       Route handlers
+  - src/routes/       Route handlers (includes stremio-addon mounted at /stremio-addon)
   - src/services/    Business logic
 apps/web/             Next.js 14 web app (App Router, Tailwind, shadcn/ui)
 apps/mobile/          React Native + Expo (SDK 51)
-apps/stremio-addon/   Stremio addon server (Node.js, port 7000)
 apps/kodi-addon/      Kodi Python addon — sideloaded, not a Docker service
 packages/types/       Shared TypeScript types and Zod schemas (single source of truth for DTOs and DB models)
 plans/                Architecture and implementation plan
@@ -32,7 +31,7 @@ docs/                 Documentation, screenshots, and design guidelines
 | Mobile | React Native + Expo SDK 51 + TypeScript |
 | Database | MySQL 8 — installed directly on EC2, not a Docker service |
 | Monorepo | pnpm workspaces |
-| Infra | Docker Compose on EC2 (api, web, stremio-addon, caddy) + Caddy (TLS) |
+| Infra | Docker Compose on EC2 (api, web, caddy) + Caddy (TLS) |
 
 ---
 
@@ -111,7 +110,6 @@ Common `pnpm` commands:
 | Web E2E | Playwright |
 | Mobile | Jest + React Native Testing Library |
 | Kodi addon | pytest |
-| Stremio addon | Vitest |
 
 Tests are co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`, etc.
 
