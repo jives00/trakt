@@ -20,9 +20,11 @@ const TMDB_MOVIE = {
 beforeAll(async () => { await app.ready(); });
 beforeEach(async () => {
   await resetDb();
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => TMDB_MOVIE,
+  vi.stubGlobal('fetch', vi.fn((url: string) => {
+    if (url.includes('external_ids')) {
+      return Promise.resolve({ ok: true, json: async () => ({ imdb_id: 'tt0137523' }) });
+    }
+    return Promise.resolve({ ok: true, json: async () => TMDB_MOVIE });
   }));
 });
 afterAll(async () => {
@@ -58,6 +60,7 @@ describe('GET /api/movies/:tmdbId', () => {
   it('returns cached movie on second call without hitting TMDB again', async () => {
     const token = await getToken();
     await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
+    await new Promise(resolve => setTimeout(resolve, 100));
     (global.fetch as any).mockClear();
     await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
     expect(global.fetch).not.toHaveBeenCalled();
