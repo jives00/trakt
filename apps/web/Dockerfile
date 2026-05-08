@@ -10,6 +10,7 @@ COPY apps/web/ ./apps/web/
 
 RUN pnpm install --ignore-scripts
 
+RUN pnpm --filter @trakt/types build
 RUN pnpm --filter web build
 
 EXPOSE 3000

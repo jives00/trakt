@@ -10,6 +10,7 @@ COPY apps/api/ ./apps/api/
 
 RUN pnpm install --ignore-scripts
 
+RUN pnpm --filter @trakt/types build
 RUN pnpm --filter api build
 
 EXPOSE 3002
