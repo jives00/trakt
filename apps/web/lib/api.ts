@@ -11,7 +11,7 @@ import type {
   UserProfile,
 } from "@trakt/types";
 
-export type { ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieDetail, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
+export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
 
 const BASE = "";
 
