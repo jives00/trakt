@@ -378,7 +378,11 @@ function ExclusionPanel({
   onRefresh: () => void;
 }) {
   const { token } = useAuth();
-  const authHeaders = useMemo(() => token ? { "Authorization": `Bearer ${token}` } : {}, [token]);
+  const authHeaders = useMemo(() => {
+    const headers: Record<string, string> = {};
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  }, [token]);
   const [removing, setRemoving] = useState<number | null>(null);
 
   const handleRemove = async (id: number) => {
