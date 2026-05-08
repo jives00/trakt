@@ -37,12 +37,8 @@ jobs:
             # Load env vars (assumes .env exists in project root)
             set -a; source .env; set +a
 
-            # Install dependencies and run migrations
-            # --ignore-scripts: skip build scripts; Docker will rebuild images anyway
-            pnpm install --frozen-lockfile --ignore-scripts
-            pnpm -F @trakt/api migrate
-
             # Rebuild and restart containers
+            # Docker container will handle migrations on startup
             docker compose up --build -d
 
             echo "Deployed at $(date)"
