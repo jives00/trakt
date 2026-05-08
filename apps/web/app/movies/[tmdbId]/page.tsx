@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type Movie, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
+import { api, type MovieDetail, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
 
@@ -43,7 +43,11 @@ function EditImageButton({ onClick, label }: { onClick: () => void; label: strin
 export default function MovieDetailPage() {
   const { tmdbId } = useParams<{ tmdbId: string }>();
   const { token, isLoading } = useAuth();
-  const [movie, setMovie] = useState<(Movie & { id: number }) | null>(null);
+  const [movie, setMovie] = useState<(MovieDetail & { id: number }) | null>(null);
+  const [status, setStatus] = useState<MovieStatus | null>(null);
+  const [cast, setCast] = useState<MovieCastMember[]>([]);
+  const [crew, setCrew] = useState<CrewMember[]>([]);
+  const [movie, setMovie] = useState<MovieDetail | null>(null);
   const [status, setStatus] = useState<MovieStatus | null>(null);
   const [cast, setCast] = useState<MovieCastMember[]>([]);
   const [crew, setCrew] = useState<CrewMember[]>([]);
