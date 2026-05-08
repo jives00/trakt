@@ -2,6 +2,7 @@ import { TvShow, Season, Episode, CastMember } from '@trakt/types';
 import { get } from './tmdb.client';
 
 export function transformShow(raw: Record<string, any>): TvShow {
+  const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
   return {
     id: 0,
     tmdbId: raw['id'],
@@ -13,6 +14,7 @@ export function transformShow(raw: Record<string, any>): TvShow {
     status: raw['status'] ?? null,
     network: raw['networks']?.[0]?.['name'] ?? null,
     genres: (raw['genres'] ?? []).map((g: Record<string, any>) => g['name']),
+    tmdbRating,
   };
 }
 

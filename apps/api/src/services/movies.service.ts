@@ -2,7 +2,7 @@ import { RowDataPacket } from 'mysql2/promise';
 import { Movie, MovieCastMember, CrewMember } from '@trakt/types';
 import { getPool } from '../db';
 import { fetchMovie, fetchMovieCredits, fetchMovieImdbId } from './tmdb-movies.client';
-import { fetchRtRatings } from './omdb.client';
+import { fetchImdbRating } from './omdb.client';
 
 interface MovieRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
@@ -10,11 +10,21 @@ interface MovieRow extends RowDataPacket {
   runtime_min: number | null; genres: string; release_date: string | null;
   origin_country: string | null; original_language: string | null; production_company: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
+  tmdb_rating: number | null;
 }
 
 interface ExternalIdRow extends RowDataPacket { external_id: string }
 
-function rowToMovie(row: MovieRow): Movie & { id: number } {
+async function getMovieImdbId(movieInternalId: number): Promise<string | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<ExternalIdRow[]>(
+    `SELECT external_id FROM external_ids WHERE media_type = 'movie' AND media_id = ? AND source = 'imdb'`,
+    [movieInternalId],
+  );
+  return rows.length > 0 ? rows[0].external_id : null;
+}
+
+function rowToMovie(row: MovieRow, imdbId?: string | null): Movie & { id: number } {
   return {
     id: row.id,
     tmdbId: row.tmdb_id,
@@ -32,6 +42,8 @@ function rowToMovie(row: MovieRow): Movie & { id: number } {
     productionCompany: row.production_company,
     rtCriticScore: row.rt_critic_score,
     rtAudienceScore: row.rt_audience_score,
+    imdbId: imdbId ?? null,
+    tmdbRating: row.tmdb_rating,
   };
 }
 
@@ -53,24 +65,61 @@ async function getOrCacheMovieImdbId(movieInternalId: number, movieTmdbId: numbe
   return imdbId;
 }
 
-async function backfillMovieRtScores(movieInternalId: number, movieTmdbId: number): Promise<void> {
-  const pool = getPool();
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT rt_critic_score FROM movies WHERE id = ? AND rt_critic_score IS NULL',
-    [movieInternalId],
-  );
-  if (rows.length === 0) return;
+async function backfillMovieImdbRating(movieInternalId: number, movieTmdbId: number): Promise<void> {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT rt_critic_score FROM movies WHERE id = ? AND rt_critic_score IS NULL',
+      [movieInternalId],
+    );
+    if (rows.length === 0) return;
 
-  const imdbId = await getOrCacheMovieImdbId(movieInternalId, movieTmdbId);
-  if (!imdbId) return;
+    const imdbId = await getOrCacheMovieImdbId(movieInternalId, movieTmdbId);
+    if (!imdbId) return;
 
-  const { criticScore, audienceScore } = await fetchRtRatings(imdbId);
-  if (criticScore === null && audienceScore === null) return;
+    const rating = await fetchImdbRating(imdbId);
+    if (rating === null) return;
 
-  await pool.query(
-    'UPDATE movies SET rt_critic_score = ?, rt_audience_score = ? WHERE id = ?',
-    [criticScore, audienceScore, movieInternalId],
-  );
+    await pool.query(
+      'UPDATE movies SET rt_critic_score = ? WHERE id = ?',
+      [rating, movieInternalId],
+    );
+  } catch (err) {
+    console.error(`[IMDb] Error backfilling movie ${movieTmdbId}:`, err);
+  }
+}
+
+async function backfillMovieTmdbRating(movieInternalId: number, movieTmdbId: number): Promise<void> {
+  try {
+    console.log(`[TMDB] Backfilling TMDB rating for movie ${movieTmdbId} (id: ${movieInternalId})`);
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT tmdb_rating FROM movies WHERE id = ? AND tmdb_rating IS NULL',
+      [movieInternalId],
+    );
+    console.log(`[TMDB] Query result rows.length: ${rows.length}`);
+    if (rows.length === 0) {
+      console.log(`[TMDB] Movie ${movieTmdbId} already has TMDB rating`);
+      return;
+    }
+
+    console.log(`[TMDB] Fetching movie data for ${movieTmdbId}`);
+    const movie = await fetchMovie(movieTmdbId);
+    console.log(`[TMDB] Got movie, tmdbRating: ${movie.tmdbRating}`);
+    if (movie.tmdbRating === null) {
+      console.log(`[TMDB] Movie ${movieTmdbId} has no TMDB rating`);
+      return;
+    }
+
+    console.log(`[TMDB] Updating movie ${movieTmdbId} with rating: ${movie.tmdbRating}`);
+    await pool.query(
+      'UPDATE movies SET tmdb_rating = ? WHERE id = ?',
+      [movie.tmdbRating, movieInternalId],
+    );
+    console.log(`[TMDB] Update complete`);
+  } catch (err) {
+    console.error(`[TMDB] Error backfilling movie ${movieTmdbId}:`, err);
+  }
 }
 
 export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: number }> {
@@ -79,23 +128,29 @@ export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: num
     'SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId],
   );
   if (rows.length > 0) {
-    const movie = rowToMovie(rows[0]);
-    backfillMovieRtScores(movie.id, tmdbId).catch(() => {});
+    const imdbId = await getMovieImdbId(rows[0].id);
+    const movie = rowToMovie(rows[0], imdbId);
+    backfillMovieImdbRating(movie.id, tmdbId).catch(() => {});
+    backfillMovieTmdbRating(movie.id, tmdbId).catch(() => {});
     return movie;
   }
 
-  const movie = await fetchMovie(tmdbId);
+  const movieData = await fetchMovie(tmdbId);
+  const tmdbRating = movieData.tmdbRating ?? null;
   await pool.query(
-    `INSERT INTO movies (tmdb_id, title, year, release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company)`,
-    [tmdbId, movie.title, movie.year || null, movie.releaseDate ?? null, movie.overview,
-     movie.tagline ?? null, movie.posterPath, movie.backdropPath, movie.runtimeMin, JSON.stringify(movie.genres),
-     movie.originCountry, movie.originalLanguage, movie.productionCompany],
+    `INSERT INTO movies (tmdb_id, title, year, release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company, tmdb_rating)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company), tmdb_rating = VALUES(tmdb_rating)`,
+    [tmdbId, movieData.title, movieData.year || null, movieData.releaseDate ?? null, movieData.overview,
+     movieData.tagline ?? null, movieData.posterPath, movieData.backdropPath, movieData.runtimeMin, JSON.stringify(movieData.genres),
+     movieData.originCountry, movieData.originalLanguage, movieData.productionCompany, tmdbRating],
   );
+  const movie = movieData;
   const [inserted] = await pool.query<MovieRow[]>('SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId]);
-  const result = rowToMovie(inserted[0]);
-  backfillMovieRtScores(result.id, tmdbId).catch(() => {});
+  const imdbId = await getMovieImdbId(inserted[0].id);
+  const result = rowToMovie(inserted[0], imdbId);
+  backfillMovieImdbRating(result.id, tmdbId).catch(() => {});
+  backfillMovieTmdbRating(result.id, tmdbId).catch(() => {});
   return result;
 }
 

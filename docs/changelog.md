@@ -4,6 +4,7 @@
 
 ### API
 - Movie image endpoints: GET /api/movies/{tmdbId}/images and PUT /api/movies/{tmdbId}/image to fetch available backdrop/poster images and set custom overrides (same pattern as show endpoints) `dd51aa8`
+- IMDb and TMDB ratings: OMDB client fetches IMDb ratings by IMDb ID; TMDB vote_average extracted on fetch; both cached in rt_critic_score column (IMDb) and tmdb_rating column; lazy backfill for existing movies/shows; migrations 016 and 017 add columns to both movies and tv_shows tables `1343557`
 
 ### Web
 - Movie detail pages: add cast loading skeleton with loading state; fix race condition by fetching cast after movie is inserted into database; add hero backdrop and poster image edit buttons with image picker modal `dd51aa8`
@@ -11,6 +12,7 @@
 - Episode detail pages: add left/right arrow key navigation to browse episodes; add < > buttons in hero image for click-based navigation; wrap to previous/next season at boundaries; remove duplicate episode description from main content; move metadata above still image `671108d`
 - Show season pages: remove collect/watchlist buttons and star ratings (show-level only); watched button toggles entire season; display "Partially Watched" when some episodes are watched `693c305`
 - Show series pages: calculate and display "Partially Watched" when series has watched episodes but not all; fetch watched counts for all seasons to determine full status `693c305`
+- Detail page sidebar ratings: display IMDb (from OMDB) and TMDB (from TMDB) ratings side-by-side in sidebar below user star ratings; add "View on IMDb" button next to "View on TMDB" button below refresh section; reorganized sidebar layout to group ratings together `1343557`
 
 ## May 6, 2026
 

@@ -12,6 +12,8 @@ export interface Movie {
   tagline?: string | null;
   rtCriticScore?: number | null;
   rtAudienceScore?: number | null;
+  imdbId?: string | null;
+  tmdbRating?: number | null;
 }
 
 export interface MovieDetail extends Movie {
@@ -49,6 +51,8 @@ export interface TvShow {
   genres: string[];
   rtCriticScore?: number | null;
   rtAudienceScore?: number | null;
+  imdbId?: string | null;
+  tmdbRating?: number | null;
 }
 
 export interface Season {

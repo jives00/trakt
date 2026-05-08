@@ -9,6 +9,7 @@ export function transformMovie(raw: Record<string, any>): Movie {
     ?.release_date?.slice(0, 10) ?? null;
 
   const releaseDate = usTheatrical ?? raw['release_date'] ?? null;
+  const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
 
   return {
     id: 0,
@@ -25,6 +26,7 @@ export function transformMovie(raw: Record<string, any>): Movie {
     originCountry: (raw['origin_country'] as string[] | undefined)?.[0] || null,
     originalLanguage: raw['original_language'] || null,
     productionCompany: (raw['production_companies'] as Record<string, any>[] | undefined)?.[0]?.name || null,
+    tmdbRating,
   };
 }
 

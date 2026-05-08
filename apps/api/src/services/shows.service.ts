@@ -4,7 +4,7 @@ import { getPool } from '../db';
 import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowImdbId, fetchShowCast, fetchSeasonCast, fetchEpisodeGuestStars } from './tmdb-shows.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
 import { applyImageOverrides } from './image-overrides.service';
-import { fetchRtRatings } from './omdb.client';
+import { fetchImdbRating } from './omdb.client';
 
 interface ShowRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
@@ -15,6 +15,7 @@ interface ShowRow extends RowDataPacket {
   original_language: string | null; runtime_min: number | null;
   air_time: string | null; airs_day: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
+  tmdb_rating: number | null;
 }
 
 interface SeasonRow extends RowDataPacket {
@@ -41,7 +42,16 @@ interface EpisodeRow extends RowDataPacket {
   air_date: string | null; still_path: string | null; runtime_min: number | null;
 }
 
-function rowToShow(row: ShowRow, seasonCount?: number): ShowDetail & { id: number } {
+async function getShowImdbId(showInternalId: number): Promise<string | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<ExternalIdRow[]>(
+    `SELECT external_id FROM external_ids WHERE media_type = 'show' AND media_id = ? AND source = 'imdb'`,
+    [showInternalId],
+  );
+  return rows.length > 0 ? rows[0].external_id : null;
+}
+
+function rowToShow(row: ShowRow, seasonCount?: number, imdbId?: string | null): ShowDetail & { id: number } {
   return {
     id: row.id,
     tmdbId: row.tmdb_id,
@@ -62,6 +72,8 @@ function rowToShow(row: ShowRow, seasonCount?: number): ShowDetail & { id: numbe
     airsDay: row.airs_day,
     rtCriticScore: row.rt_critic_score,
     rtAudienceScore: row.rt_audience_score,
+    imdbId: imdbId ?? null,
+    tmdbRating: row.tmdb_rating,
   };
 }
 
@@ -73,6 +85,7 @@ export async function getOrFetchShow(tmdbId: number) {
 
   if (rows.length > 0) {
     const row = rows[0];
+    const imdbId = await getShowImdbId(row.id);
     // Backfill metadata for shows cached before migration 007
     if (row.original_language === null) {
       const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
@@ -81,16 +94,18 @@ export async function getOrFetchShow(tmdbId: number) {
         `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ? WHERE id = ?`,
         [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
-      backfillShowRtScores(row.id, tmdbId).catch(() => {});
-      return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc));
+      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc, imdbId));
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
       await pool.query('UPDATE tv_shows SET season_count = ? WHERE id = ?', [seasonCount, row.id]);
-      backfillShowRtScores(row.id, tmdbId).catch(() => {});
-      return applyImageOverrides('show', rowToShow(row, seasonCount));
+      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      return applyImageOverrides('show', rowToShow(row, seasonCount, imdbId));
     }
-    const show = rowToShow(row, row.season_count);
+    const show = rowToShow(row, row.season_count, imdbId);
     if (show.runtimeMin === null) {
       const [rtRows] = await pool.query<RowDataPacket[]>(
         'SELECT runtime_min FROM episodes WHERE show_id = ? AND runtime_min IS NOT NULL GROUP BY runtime_min ORDER BY COUNT(*) DESC LIMIT 1',
@@ -101,23 +116,26 @@ export async function getOrFetchShow(tmdbId: number) {
         await pool.query('UPDATE tv_shows SET runtime_min = ? WHERE id = ?', [show.runtimeMin, row.id]);
       }
     }
-    backfillShowRtScores(row.id, tmdbId).catch(() => {});
+    backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
     return applyImageOverrides('show', show);
   }
 
   const { show, seasonCount } = await fetchShowWithSeasonCount(tmdbId);
+  const tmdbRating = show.tmdbRating ?? null;
 
   await pool.query(
-    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id`,
+    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min, tmdb_rating)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id, tmdb_rating = VALUES(tmdb_rating)`,
     [tmdbId, show.title, show.year || null, show.overview, show.posterPath,
      show.backdropPath, show.status, show.network, JSON.stringify(show.genres), seasonCount,
-     show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin],
+     show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin, tmdbRating],
   );
   const [inserted] = await pool.query<ShowRow[]>('SELECT * FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
-  const result = rowToShow(inserted[0], seasonCount);
-  backfillShowRtScores(result.id, tmdbId).catch(() => {});
+  const imdbId = await getShowImdbId(inserted[0].id);
+  const result = rowToShow(inserted[0], seasonCount, imdbId);
+  backfillShowImdbRating(result.id, tmdbId).catch(() => {});
   return applyImageOverrides('show', result);
 }
 
@@ -159,24 +177,71 @@ async function getOrCacheShowImdbId(showInternalId: number, showTmdbId: number):
   return imdbId;
 }
 
-async function backfillShowRtScores(showInternalId: number, showTmdbId: number): Promise<void> {
-  const pool = getPool();
-  const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT rt_critic_score FROM tv_shows WHERE id = ? AND rt_critic_score IS NULL',
-    [showInternalId],
-  );
-  if (rows.length === 0) return;
+async function backfillShowImdbRating(showInternalId: number, showTmdbId: number): Promise<void> {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT rt_critic_score FROM tv_shows WHERE id = ? AND rt_critic_score IS NULL',
+      [showInternalId],
+    );
+    if (rows.length === 0) {
+      console.log(`[IMDb] Show ${showTmdbId} already has rating`);
+      return;
+    }
 
-  const imdbId = await getOrCacheShowImdbId(showInternalId, showTmdbId);
-  if (!imdbId) return;
+    console.log(`[IMDb] Backfilling IMDb rating for show ${showTmdbId} (id: ${showInternalId})`);
+    const imdbId = await getOrCacheShowImdbId(showInternalId, showTmdbId);
+    if (!imdbId) {
+      console.log(`[IMDb] No IMDb ID found for show ${showTmdbId}`);
+      return;
+    }
 
-  const { criticScore, audienceScore } = await fetchRtRatings(imdbId);
-  if (criticScore === null && audienceScore === null) return;
+    console.log(`[IMDb] Got IMDb ID ${imdbId}, fetching rating...`);
+    const rating = await fetchImdbRating(imdbId);
+    if (rating === null) {
+      console.log(`[IMDb] No rating found for IMDb ${imdbId}`);
+      return;
+    }
 
-  await pool.query(
-    'UPDATE tv_shows SET rt_critic_score = ?, rt_audience_score = ? WHERE id = ?',
-    [criticScore, audienceScore, showInternalId],
-  );
+    console.log(`[IMDb] Updating show ${showTmdbId} with rating: ${rating}`);
+    await pool.query(
+      'UPDATE tv_shows SET rt_critic_score = ? WHERE id = ?',
+      [rating, showInternalId],
+    );
+    console.log(`[IMDb] Updated successfully`);
+  } catch (err) {
+    console.error(`[IMDb] Error backfilling show ${showTmdbId}:`, err);
+  }
+}
+
+async function backfillShowTmdbRating(showInternalId: number, showTmdbId: number): Promise<void> {
+  try {
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT tmdb_rating FROM tv_shows WHERE id = ? AND tmdb_rating IS NULL',
+      [showInternalId],
+    );
+    if (rows.length === 0) {
+      console.log(`[TMDB] Show ${showTmdbId} already has TMDB rating`);
+      return;
+    }
+
+    console.log(`[TMDB] Backfilling TMDB rating for show ${showTmdbId} (id: ${showInternalId})`);
+    const { show } = await fetchShowWithSeasonCount(showTmdbId);
+    if (show.tmdbRating === null) {
+      console.log(`[TMDB] No rating found for show ${showTmdbId}`);
+      return;
+    }
+
+    console.log(`[TMDB] Updating show ${showTmdbId} with rating: ${show.tmdbRating}`);
+    await pool.query(
+      'UPDATE tv_shows SET tmdb_rating = ? WHERE id = ?',
+      [show.tmdbRating, showInternalId],
+    );
+    console.log(`[TMDB] Updated successfully`);
+  } catch (err) {
+    console.error(`[TMDB] Error backfilling show ${showTmdbId}:`, err);
+  }
 }
 
 export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number) {

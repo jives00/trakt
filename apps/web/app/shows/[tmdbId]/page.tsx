@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisodeSummary, type SeasonSummary } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
-import { RtScore } from "@/components/rt-score";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -307,9 +306,6 @@ export default function ShowDetailPage() {
                   <p className="text-white text-base">{formatLanguage(show.originalLanguage)}</p>
                 </div>
               )}
-              {show.rtCriticScore != null && (
-                <RtScore critic={show.rtCriticScore} />
-              )}
             </section>
 
             {/* Episode highlights */}
@@ -493,14 +489,20 @@ export default function ShowDetailPage() {
                 </div>
               </div>
 
-              <Link
-                href={`https://www.themoviedb.org/tv/${tmdbId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-              >
-                View on TMDB
-              </Link>
+              <div className="space-y-2">
+                {show.rtCriticScore != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/40 font-bold">IMDb</span>
+                    <span className="text-white">{(show.rtCriticScore / 10).toFixed(1)}/10</span>
+                  </div>
+                )}
+                {show.tmdbRating != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/40 font-bold">TMDB</span>
+                    <span className="text-white">{(show.tmdbRating / 10).toFixed(1)}/10</span>
+                  </div>
+                )}
+              </div>
 
               <div className="border-t border-white/10 pt-4">
                 <RefreshButton sections={[
@@ -510,6 +512,25 @@ export default function ShowDetailPage() {
                   { label: "Seasons", onRefresh: handleRefreshSeasons },
                 ]} />
               </div>
+
+              <Link
+                href={`https://www.themoviedb.org/tv/${tmdbId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+              >
+                View on TMDB
+              </Link>
+              {show.imdbId && (
+                <Link
+                  href={`https://www.imdb.com/title/${show.imdbId}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                >
+                  View on IMDb
+                </Link>
+              )}
             </div>
           </div>
         </div>

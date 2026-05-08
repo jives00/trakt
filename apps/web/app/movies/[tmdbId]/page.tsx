@@ -8,7 +8,6 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type Movie, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
-import { RtScore } from "@/components/rt-score";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -245,9 +244,6 @@ export default function MovieDetailPage() {
                   <p className="text-white text-base">{movie.productionCompany}</p>
                 </div>
               )}
-              {movie.rtCriticScore != null && (
-                <RtScore critic={movie.rtCriticScore} />
-              )}
             </section>
 
             {/* Cast/Crew Tabs */}
@@ -368,14 +364,20 @@ export default function MovieDetailPage() {
                 </div>
               </div>
 
-              <Link
-                href={`https://www.themoviedb.org/movie/${tmdbId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-              >
-                View on TMDB
-              </Link>
+              <div className="space-y-2">
+                {movie.rtCriticScore != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/40 font-bold">IMDb</span>
+                    <span className="text-white">{(movie.rtCriticScore / 10).toFixed(1)}/10</span>
+                  </div>
+                )}
+                {movie.tmdbRating != null && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-white/40 font-bold">TMDB</span>
+                    <span className="text-white">{(movie.tmdbRating / 10).toFixed(1)}/10</span>
+                  </div>
+                )}
+              </div>
 
               <div className="border-t border-white/10 pt-4">
                 <RefreshButton sections={[
@@ -384,6 +386,25 @@ export default function MovieDetailPage() {
                   { label: "Cast", onRefresh: handleRefreshMovieCastOnly },
                 ]} />
               </div>
+
+              <Link
+                href={`https://www.themoviedb.org/movie/${tmdbId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+              >
+                View on TMDB
+              </Link>
+              {movie.imdbId && (
+                <Link
+                  href={`https://www.imdb.com/title/${movie.imdbId}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                >
+                  View on IMDb
+                </Link>
+              )}
             </div>
           </div>
         </div>

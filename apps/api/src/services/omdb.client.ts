@@ -1,11 +1,13 @@
-export async function fetchRtRatings(imdbId: string): Promise<{ criticScore: number | null; audienceScore: number | null }> {
+export async function fetchImdbRating(imdbId: string): Promise<number | null> {
   const url = `https://www.omdbapi.com/?i=${imdbId}&apikey=${process.env.OMDB_API_KEY ?? ''}`;
+  console.log(`[OMDB] Fetching IMDb rating for ${imdbId}`);
   const res = await fetch(url);
-  if (!res.ok) return { criticScore: null, audienceScore: null };
-  const data = await res.json() as { Ratings?: { Source: string; Value: string }[] };
-  const ratings = data.Ratings ?? [];
-  const rt = ratings.find(r => r.Source === 'Rotten Tomatoes');
-  const audience = ratings.find(r => r.Source === 'Rotten Tomatoes Audience');
-  const parse = (v: string | undefined) => v ? (parseInt(v.replace('%', ''), 10) || null) : null;
-  return { criticScore: parse(rt?.Value), audienceScore: parse(audience?.Value) };
+  if (!res.ok) {
+    console.log(`[OMDB] Failed: ${res.status} ${res.statusText}`);
+    return null;
+  }
+  const data = await res.json() as { imdbRating?: string };
+  const rating = data.imdbRating ? parseFloat(data.imdbRating) : null;
+  console.log(`[OMDB] IMDb rating: ${rating}`);
+  return rating && !isNaN(rating) ? Math.round(rating * 10) : null;
 }
