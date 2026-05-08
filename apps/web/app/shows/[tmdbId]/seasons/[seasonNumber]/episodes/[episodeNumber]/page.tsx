@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember } from "@/lib/api";
+import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember, type SeasonSummary } from "@/lib/api";
 import { RefreshButton } from "@/components/refresh-button";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
@@ -19,12 +19,14 @@ export default function EpisodeDetailPage() {
   const { tmdbId, seasonNumber: snStr, episodeNumber: epStr } = useParams<{ tmdbId: string; seasonNumber: string; episodeNumber: string }>();
   const sn = Number(snStr);
   const ep = Number(epStr);
+  const router = useRouter();
   const { token, isLoading } = useAuth();
   const [show, setShow] = useState<ShowDetail | null>(null);
   const [status, setStatus] = useState<ShowStatus | null>(null);
   const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
   const [watched, setWatched] = useState(false);
   const [cast, setCast] = useState<CastMember[]>([]);
+  const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,16 +36,59 @@ export default function EpisodeDetailPage() {
       api.getShow(id, token),
       api.getEpisode(id, sn, ep, token),
       api.getEpisodeCast(id, sn, ep, token),
+      api.getShowSeasons(id, token),
     ])
-      .then(([showData, episodeData, castData]) => {
+      .then(([showData, episodeData, castData, seasonsData]) => {
         setShow(showData.show);
         setStatus(showData.status);
         setEpisode(episodeData.episode);
         setWatched(episodeData.watched);
         setCast(castData.cast);
+        setSeasons(seasonsData.seasons);
       })
       .catch(() => setError("Failed to load episode."));
   }, [isLoading, token, tmdbId, sn, ep]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") {
+        navigatePrevious();
+      } else if (e.key === "ArrowRight") {
+        navigateNext();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [seasons, sn, ep, tmdbId]);
+
+  function navigatePrevious() {
+    if (!tmdbId || seasons.length === 0) return;
+
+    const currentSeason = seasons.find(s => s.seasonNumber === sn);
+    if (!currentSeason) return;
+
+    if (ep > 1) {
+      router.push(`/shows/${tmdbId}/seasons/${sn}/episodes/${ep - 1}`);
+    } else if (sn > 1) {
+      const prevSeason = seasons.find(s => s.seasonNumber === sn - 1);
+      if (prevSeason) {
+        router.push(`/shows/${tmdbId}/seasons/${sn - 1}/episodes/${prevSeason.episodeCount}`);
+      }
+    }
+  }
+
+  function navigateNext() {
+    if (!tmdbId || seasons.length === 0) return;
+
+    const currentSeason = seasons.find(s => s.seasonNumber === sn);
+    if (!currentSeason) return;
+
+    if (ep < currentSeason.episodeCount) {
+      router.push(`/shows/${tmdbId}/seasons/${sn}/episodes/${ep + 1}`);
+    } else if (sn < seasons[seasons.length - 1].seasonNumber) {
+      router.push(`/shows/${tmdbId}/seasons/${sn + 1}/episodes/1`);
+    }
+  }
 
   async function handleWatched() {
     if (!token) return;
@@ -103,6 +148,23 @@ export default function EpisodeDetailPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
+
+          {/* Episode Navigation Buttons */}
+          <button
+            onClick={navigatePrevious}
+            className="absolute left-20 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2 transition-colors text-white/70 hover:text-white flex items-center justify-center"
+            aria-label="Previous episode"
+          >
+            <span className="material-symbols-outlined text-3xl">chevron_left</span>
+          </button>
+          <button
+            onClick={navigateNext}
+            className="absolute right-20 top-1/2 -translate-y-1/2 z-20 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2 transition-colors text-white/70 hover:text-white flex items-center justify-center"
+            aria-label="Next episode"
+          >
+            <span className="material-symbols-outlined text-3xl">chevron_right</span>
+          </button>
+
           <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {posterUrl && (
@@ -131,13 +193,6 @@ export default function EpisodeDetailPage() {
         {/* Content */}
         <div className="max-w-page mx-auto px-margin-page mt-12 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
           <div className="lg:col-span-8 space-y-10">
-            {/* Episode Still */}
-            {stillUrl && (
-              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-white/5">
-                <Image src={stillUrl} alt={episode.title ?? ""} fill className="object-cover" />
-              </section>
-            )}
-
             {/* Metadata */}
             {(episode.airDate || episode.runtimeMin) && (
               <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
@@ -156,10 +211,10 @@ export default function EpisodeDetailPage() {
               </section>
             )}
 
-            {/* Overview */}
-            {episode.overview && (
-              <section>
-                <p className="text-white text-base leading-relaxed">{episode.overview}</p>
+            {/* Episode Still */}
+            {stillUrl && (
+              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-white/5">
+                <Image src={stillUrl} alt={episode.title ?? ""} fill className="object-cover" />
               </section>
             )}
 
