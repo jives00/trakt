@@ -4,11 +4,10 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: trakt-api
-    ports:
-      - "127.0.0.1:3003:3002"
+    network_mode: host
     environment:
       NODE_ENV: production
-      DB_HOST: 172.18.0.1
+      DB_HOST: localhost
       DB_PORT: 3306
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -21,10 +20,6 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       SCROBBLE_API_KEY: ${SCROBBLE_API_KEY}
-    extra_hosts:
-      - "host.docker.internal:172.31.23.107"
-    networks:
-      - trakt-network
     restart: unless-stopped
 
   web:
