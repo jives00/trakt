@@ -67,7 +67,7 @@ export const api = {
 
   // Movies
   getMovie: (tmdbId: number, token: string) =>
-    request<{ movie: Movie & { id: number }; status: MovieStatus }>(`/api/movies/${tmdbId}`, { token }),
+    request<{ movie: MovieDetail & { id: number }; status: MovieStatus }>(`/api/movies/${tmdbId}`, { token }),
   getMovieCast: (tmdbId: number, token: string) =>
     request<{ cast: MovieCastMember[] }>(`/api/movies/${tmdbId}/cast`, { token }),
   getMovieCrew: (tmdbId: number, token: string) =>
