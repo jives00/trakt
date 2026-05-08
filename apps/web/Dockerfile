@@ -8,7 +8,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 
-RUN pnpm install
+RUN pnpm install --ignore-scripts
 
 RUN pnpm --filter web build
 
