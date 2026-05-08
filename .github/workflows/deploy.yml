@@ -25,7 +25,7 @@ jobs:
             # Load Node via nvm
             export NVM_DIR=~/.nvm
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use
+            nvm use 24
 
             # Pull latest code
             git pull origin main
