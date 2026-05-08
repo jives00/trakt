@@ -8,7 +8,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 RUN pnpm --filter api build
 

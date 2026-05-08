@@ -8,7 +8,7 @@ COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 RUN pnpm --filter web build
 
