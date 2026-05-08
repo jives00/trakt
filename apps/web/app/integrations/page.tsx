@@ -34,9 +34,11 @@ export default function IntegrationsPage() {
   const [oauthUserCode, setOAuthUserCode] = useState<string | null>(null);
   const [oauthAuthorizing, setOAuthAuthorizing] = useState(false);
 
-  const authHeaders = useMemo(() =>
-    token ? { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" } : { "Content-Type": "application/json" }
-  , [token]);
+  const authHeaders = useMemo(() => {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    return headers;
+  }, [token]);
 
   // Fetch API key and Trakt auth status on mount
   useEffect(() => {
