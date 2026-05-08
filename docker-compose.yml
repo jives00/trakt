@@ -5,7 +5,7 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: trakt-api
     ports:
-      - "127.0.0.1:3002:3002"
+      - "127.0.0.1:3003:3002"
     environment:
       NODE_ENV: production
       DB_HOST: localhost
@@ -33,7 +33,7 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: trakt-web
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3001:3000"
     networks:
       - trakt-network
     restart: unless-stopped
