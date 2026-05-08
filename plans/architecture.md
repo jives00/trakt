@@ -676,9 +676,8 @@ The app supports light and dark mode as the initial two themes, with the archite
 
 ```yaml
 services:
-  api:            # Node.js Fastify, port 3001
+  api:            # Node.js Fastify, port 3002
   web:            # Next.js, port 3000
-  stremio-addon:  # Stremio addon server, port 7000
   caddy:          # Reverse proxy, TLS termination, ports 80/443
 ```
 - MySQL is **not** a Docker service — MySQL 8 is already installed directly on EC2. Set `DB_HOST=localhost` in `.env`.
@@ -696,13 +695,12 @@ services:
 - Match by TMDB ID — Emby includes it in the `ProviderIds` field of each payload
 - Before writing to `watch_history`, check `scrobble_exclusions` for the item's TMDB ID with `integration='emby'` — drop silently if found
 
-### Stremio — custom addon (`apps/stremio-addon/`)
-- Build a Node.js Stremio addon using the [stremio-addon-sdk](https://github.com/Stremio/stremio-addon-sdk)
-- The addon exposes a manifest and handles `meta` + `stream` resources so Stremio can install it as a source
+### Stremio — routes in the API
+- Stremio addon manifest and scrobble endpoints are implemented as routes in `apps/api/src/routes/stremio-addon.routes.ts`
+- The manifest exposes `meta` and `stream` resources so Stremio can install it as a source
 - On playback events, the addon calls `POST /api/scrobble/stremio` with the content ID and progress
 - Before writing to `watch_history`, check `scrobble_exclusions` for the item's TMDB ID with `integration='stremio'` — drop silently if found
-- Hosted as a separate service in Docker Compose (port 7000), reachable by the user's local Stremio client
-- Users install the addon by pasting `http://<server>/stremio-addon/manifest.json` into Stremio
+- Users install the addon by pasting `http://<server>/stremio-addon/manifest.json` into Stremio (locally: `http://localhost:3002/stremio-addon/manifest.json`)
 
 ---
 
@@ -820,7 +818,7 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 
 **EC2 Deployment:**
 1. SSH into EC2, clone repo, create `.env` from `.env.example`
-2. `docker compose up -d` — starts API, web, stremio-addon, Caddy
+2. `docker compose up -d` — starts API (includes stremio addon routes), web, and Caddy
 3. Caddy automatically provisions Let's Encrypt TLS for your domain
 4. Point DNS A record at Elastic IP if not already done
 5. Verify HTTPS works and all services are reachable

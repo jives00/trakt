@@ -1,0 +1,17 @@
+FROM node:24-alpine
+
+WORKDIR /app
+
+RUN npm install -g pnpm
+
+COPY pnpm-workspace.yaml package.json ./
+COPY packages/ ./packages/
+COPY apps/web/ ./apps/web/
+
+RUN pnpm install --frozen-lockfile
+
+RUN pnpm --filter web build
+
+EXPOSE 3000
+
+CMD ["pnpm", "--filter", "web", "start"]

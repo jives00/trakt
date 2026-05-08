@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: trakt-api
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+    environment:
+      NODE_ENV: production
+      DB_HOST: host.docker.internal
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      TVDB_API_KEY: ${TVDB_API_KEY}
+      OMDB_API_KEY: ${OMDB_API_KEY}
+      FANART_API_KEY: ${FANART_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SCROBBLE_API_KEY: ${SCROBBLE_API_KEY}
+    networks:
+      - trakt-network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: trakt-web
+    environment:
+      NEXT_PUBLIC_API_URL: https://${DOMAIN}
+    networks:
+      - trakt-network
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:latest
+    container_name: trakt-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      DOMAIN: ${NEXT_PUBLIC_API_URL}
+    networks:
+      - trakt-network
+    restart: unless-stopped
+
+networks:
+  trakt-network:
+    driver: bridge
+
+volumes:
+  caddy-data:
+  caddy-config:
