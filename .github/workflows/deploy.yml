@@ -37,8 +37,9 @@ jobs:
             # Load env vars (assumes .env exists in project root)
             set -a; source .env; set +a
 
-            # Install dependencies and run migrations (idempotent — safe to run on every deploy)
-            pnpm install --frozen-lockfile
+            # Install dependencies and run migrations
+            # --ignore-scripts: skip build scripts; Docker will rebuild images anyway
+            pnpm install --frozen-lockfile --ignore-scripts
             pnpm migrate --workspace=apps/api
 
             # Rebuild and restart containers
