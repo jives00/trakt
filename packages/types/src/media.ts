@@ -10,6 +10,8 @@ export interface Movie {
   genres: string[];
   releaseDate?: string | null;
   tagline?: string | null;
+  rtCriticScore?: number | null;
+  rtAudienceScore?: number | null;
 }
 
 export interface MovieDetail extends Movie {
@@ -45,6 +47,8 @@ export interface TvShow {
   status: string | null;
   network: string | null;
   genres: string[];
+  rtCriticScore?: number | null;
+  rtAudienceScore?: number | null;
 }
 
 export interface Season {

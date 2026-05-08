@@ -1,14 +1,18 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { Movie, MovieCastMember, CrewMember } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchMovie, fetchMovieCredits } from './tmdb-movies.client';
+import { fetchMovie, fetchMovieCredits, fetchMovieImdbId } from './tmdb-movies.client';
+import { fetchRtRatings } from './omdb.client';
 
 interface MovieRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
   overview: string; tagline: string | null; poster_path: string | null; backdrop_path: string | null;
   runtime_min: number | null; genres: string; release_date: string | null;
   origin_country: string | null; original_language: string | null; production_company: string | null;
+  rt_critic_score: number | null; rt_audience_score: number | null;
 }
+
+interface ExternalIdRow extends RowDataPacket { external_id: string }
 
 function rowToMovie(row: MovieRow): Movie & { id: number } {
   return {
@@ -26,7 +30,47 @@ function rowToMovie(row: MovieRow): Movie & { id: number } {
     originCountry: row.origin_country,
     originalLanguage: row.original_language,
     productionCompany: row.production_company,
+    rtCriticScore: row.rt_critic_score,
+    rtAudienceScore: row.rt_audience_score,
   };
+}
+
+async function getOrCacheMovieImdbId(movieInternalId: number, movieTmdbId: number): Promise<string | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<ExternalIdRow[]>(
+    `SELECT external_id FROM external_ids WHERE media_type = 'movie' AND media_id = ? AND source = 'imdb'`,
+    [movieInternalId],
+  );
+  if (rows.length > 0) return rows[0].external_id;
+
+  const imdbId = await fetchMovieImdbId(movieTmdbId);
+  if (!imdbId) return null;
+
+  await pool.query(
+    `INSERT IGNORE INTO external_ids (media_type, media_id, source, external_id) VALUES ('movie', ?, 'imdb', ?)`,
+    [movieInternalId, imdbId],
+  );
+  return imdbId;
+}
+
+async function backfillMovieRtScores(movieInternalId: number, movieTmdbId: number): Promise<void> {
+  const pool = getPool();
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT rt_critic_score FROM movies WHERE id = ? AND rt_critic_score IS NULL',
+    [movieInternalId],
+  );
+  if (rows.length === 0) return;
+
+  const imdbId = await getOrCacheMovieImdbId(movieInternalId, movieTmdbId);
+  if (!imdbId) return;
+
+  const { criticScore, audienceScore } = await fetchRtRatings(imdbId);
+  if (criticScore === null && audienceScore === null) return;
+
+  await pool.query(
+    'UPDATE movies SET rt_critic_score = ?, rt_audience_score = ? WHERE id = ?',
+    [criticScore, audienceScore, movieInternalId],
+  );
 }
 
 export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: number }> {
@@ -34,7 +78,11 @@ export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: num
   const [rows] = await pool.query<MovieRow[]>(
     'SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId],
   );
-  if (rows.length > 0) return rowToMovie(rows[0]);
+  if (rows.length > 0) {
+    const movie = rowToMovie(rows[0]);
+    backfillMovieRtScores(movie.id, tmdbId).catch(() => {});
+    return movie;
+  }
 
   const movie = await fetchMovie(tmdbId);
   await pool.query(
@@ -46,7 +94,9 @@ export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: num
      movie.originCountry, movie.originalLanguage, movie.productionCompany],
   );
   const [inserted] = await pool.query<MovieRow[]>('SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId]);
-  return rowToMovie(inserted[0]);
+  const result = rowToMovie(inserted[0]);
+  backfillMovieRtScores(result.id, tmdbId).catch(() => {});
+  return result;
 }
 
 export async function getOrFetchMovieCast(tmdbId: number): Promise<MovieCastMember[]> {

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisodeSummary, type SeasonSummary } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
+import { RtScore } from "@/components/rt-score";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -305,6 +306,9 @@ export default function ShowDetailPage() {
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
                   <p className="text-white text-base">{formatLanguage(show.originalLanguage)}</p>
                 </div>
+              )}
+              {show.rtCriticScore != null && (
+                <RtScore critic={show.rtCriticScore} />
               )}
             </section>
 

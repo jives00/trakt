@@ -1,9 +1,10 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { TvShow, ShowDetail, CastMember, ShowEpisodeSummary, EpisodeDetail } from '@trakt/types';
 import { getPool } from '../db';
-import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowCast, fetchSeasonCast, fetchEpisodeGuestStars } from './tmdb-shows.client';
+import { fetchShowWithSeasonCount, fetchSeason, fetchTvdbId, fetchShowImdbId, fetchShowCast, fetchSeasonCast, fetchEpisodeGuestStars } from './tmdb-shows.client';
 import { fetchSeriesAirTime, fetchSeriesAirInfo } from './tvdb.client';
 import { applyImageOverrides } from './image-overrides.service';
+import { fetchRtRatings } from './omdb.client';
 
 interface ShowRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
@@ -13,6 +14,7 @@ interface ShowRow extends RowDataPacket {
   first_air_date: string | null; origin_country: string | null;
   original_language: string | null; runtime_min: number | null;
   air_time: string | null; airs_day: string | null;
+  rt_critic_score: number | null; rt_audience_score: number | null;
 }
 
 interface SeasonRow extends RowDataPacket {
@@ -58,6 +60,8 @@ function rowToShow(row: ShowRow, seasonCount?: number): ShowDetail & { id: numbe
     runtimeMin: row.runtime_min,
     airTime: row.air_time,
     airsDay: row.airs_day,
+    rtCriticScore: row.rt_critic_score,
+    rtAudienceScore: row.rt_audience_score,
   };
 }
 
@@ -77,11 +81,13 @@ export async function getOrFetchShow(tmdbId: number) {
         `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ? WHERE id = ?`,
         [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
+      backfillShowRtScores(row.id, tmdbId).catch(() => {});
       return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc));
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
       await pool.query('UPDATE tv_shows SET season_count = ? WHERE id = ?', [seasonCount, row.id]);
+      backfillShowRtScores(row.id, tmdbId).catch(() => {});
       return applyImageOverrides('show', rowToShow(row, seasonCount));
     }
     const show = rowToShow(row, row.season_count);
@@ -95,6 +101,7 @@ export async function getOrFetchShow(tmdbId: number) {
         await pool.query('UPDATE tv_shows SET runtime_min = ? WHERE id = ?', [show.runtimeMin, row.id]);
       }
     }
+    backfillShowRtScores(row.id, tmdbId).catch(() => {});
     return applyImageOverrides('show', show);
   }
 
@@ -109,7 +116,9 @@ export async function getOrFetchShow(tmdbId: number) {
      show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin],
   );
   const [inserted] = await pool.query<ShowRow[]>('SELECT * FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
-  return applyImageOverrides('show', rowToShow(inserted[0], seasonCount));
+  const result = rowToShow(inserted[0], seasonCount);
+  backfillShowRtScores(result.id, tmdbId).catch(() => {});
+  return applyImageOverrides('show', result);
 }
 
 interface ExternalIdRow extends RowDataPacket { external_id: string }
@@ -130,6 +139,44 @@ async function getOrCacheTvdbId(showInternalId: number, showTmdbId: number): Pro
     [showInternalId, String(tvdbId)],
   );
   return tvdbId;
+}
+
+async function getOrCacheShowImdbId(showInternalId: number, showTmdbId: number): Promise<string | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<ExternalIdRow[]>(
+    `SELECT external_id FROM external_ids WHERE media_type = 'show' AND media_id = ? AND source = 'imdb'`,
+    [showInternalId],
+  );
+  if (rows.length > 0) return rows[0].external_id;
+
+  const imdbId = await fetchShowImdbId(showTmdbId);
+  if (!imdbId) return null;
+
+  await pool.query(
+    `INSERT IGNORE INTO external_ids (media_type, media_id, source, external_id) VALUES ('show', ?, 'imdb', ?)`,
+    [showInternalId, imdbId],
+  );
+  return imdbId;
+}
+
+async function backfillShowRtScores(showInternalId: number, showTmdbId: number): Promise<void> {
+  const pool = getPool();
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT rt_critic_score FROM tv_shows WHERE id = ? AND rt_critic_score IS NULL',
+    [showInternalId],
+  );
+  if (rows.length === 0) return;
+
+  const imdbId = await getOrCacheShowImdbId(showInternalId, showTmdbId);
+  if (!imdbId) return;
+
+  const { criticScore, audienceScore } = await fetchRtRatings(imdbId);
+  if (criticScore === null && audienceScore === null) return;
+
+  await pool.query(
+    'UPDATE tv_shows SET rt_critic_score = ?, rt_audience_score = ? WHERE id = ?',
+    [criticScore, audienceScore, showInternalId],
+  );
 }
 
 export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number) {

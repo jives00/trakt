@@ -104,6 +104,11 @@ export async function fetchTvdbId(tmdbId: number): Promise<number | null> {
   return data.tvdb_id ?? null;
 }
 
+export async function fetchShowImdbId(tmdbId: number): Promise<string | null> {
+  const data = await get<{ imdb_id?: string | null }>(`/tv/${tmdbId}/external_ids`);
+  return data.imdb_id ?? null;
+}
+
 export async function fetchShowRecommendations(tmdbId: number): Promise<{ id: number; name: string; first_air_date: string; poster_path: string | null; overview: string }[]> {
   const data = await get<{ results: Record<string, any>[] }>(`/tv/${tmdbId}/recommendations`);
   return data.results;

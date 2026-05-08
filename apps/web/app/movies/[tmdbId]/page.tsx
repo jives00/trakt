@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type Movie, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
+import { RtScore } from "@/components/rt-score";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -243,6 +244,9 @@ export default function MovieDetailPage() {
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Studio</p>
                   <p className="text-white text-base">{movie.productionCompany}</p>
                 </div>
+              )}
+              {movie.rtCriticScore != null && (
+                <RtScore critic={movie.rtCriticScore} />
               )}
             </section>
 

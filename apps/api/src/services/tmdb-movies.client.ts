@@ -71,6 +71,11 @@ export async function fetchMovieCredits(tmdbId: number): Promise<{ cast: MovieCa
   return { cast, crew };
 }
 
+export async function fetchMovieImdbId(tmdbId: number): Promise<string | null> {
+  const data = await get<{ imdb_id?: string | null }>(`/movie/${tmdbId}/external_ids`);
+  return data.imdb_id ?? null;
+}
+
 export async function fetchMovieRecommendations(tmdbId: number): Promise<{ id: number; title: string; release_date: string; poster_path: string | null; overview: string }[]> {
   const data = await get<{ results: Record<string, any>[] }>(`/movie/${tmdbId}/recommendations`);
   return data.results;

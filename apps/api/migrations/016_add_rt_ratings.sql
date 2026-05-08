@@ -1,0 +1,7 @@
+ALTER TABLE movies
+  ADD COLUMN rt_critic_score TINYINT UNSIGNED NULL,
+  ADD COLUMN rt_audience_score TINYINT UNSIGNED NULL;
+
+ALTER TABLE tv_shows
+  ADD COLUMN rt_critic_score TINYINT UNSIGNED NULL,
+  ADD COLUMN rt_audience_score TINYINT UNSIGNED NULL;
