@@ -28,13 +28,17 @@ jobs:
             nvm install 24
             nvm use 24
 
+            # Install pnpm globally
+            npm install -g pnpm
+
             # Pull latest code
             git pull origin main
 
             # Load env vars (assumes .env exists in project root)
             set -a; source .env; set +a
 
-            # Run migrations (idempotent — safe to run on every deploy)
+            # Install dependencies and run migrations (idempotent — safe to run on every deploy)
+            pnpm install --frozen-lockfile
             pnpm migrate --workspace=apps/api
 
             # Rebuild and restart containers
