@@ -134,6 +134,7 @@ export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
     return { status: 'authorized' };
   } catch (err) {
     console.error('Error checking authorization:', err);
+    if (!deviceCodeCache) return { status: 'pending', expiresAt: null };
     return { status: 'pending', expiresAt: deviceCodeCache.expiresAt };
   }
 }

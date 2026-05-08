@@ -89,7 +89,7 @@ describe('POST /api/scrobble/emby', () => {
       const movieId = movies[0].id;
 
       const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "movie"', [movieId]);
-      expect(rows.length).toBe(1);
+      expect((rows as any[]).length).toBe(1);
 
       const row = (rows as any[])[0];
       expect(row.progress_pct).toBe(90);

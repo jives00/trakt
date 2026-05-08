@@ -23,8 +23,8 @@ export async function settingsRoutes(app: FastifyInstance) {
   app.post<{ Body: { accessToken?: string; refreshToken?: string; expiresAt?: string } }>(
     '/settings/trakt-auth',
     auth,
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const { accessToken, refreshToken, expiresAt } = request.body;
+    async (request: FastifyRequest<{ Body: { accessToken?: string; refreshToken?: string; expiresAt?: string } }>, reply: FastifyReply) => {
+      const { accessToken, refreshToken, expiresAt } = request.body as { accessToken?: string; refreshToken?: string; expiresAt?: string };
 
       if (!accessToken || !refreshToken || !expiresAt) {
         return reply.status(400).send({ error: 'Missing required fields' });

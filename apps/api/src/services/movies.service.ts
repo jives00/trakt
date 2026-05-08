@@ -1,5 +1,5 @@
 import { RowDataPacket } from 'mysql2/promise';
-import { Movie, MovieCastMember, CrewMember } from '@trakt/types';
+import { Movie, MovieDetail, MovieCastMember, CrewMember } from '@trakt/types';
 import { getPool } from '../db';
 import { fetchMovie, fetchMovieCredits, fetchMovieImdbId } from './tmdb-movies.client';
 import { fetchImdbRating } from './omdb.client';
@@ -24,7 +24,7 @@ async function getMovieImdbId(movieInternalId: number): Promise<string | null> {
   return rows.length > 0 ? rows[0].external_id : null;
 }
 
-function rowToMovie(row: MovieRow, imdbId?: string | null): Movie & { id: number } {
+function rowToMovie(row: MovieRow, imdbId?: string | null): MovieDetail & { id: number } {
   return {
     id: row.id,
     tmdbId: row.tmdb_id,
@@ -37,9 +37,9 @@ function rowToMovie(row: MovieRow, imdbId?: string | null): Movie & { id: number
     runtimeMin: row.runtime_min,
     genres: typeof row.genres === 'string' ? JSON.parse(row.genres) : (row.genres ?? []),
     releaseDate: row.release_date ?? null,
-    originCountry: row.origin_country,
-    originalLanguage: row.original_language,
-    productionCompany: row.production_company,
+    originCountry: row.origin_country ?? null,
+    originalLanguage: row.original_language ?? null,
+    productionCompany: row.production_company ?? null,
     rtCriticScore: row.rt_critic_score,
     rtAudienceScore: row.rt_audience_score,
     imdbId: imdbId ?? null,
@@ -122,7 +122,7 @@ async function backfillMovieTmdbRating(movieInternalId: number, movieTmdbId: num
   }
 }
 
-export async function getOrFetchMovie(tmdbId: number): Promise<Movie & { id: number }> {
+export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { id: number }> {
   const pool = getPool();
   const [rows] = await pool.query<MovieRow[]>(
     'SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId],
@@ -231,7 +231,7 @@ export async function getOrFetchMovieCrew(tmdbId: number): Promise<CrewMember[]>
   }));
 }
 
-export async function forceRefreshMovieMetadata(tmdbId: number): Promise<Movie & { id: number }> {
+export async function forceRefreshMovieMetadata(tmdbId: number): Promise<MovieDetail & { id: number }> {
   const pool = getPool();
   await pool.query('DELETE FROM movies WHERE tmdb_id = ?', [tmdbId]);
   return getOrFetchMovie(tmdbId);

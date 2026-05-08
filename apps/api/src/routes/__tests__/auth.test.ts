@@ -62,7 +62,8 @@ describe('POST /api/auth/refresh', () => {
       .post('/api/auth/login')
       .send({ username: 'testuser', password: 'correct_password' });
 
-    const cookies = loginRes.headers['set-cookie'] as string[];
+    const setCookie = loginRes.headers['set-cookie'];
+    const cookies = Array.isArray(setCookie) ? setCookie : (setCookie ? [setCookie] : []);
 
     const res = await supertest(app.server)
       .post('/api/auth/refresh')
@@ -84,7 +85,8 @@ describe('POST /api/auth/logout', () => {
       .post('/api/auth/login')
       .send({ username: 'testuser', password: 'correct_password' });
 
-    const cookies = loginRes.headers['set-cookie'] as string[];
+    const setCookie = loginRes.headers['set-cookie'];
+    const cookies = Array.isArray(setCookie) ? setCookie : (setCookie ? [setCookie] : []);
 
     const logoutRes = await supertest(app.server)
       .post('/api/auth/logout')
