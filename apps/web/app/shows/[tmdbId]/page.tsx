@@ -93,6 +93,8 @@ export default function ShowDetailPage() {
   const [castLoading, setCastLoading] = useState(false);
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [seasonsLoading, setSeasonsLoading] = useState(false);
+  const [watchedEpisodeCount, setWatchedEpisodeCount] = useState(0);
+  const [totalEpisodeCount, setTotalEpisodeCount] = useState(0);
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
@@ -117,12 +119,25 @@ export default function ShowDetailPage() {
     api.getShowSeasons(id, token)
       .then((d) => {
         setSeasons(d.seasons);
+        const total = d.seasons.reduce((sum, s) => sum + s.episodeCount, 0);
+        setTotalEpisodeCount(total);
         if (d.seasons.length === 0) {
           return api.refreshShowSeasons(id, token).then(() => api.getShowSeasons(id, token));
         }
         return Promise.resolve(d);
       })
-      .then((d) => setSeasons(d.seasons))
+      .then((d) => {
+        setSeasons(d.seasons);
+        const total = d.seasons.reduce((sum, s) => sum + s.episodeCount, 0);
+        setTotalEpisodeCount(total);
+        return Promise.all(
+          d.seasons.map((s) => api.getSeason(id, s.seasonNumber, token))
+        );
+      })
+      .then((seasonResults) => {
+        const watchedCount = seasonResults.reduce((sum, result) => sum + result.watchedEpisodeIds.length, 0);
+        setWatchedEpisodeCount(watchedCount);
+      })
       .catch(() => {})
       .finally(() => setSeasonsLoading(false));
   }, [isLoading, token, tmdbId]);
@@ -444,15 +459,22 @@ export default function ShowDetailPage() {
                     <span className="material-symbols-outlined text-sm">library_add</span>
                     {status.inCollection ? "Collected" : "Collect"}
                   </button>
-                  <button
-                    onClick={handleWatched}
-                    className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.watched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                    {status.watched ? "Watched" : "Mark Watched"}
-                  </button>
+                  {(() => {
+                    const isFullyWatched = watchedEpisodeCount === totalEpisodeCount && totalEpisodeCount > 0;
+                    const isPartiallyWatched = watchedEpisodeCount > 0 && watchedEpisodeCount < totalEpisodeCount;
+                    const statusText = isFullyWatched ? "Watched" : isPartiallyWatched ? "Partially Watched" : "Mark Watched";
+                    return (
+                      <button
+                        onClick={handleWatched}
+                        className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                          isFullyWatched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: isFullyWatched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
+                        {statusText}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 

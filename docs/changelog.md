@@ -9,6 +9,8 @@
 - Movie detail pages: add cast loading skeleton with loading state; fix race condition by fetching cast after movie is inserted into database; add hero backdrop and poster image edit buttons with image picker modal `dd51aa8`
 - Image picker modal: accept mediaType prop to support both show and movie queries; use appropriate API methods (getShowImages/setShowImage vs getMovieImages/setMovieImage) `dd51aa8`
 - Episode detail pages: add left/right arrow key navigation to browse episodes; add < > buttons in hero image for click-based navigation; wrap to previous/next season at boundaries; remove duplicate episode description from main content; move metadata above still image `671108d`
+- Show season pages: remove collect/watchlist buttons and star ratings (show-level only); watched button toggles entire season; display "Partially Watched" when some episodes are watched `693c305`
+- Show series pages: calculate and display "Partially Watched" when series has watched episodes but not all; fetch watched counts for all seasons to determine full status `693c305`
 
 ## May 6, 2026
 

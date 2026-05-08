@@ -43,8 +43,6 @@ export default function SeasonDetailPage() {
   const [seasonPoster, setSeasonPoster] = useState<string | null>(null);
   const [episodes, setEpisodes] = useState<EpisodeItem[]>([]);
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set());
-  const [rating, setRating] = useState(0);
-  const [hoverRating, setHoverRating] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -64,26 +62,33 @@ export default function SeasonDetailPage() {
     }).catch(() => setError("Failed to load season."));
   }, [isLoading, token, tmdbId, sn]);
 
-  async function handleWatchlist() {
-    const res = await api.toggleShowWatchlist(Number(tmdbId), status!.inWatchlist, token!);
-    setStatus((s) => s && { ...s, inWatchlist: res.inWatchlist });
-  }
-
-  async function handleCollection() {
-    const res = await api.toggleShowCollection(Number(tmdbId), status!.inCollection, token!);
-    setStatus((s) => s && { ...s, inCollection: res.inCollection });
-  }
 
   async function handleWatched() {
-    const res = await api.toggleShowWatched(Number(tmdbId), status!.watched, token!);
-    setStatus((s) => s && { ...s, watched: res.watched });
+    if (!token) return;
+    const allEpisodeIds = episodes.map(ep => ep.id);
+    const allWatched = allEpisodeIds.every(id => watchedIds.has(id));
+
+    setWatchedIds((prev) => {
+      const next = new Set(prev);
+      if (allWatched) {
+        allEpisodeIds.forEach(id => next.delete(id));
+      } else {
+        allEpisodeIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+
+    Promise.all(
+      episodes.map((ep) => {
+        const wasWatched = watchedIds.has(ep.id);
+        const shouldBeWatched = !allWatched;
+        if (wasWatched !== shouldBeWatched) {
+          return api.toggleEpisodeWatched(Number(tmdbId), sn, ep.episodeNumber, wasWatched, token);
+        }
+      }).filter(Boolean)
+    ).catch(() => {});
   }
 
-  async function handleRating(r: number) {
-    if (!token) return;
-    setRating(r);
-    await api.upsertRating("show", Number(tmdbId), r, token).catch(() => {});
-  }
 
   function toggleEpisode(ep: EpisodeItem) {
     if (!token) return;
@@ -239,45 +244,24 @@ export default function SeasonDetailPage() {
                   <span className="material-symbols-outlined text-[#e8002d]">person</span>
                   Personal Tracking
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={handleWatchlist}
-                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
-                    {status.inWatchlist ? "Watchlisted" : "Watchlist"}
-                  </button>
-                  <button
-                    onClick={handleCollection}
-                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inCollection ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">library_add</span>
-                    {status.inCollection ? "Collected" : "Collect"}
-                  </button>
-                  <button
-                    onClick={handleWatched}
-                    className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.watched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                    {status.watched ? "Watched" : "Mark Watched"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
-                <div className="flex gap-1 justify-between">
-                  {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
-                    <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  {(() => {
+                    const allEpisodeIds = episodes.map(ep => ep.id);
+                    const allWatched = allEpisodeIds.every(id => watchedIds.has(id));
+                    const someWatched = allEpisodeIds.some(id => watchedIds.has(id));
+                    const statusText = allWatched ? "Watched" : someWatched ? "Partially Watched" : "Mark Watched";
+                    return (
+                      <button
+                        onClick={handleWatched}
+                        className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                          allWatched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: allWatched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
+                        {statusText}
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
 
