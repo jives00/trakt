@@ -14,6 +14,7 @@ const TMDB_MOVIE = {
   backdrop_path: '/backdrop.jpg',
   runtime: 139,
   genres: [{ id: 18, name: 'Drama' }],
+  vote_average: 8.8,
 };
 
 beforeAll(async () => { await app.ready(); });

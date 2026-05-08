@@ -21,7 +21,7 @@ import { stremioAddonRoutes } from './routes/stremio-addon.routes';
 import { settingsRoutes } from './routes/settings.routes';
 
 export function buildApp(): FastifyInstance {
-  const app = Fastify({ logger: false });
+  const app = Fastify({ logger: false, trustProxy: true });
 
 void app.register(corsPlugin, {
     origin: true, // Allow all origins; sensitive endpoints are JWT-protected
