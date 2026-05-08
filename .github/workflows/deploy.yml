@@ -22,9 +22,10 @@ jobs:
 
             cd ~/trakt
 
-            # Load Node via nvm
+            # Load and use Node 24 via nvm
             export NVM_DIR=~/.nvm
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 24
             nvm use 24
 
             # Pull latest code
