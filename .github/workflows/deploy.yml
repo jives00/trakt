@@ -40,7 +40,7 @@ jobs:
             # Install dependencies and run migrations
             # --ignore-scripts: skip build scripts; Docker will rebuild images anyway
             pnpm install --frozen-lockfile --ignore-scripts
-            pnpm migrate --workspace=apps/api
+            pnpm -F @trakt/api migrate
 
             # Rebuild and restart containers
             docker compose up --build -d
