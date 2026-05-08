@@ -1,5 +1,6 @@
 import { getPool } from '../db';
-import type { EmbyWebhookPayload } from '@trakt/types';
+import type { EmbyWebhookPayload, NowPlayingItem } from '@trakt/types';
+import { RowDataPacket } from 'mysql2/promise';
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 
@@ -31,10 +32,6 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       if (!tmdbId) {
         return;
       }
-
-      if (progressPct < WATCH_THRESHOLD.movie) {
-        return;
-      }
     } else if (Item.Type === 'Episode') {
       mediaType = 'episode';
       const tmdbIdStr = Item.SeriesProviderIds?.Tmdb;
@@ -46,10 +43,6 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       episodeNumber = Item.IndexNumber || null;
 
       if (!tmdbId || seasonNumber === null || episodeNumber === null) {
-        return;
-      }
-
-      if (progressPct < WATCH_THRESHOLD.episode) {
         return;
       }
     }
@@ -73,7 +66,17 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       mediaIdDb = episode.episodeId;
     }
 
-    await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
+    if (event === 'PlaybackProgress') {
+      await updateNowPlaying('emby', mediaType, mediaIdDb, progressPct);
+      if (progressPct >= WATCH_THRESHOLD[mediaType]) {
+        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
+      }
+    } else if (event === 'PlaybackStopped') {
+      await clearNowPlaying();
+      if (progressPct >= WATCH_THRESHOLD[mediaType]) {
+        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
+      }
+    }
   } catch (err) {
     console.error('Error in handleEmbyScrobble:', err);
     throw err;
@@ -123,4 +126,77 @@ export async function upsertWatchHistory(
       [mediaType, mediaIdDb, progressPct, source]
     );
   }
+}
+
+export async function updateNowPlaying(
+  source: 'emby' | 'stremio' | 'kodi',
+  mediaType: 'movie' | 'episode',
+  mediaIdDb: number,
+  progressPct: number
+): Promise<void> {
+  const pool = getPool();
+  await pool.query(
+    `INSERT INTO now_playing (user_id, media_type, media_id, progress_pct, source)
+     VALUES (1, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE
+       media_type   = VALUES(media_type),
+       media_id     = VALUES(media_id),
+       progress_pct = VALUES(progress_pct),
+       source       = VALUES(source)`,
+    [mediaType, mediaIdDb, progressPct, source]
+  );
+}
+
+export async function clearNowPlaying(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`DELETE FROM now_playing WHERE user_id = 1`);
+}
+
+export async function getNowPlaying(): Promise<NowPlayingItem | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT
+       np.media_type      AS mediaType,
+       np.progress_pct    AS progressPct,
+       m.tmdb_id          AS movieTmdbId,
+       m.title            AS movieTitle,
+       m.tagline,
+       m.backdrop_path    AS backdropPath,
+       m.runtime_min      AS runtimeMin,
+       s.tmdb_id          AS showTmdbId,
+       s.title            AS showTitle,
+       seas.season_number AS seasonNumber,
+       e.episode_number   AS episodeNumber,
+       e.title            AS episodeTitle,
+       e.still_path       AS stillPath,
+       s.backdrop_path    AS showBackdropPath,
+       COALESCE(e.runtime_min, s.runtime_min) AS showRuntimeMin
+     FROM now_playing np
+     LEFT JOIN movies m     ON np.media_type = 'movie'   AND np.media_id = m.id
+     LEFT JOIN episodes e   ON np.media_type = 'episode' AND np.media_id = e.id
+     LEFT JOIN seasons seas ON seas.id = e.season_id
+     LEFT JOIN tv_shows s   ON s.id = e.show_id
+     WHERE np.user_id = 1
+       AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)`
+  );
+
+  if (!(rows as any[]).length) return null;
+  const r = (rows as any[])[0];
+  return {
+    mediaType:       r.mediaType,
+    progressPct:     r.progressPct,
+    movieTmdbId:     r.movieTmdbId     ?? null,
+    movieTitle:      r.movieTitle      ?? null,
+    tagline:         r.tagline         ?? null,
+    backdropPath:    r.backdropPath    ?? null,
+    runtimeMin:      r.runtimeMin      ?? null,
+    showTmdbId:      r.showTmdbId      ?? null,
+    showTitle:       r.showTitle       ?? null,
+    seasonNumber:    r.seasonNumber    ?? null,
+    episodeNumber:   r.episodeNumber   ?? null,
+    episodeTitle:    r.episodeTitle    ?? null,
+    stillPath:       r.stillPath       ?? null,
+    showBackdropPath:r.showBackdropPath ?? null,
+    showRuntimeMin:  r.showRuntimeMin  ?? null,
+  };
 }

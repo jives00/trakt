@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { EmbyWebhookPayload } from '@trakt/types';
-import { authenticateScrobble } from '../middleware/auth';
-import { handleEmbyScrobble } from '../services/scrobble.service';
+import { authenticateScrobble, authenticate } from '../middleware/auth';
+import { handleEmbyScrobble, getNowPlaying } from '../services/scrobble.service';
 
 export async function scrobbleRoutes(app: FastifyInstance) {
   app.post<{ Body: EmbyWebhookPayload }>('/scrobble/emby', { preHandler: authenticateScrobble }, async (request, reply) => {
@@ -13,6 +13,19 @@ export async function scrobbleRoutes(app: FastifyInstance) {
 
       await handleEmbyScrobble(parsed.data);
       return reply.send({});
+    } catch (err) {
+      app.log.error(err);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  app.get('/scrobble/now-playing', { preHandler: authenticate }, async (_request, reply) => {
+    try {
+      const item = await getNowPlaying();
+      if (!item) {
+        return reply.status(204).send();
+      }
+      return reply.send(item);
     } catch (err) {
       app.log.error(err);
       return reply.status(500).send({ error: 'Internal server error' });

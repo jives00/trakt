@@ -71,3 +71,23 @@ export interface ScheduleItem {
   date: string;
   airTime?: string | null;
 }
+
+export interface NowPlayingItem {
+  mediaType: 'movie' | 'episode';
+  progressPct: number;
+  // Movie fields
+  movieTmdbId: number | null;
+  movieTitle: string | null;
+  tagline: string | null;
+  backdropPath: string | null;
+  runtimeMin: number | null;
+  // Episode fields
+  showTmdbId: number | null;
+  showTitle: string | null;
+  seasonNumber: number | null;
+  episodeNumber: number | null;
+  episodeTitle: string | null;
+  stillPath: string | null;
+  showBackdropPath: string | null;
+  showRuntimeMin: number | null;
+}

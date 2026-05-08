@@ -6,7 +6,7 @@ import Image from "next/image";
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, RecommendationItem, StatsAllTime, UserProfile } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, RecommendationItem, StatsAllTime, UserProfile, NowPlayingItem } from "@trakt/types";
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [nowPlaying, setNowPlaying] = useState<NowPlayingItem | null>(null);
 
   useEffect(() => {
     if (isLoading || !token) return;
@@ -47,6 +48,14 @@ export default function DashboardPage() {
       .finally(() => setFetching(false));
   }, [token, isLoading]);
 
+  useEffect(() => {
+    if (!token) return;
+    const poll = () => api.getNowPlaying(token).then(r => setNowPlaying(r ?? null)).catch(() => {});
+    poll();
+    const id = setInterval(poll, 30_000);
+    return () => clearInterval(id);
+  }, [token]);
+
   if (isLoading || fetching) return null;
   if (fetchError) return <p className="text-error">{fetchError}</p>;
 
@@ -54,7 +63,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      <HeroSection username={greeting} alltime={alltime} />
+      {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} />}
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <ScheduleSection entries={schedule} />
@@ -345,5 +354,77 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
       <span className="block h-8 w-1 rounded-full bg-primary-container" />
       {children}
     </h2>
+  );
+}
+
+function NowPlayingHero({ item }: { item: NowPlayingItem }) {
+  const isEpisode = item.mediaType === 'episode';
+  const title = isEpisode ? item.showTitle : item.movieTitle;
+  const rawBg = isEpisode ? (item.stillPath ?? item.showBackdropPath) : item.backdropPath;
+  const bgUrl = rawBg ? `${TMDB_IMG}original${rawBg}` : null;
+
+  const titleHref = isEpisode && item.showTmdbId
+    ? `/shows/${item.showTmdbId}`
+    : !isEpisode && item.movieTmdbId
+    ? `/movies/${item.movieTmdbId}`
+    : null;
+
+  const episodeHref = isEpisode && item.showTmdbId && item.seasonNumber != null && item.episodeNumber != null
+    ? `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`
+    : null;
+
+  const subLine = isEpisode && item.seasonNumber != null && item.episodeNumber != null
+    ? `S${String(item.seasonNumber).padStart(2, '0')} E${String(item.episodeNumber).padStart(2, '0')}${item.episodeTitle ? ` · ${item.episodeTitle}` : ''}`
+    : (item.tagline ?? '');
+
+  const runtimeMin = isEpisode ? item.showRuntimeMin : item.runtimeMin;
+  const watchedMin = runtimeMin != null ? Math.round(item.progressPct / 100 * runtimeMin) : null;
+  const remainingMin = runtimeMin != null ? Math.max(0, runtimeMin - (watchedMin ?? 0)) : null;
+  const fmt = (m: number) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
+
+  return (
+    <section className="relative overflow-hidden bg-black">
+      {bgUrl && <Image src={bgUrl} alt={title ?? ''} fill sizes="100vw" className="object-cover object-center" priority />}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+      <div className="relative z-10 px-margin-page pt-10 pb-6 flex flex-col justify-between min-h-[220px] md:min-h-[300px]">
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Now Playing</span>
+          </div>
+          {titleHref ? (
+            <Link href={titleHref}>
+              <h1 className="text-h1 font-black tracking-tight text-white mb-1 hover:text-white/80 transition-colors">{title}</h1>
+            </Link>
+          ) : (
+            <h1 className="text-h1 font-black tracking-tight text-white mb-1">{title}</h1>
+          )}
+          {subLine && (
+            episodeHref ? (
+              <Link href={episodeHref}>
+                <p className="text-sm text-white/60 font-medium hover:text-white transition-colors">{subLine}</p>
+              </Link>
+            ) : (
+              <p className="text-sm text-white/60 font-medium">{subLine}</p>
+            )
+          )}
+        </div>
+        <div className="mt-6">
+          <div className="flex justify-between items-baseline mb-2">
+            {watchedMin != null
+              ? <span className="text-xs text-white/50 tabular-nums">{fmt(watchedMin)} watched</span>
+              : <span />}
+            <span className="text-xs font-black text-white tabular-nums">{item.progressPct}%</span>
+            {remainingMin != null
+              ? <span className="text-xs text-white/50 tabular-nums">{fmt(remainingMin)} left</span>
+              : <span />}
+          </div>
+          <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+            <div className="h-full bg-red-500 rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

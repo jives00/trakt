@@ -4,7 +4,7 @@
 
 Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Exposes a scrobbling API so Emby, Kodi, and Stremio can push watch events automatically. Single-user only — no community or social features. Metadata sourced from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2.
 
-**Current Status:** Phase 2 (Scrobbling + Integrations) complete. Building detail pages and UI enhancements in Phase 3.
+**Current Status:** Phase 3 in progress. Production environment live on EC2 with automated GitHub deployment. Building detail pages and UI enhancements.
 
 ---
 
@@ -33,7 +33,9 @@ docs/                 Documentation, screenshots, and design guidelines
 | Mobile | React Native + Expo SDK 51 + TypeScript |
 | Database | MySQL 8 — installed directly on EC2, not a Docker service |
 | Monorepo | pnpm workspaces |
-| Infra | Docker Compose on EC2 (api, web, caddy) + Caddy (TLS) |
+| Infra | Docker Compose on EC2 (api, web); API on `network_mode: host` |
+| TLS | Handled upstream (not Caddy) |
+| CI/CD | GitHub Actions → SSH deploy to EC2 on push to main |
 
 ---
 
@@ -75,7 +77,15 @@ See `.env.example` for template.
 
 **Emby:** Webhook at `POST /api/scrobble/emby` triggered by `PlaybackProgress` and `PlaybackStopped` events. Upsert strategy: `(user_id, media_type, media_id, DATE(watched_at))` to collapse one viewing into one row. Completion threshold: 80% movies, 70% episodes.
 
-**Stremio:** Addon mounted at `/stremio-addon` (manifests + stream handlers). Scrobbling: subtitles trigger → poll `GET /users/{username}/watching` until 204 (watched). Uses `TRAKT_CLIENT_ID` + `TRAKT_CLIENT_SECRET` for OAuth token.
+**Stremio:** Addon mounted at `/stremio-addon` (manifests + stream handlers). Scrobbling is hybrid: Stremio subtitle open triggers the start (`startPollLoop`), then progress is tracked by polling Trakt's `GET /users/{username}/watching` every 60s until 204 (stopped). Progress % comes from `data.progress` in the Trakt response (already 0–100); falls back to computing from `started_at`/`expires_at` if not present. Uses `TRAKT_CLIENT_ID` + `TRAKT_CLIENT_SECRET` for OAuth token.
+
+### Now Playing
+
+All scrobble sources (Emby, Stremio, Kodi) update a `now_playing` table via `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` whenever progress is detected, regardless of completion threshold. This feeds the dashboard hero, which polls `GET /api/scrobble/now-playing` every 30s.
+
+**Database:** `now_playing` table stores `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE constraint on `user_id` (single active session). `updated_at` auto-updates, enabling a 5-minute staleness guard to clean up ghost sessions if a player crashes.
+
+**Frontend:** Dashboard hero shows current playback with backdrop/still image, title (linked to detail page), episode number/name or tagline (episode link to episode page), and a progress bar with time watched/% /time remaining. Computes time from `progressPct × runtimeMin` (both sources support this calculation).
 
 ### Metadata sourcing
 
@@ -88,6 +98,33 @@ See `.env.example` for template.
 
 - All DTOs and DB model types live in `packages/types/`. Read one file there to understand any data shape.
 - No barrel re-exports unless necessary.
+
+## Deployment
+
+**Production:** EC2 instance running Docker Compose with API and web services, fronted by nginx reverse proxy.
+
+### Docker Services
+- **API:** Runs with `network_mode: host` on port 3002, connects directly to local MySQL.
+- **Web:** Runs on bridge network, bound to `127.0.0.1:3001`.
+- **Migrations:** Run automatically on container startup (handled in `apps/api/Dockerfile`).
+
+### Nginx Reverse Proxy
+Nginx routes public traffic to the Docker services. Config location: `/etc/nginx/sites-available/trakt` (symlinked to `/etc/nginx/sites-enabled/trakt`).
+
+**Routing:**
+- `/` → proxies to web container (port 3001)
+- `/api/` → proxies to API container (port 3002)
+- `/stremio-addon/` → proxies to API container (port 3002)
+- `/phpmyadmin` → local phpmyadmin with auth
+
+TLS is handled by nginx (not by the containers). All requests are `http://18.223.201.191/` (HTTP on EC2; TLS termination happens upstream if needed).
+
+### GitHub Actions Auto-Deploy
+Push to `main` triggers workflow (`deploy.yml`), which:
+1. SSHes into EC2
+2. Pulls latest code
+3. Loads `.env` file
+4. Runs `docker compose up --build -d` to rebuild and restart containers
 
 ## Design Guidelines
 

@@ -21,6 +21,7 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
     '/subtitles/:type/:id/:extra',
     async (request: FastifyRequest<{ Params: { type: string; id: string; extra: string } }>, reply: FastifyReply) => {
       const { type, id } = request.params as { type: string; id: string; extra: string };
+      console.log('🎬 Stremio subtitle request:', { type, id });
 
       if (!id.startsWith('tt') || !/^tt\d+$/.test(id)) {
         return reply.send({ subtitles: [] });

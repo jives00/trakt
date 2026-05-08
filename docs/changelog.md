@@ -1,5 +1,18 @@
 # Changelog
 
+## May 8, 2026
+
+### API
+- Now playing tracking: new now_playing table stores active scrobble session (media_type, media_id, progress_pct, source, updated_at); UNIQUE constraint on user_id (single session); 5-min staleness guard via updated_at check; updateNowPlaying() and clearNowPlaying() functions called by all scrobble sources `c6d014c`
+- GET /api/scrobble/now-playing endpoint joins movie/episode/show/season metadata to return NowPlayingItem; returns 204 if nothing playing; JWT-protected `c6d014c`
+- Emby scrobbling: restructured handleEmbyScrobble to call updateNowPlaying before watch threshold check (fires at 0% progress); clearNowPlaying on PlaybackStopped event `c6d014c`
+- Stremio polling: integrated updateNowPlaying into poll loop (every 60s regardless of threshold); clearNowPlaying on 204 response and 4h safety timeout `c6d014c`
+
+### Web
+- Now playing hero: dashboard hero conditionally renders NowPlayingHero when media is actively playing; shows backdrop/still image, title (linked to detail page), episode number/name (linked to episode detail), and progress bar `c6d014c`
+- Progress bar displays percentage and computed time watched/remaining using progressPct × runtimeMin; updates every 30s via polling GET /api/scrobble/now-playing `c6d014c`
+- Hero links: movie title links to /movies/:tmdbId; show title links to /shows/:tmdbId; episode info links to /shows/:tmdbId/seasons/:seasonNumber/episodes/:episodeNumber; hover effects fade/brighten text per site design `c6d014c`
+
 ## May 7, 2026
 
 ### API

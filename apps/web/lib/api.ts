@@ -8,10 +8,11 @@ import type {
   RatingItem,
   StatsAllTime, StatsYear, StatsMonth, DashboardStats, RecentItem, RecommendationItem,
   MovieStatus, ShowStatus, UpNextItem, ScheduleItem,
+  NowPlayingItem,
   UserProfile,
 } from "@trakt/types";
 
-export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem };
+export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem };
 
 const BASE = "";
 
@@ -169,6 +170,8 @@ export const api = {
     request<RecommendationItem[]>("/api/dashboard/recommendations/shows", { token }),
   getMovieRecommendations: (token: string) =>
     request<RecommendationItem[]>("/api/dashboard/recommendations/movies", { token }),
+  getNowPlaying: (token: string) =>
+    request<NowPlayingItem | null>("/api/scrobble/now-playing", { token }),
 
   // History
   getHistory: (token: string, type = "all", page = 1, limit = 20) =>
