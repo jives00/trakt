@@ -27,7 +27,7 @@ export async function authRoutes(app: FastifyInstance) {
 
     reply.setCookie(COOKIE, refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production' && request.headers['x-forwarded-proto'] === 'https',
       sameSite: 'strict',
       maxAge: 60 * 60 * 24 * 30,
       path: '/',
