@@ -47,10 +47,6 @@ export default function MovieDetailPage() {
   const [status, setStatus] = useState<MovieStatus | null>(null);
   const [cast, setCast] = useState<MovieCastMember[]>([]);
   const [crew, setCrew] = useState<CrewMember[]>([]);
-  const [movie, setMovie] = useState<MovieDetail | null>(null);
-  const [status, setStatus] = useState<MovieStatus | null>(null);
-  const [cast, setCast] = useState<MovieCastMember[]>([]);
-  const [crew, setCrew] = useState<CrewMember[]>([]);
   const [tab, setTab] = useState<"cast" | "crew">("cast");
   const [castLoading, setCastLoading] = useState(false);
   const [rating, setRating] = useState<number>(0);
