@@ -1,16 +1,12 @@
-version: '3.8'
-
 services:
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     container_name: trakt-api
-    extra_hosts:
-      - "host.docker.internal:172.17.0.1"
     environment:
       NODE_ENV: production
-      DB_HOST: host.docker.internal
+      DB_HOST: localhost
       DB_PORT: 3306
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -31,9 +27,9 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     container_name: trakt-web
-    environment:
-      NEXT_PUBLIC_API_URL: https://${DOMAIN}
     networks:
       - trakt-network
     restart: unless-stopped
@@ -49,9 +45,11 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     environment:
-      DOMAIN: ${NEXT_PUBLIC_API_URL}
+      DOMAIN: ${DOMAIN}
     networks:
       - trakt-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
 networks:
