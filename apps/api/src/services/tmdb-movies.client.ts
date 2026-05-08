@@ -1,7 +1,7 @@
-import { Movie, MovieCastMember, CrewMember } from '@trakt/types';
+import { Movie, MovieDetail, MovieCastMember, CrewMember } from '@trakt/types';
 import { get } from './tmdb.client';
 
-export function transformMovie(raw: Record<string, any>): Movie {
+export function transformMovie(raw: Record<string, any>): MovieDetail {
   // Prefer US theatrical release date (type 3) over the default release_date field
   const usTheatrical = (raw['release_dates']?.results as Record<string, any>[] | undefined)
     ?.find((r: Record<string, any>) => r['iso_3166_1'] === 'US')
@@ -30,7 +30,7 @@ export function transformMovie(raw: Record<string, any>): Movie {
   };
 }
 
-export async function fetchMovie(tmdbId: number): Promise<Movie> {
+export async function fetchMovie(tmdbId: number): Promise<MovieDetail> {
   return transformMovie(
     await get<Record<string, any>>(`/movie/${tmdbId}`, { append_to_response: 'release_dates' }),
   );
@@ -80,5 +80,5 @@ export async function fetchMovieImdbId(tmdbId: number): Promise<string | null> {
 
 export async function fetchMovieRecommendations(tmdbId: number): Promise<{ id: number; title: string; release_date: string; poster_path: string | null; overview: string }[]> {
   const data = await get<{ results: Record<string, any>[] }>(`/movie/${tmdbId}/recommendations`);
-  return data.results;
+  return data.results as { id: number; title: string; release_date: string; poster_path: string | null; overview: string }[];
 }
