@@ -102,6 +102,7 @@ export default function EpisodeDetailPage() {
     const episodeData = result.episodes.find(e => e.episodeNumber === ep);
     if (episodeData) {
       setEpisode({
+        id: episodeData.id,
         episodeNumber: episodeData.episodeNumber,
         title: episodeData.title,
         overview: episodeData.overview,

@@ -144,7 +144,7 @@ export const api = {
 
   // Movie Refresh
   refreshMovieMetadata: (tmdbId: number, token: string) =>
-    request<{ movie: Movie & { id: number } }>(`/api/movies/${tmdbId}/metadata/refresh`, { method: "POST", token }),
+    request<{ movie: MovieDetail & { id: number } }>(`/api/movies/${tmdbId}/metadata/refresh`, { method: "POST", token }),
   refreshMovieCast: (tmdbId: number, token: string) =>
     request<{ cast: MovieCastMember[]; crew: CrewMember[] }>(`/api/movies/${tmdbId}/cast/refresh`, { method: "POST", token }),
 

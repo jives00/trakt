@@ -10,6 +10,8 @@ import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, Das
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
+export const dynamic = "force-dynamic";
+
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
 export default function DashboardPage() {

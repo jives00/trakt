@@ -8,6 +8,8 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { StatsAllTime } from "@trakt/types";
 
+export const dynamic = "force-dynamic";
+
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
 function fmtMinutes(minutes: number): string {

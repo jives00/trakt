@@ -7,6 +7,8 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { RatingItem } from "@trakt/types";
 
+export const dynamic = "force-dynamic";
+
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 type FilterType = "all" | "movie" | "show" | "episode";
 type SortType = "date" | "rating";

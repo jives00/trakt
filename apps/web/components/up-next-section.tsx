@@ -108,7 +108,7 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
       </div>
       <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ scrollBehavior: "smooth" }}>
         {items.map((item, index) => {
-          const shouldFadeIn = removingIndex >= 0 && index === removingIndex && item.episodeId !== removingEpisodeId;
+          const shouldFadeIn = removingIndex !== null && removingIndex >= 0 && index === removingIndex && item.episodeId !== removingEpisodeId;
           return (
             <UpNextCard
               key={item.episodeId}

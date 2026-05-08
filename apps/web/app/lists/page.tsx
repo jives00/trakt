@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { UserList } from "@trakt/types";
 
+export const dynamic = "force-dynamic";
+
 export default function ListsPage() {
   const { token, isLoading } = useAuth();
   const [lists, setLists] = useState<UserList[]>([]);

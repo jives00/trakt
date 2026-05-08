@@ -3,6 +3,8 @@ import "./globals.css";
 import { TopNav } from "@/components/top-nav";
 import { AuthProvider } from "@/lib/auth-context";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Trakt",
   description: "Personal media tracker",

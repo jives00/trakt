@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { UserProfile } from "@trakt/types";
 
+export const dynamic = "force-dynamic";
+
 type Theme = "dark" | "light";
 
 export default function SettingsPage() {
