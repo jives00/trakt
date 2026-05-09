@@ -124,7 +124,9 @@ export async function startPollLoop(
           Authorization: `Bearer ${token.accessToken}`,
           'trakt-api-version': '2',
           'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
-          'User-Agent': 'TraktClone/1.0 (+https://github.com/)',
+          'User-Agent': 'Mozilla/5.0 (compatible; TraktClone/1.0)',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
         },
       });
 
