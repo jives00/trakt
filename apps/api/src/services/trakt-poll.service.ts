@@ -121,12 +121,18 @@ export async function startPollLoop(
 
       const res = await fetch(`${TRAKT_API}/users/${username}/watching`, {
         headers: {
-          Authorization: `Bearer ${token.accessToken}`,
+          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'none',
+          'Authorization': `Bearer ${token.accessToken}`,
           'trakt-api-version': '2',
           'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
-          'User-Agent': 'Mozilla/5.0 (compatible; TraktClone/1.0)',
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip, deflate',
         },
       });
 
