@@ -98,6 +98,10 @@ export async function startPollLoop(
   contentType: 'movie' | 'series',
   username: string
 ): Promise<void> {
+  // Stop any existing loops — can only watch one thing at a time
+  for (const key of pollers.keys()) {
+    stopPollLoop(key);
+  }
   console.log('📡 Starting poll loop for:', { imdbId, contentType, username });
   const safety4hTimeout = setTimeout(() => {
     clearNowPlaying().catch(err => console.error('Error clearing now_playing on timeout:', err));

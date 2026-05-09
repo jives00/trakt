@@ -8,6 +8,7 @@
 - Emby scrobbling: restructured handleEmbyScrobble to call updateNowPlaying before watch threshold check (fires at 0% progress); clearNowPlaying on PlaybackStopped event `c6d014c`
 - Stremio polling: integrated updateNowPlaying into poll loop (every 60s regardless of threshold); clearNowPlaying on 204 response and 4h safety timeout `c6d014c`
 - Stremio polling: continue polling on 204 until at least one 200 response is seen; prevents premature loop termination before Trakt registers the stream (10+ min lag) `6540863`
+- Stremio polling: stop all existing poll loops when starting a new one to prevent parallel loops writing conflicting now_playing data `70faa93`
 - Trakt API fix: changed User-Agent to Mozilla-compatible format and added Accept/Accept-Encoding headers to bypass Cloudflare 403 blocks on polling requests `48d6144`
 - Trakt API headers: added realistic browser headers (Cache-Control, Pragma, Sec-Fetch-*) to match legitimate client patterns and bypass Cloudflare detection `5112cc6`
 - Trakt API polling: switched from fetch to native https module with minimal curl-like headers to resolve Cloudflare 403 blocks `1c3fa76`
