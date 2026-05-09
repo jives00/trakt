@@ -32,8 +32,11 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
       if (contentType) {
         try {
           const token = await getTraktToken();
+          console.log('🔍 Trakt token check:', { hasToken: !!token, hasUsername: !!token?.username });
           if (token?.username) {
             startPollLoop(id, contentType, token.username);
+          } else {
+            console.log('⚠️  No Trakt token or username found - poll loop not started');
           }
         } catch (err) {
           console.error('Failed to start poll loop:', err);
