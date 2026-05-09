@@ -168,6 +168,7 @@ export async function startPollLoop(
         const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
         if (!isExcluded) {
           const movie = await getOrFetchMovie(tmdbId);
+          console.log('📝 Updating now_playing: movie', movie.id, 'progress', progressPct);
           await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
           if (progressPct >= WATCH_THRESHOLD.movie) {
             await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
@@ -181,6 +182,7 @@ export async function startPollLoop(
         if (!isExcluded) {
           await getOrFetchShow(showTmdbId);
           const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
+          console.log('📝 Updating now_playing: episode', episode.episodeId, 'progress', progressPct);
           await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
           if (progressPct >= WATCH_THRESHOLD.episode) {
             await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
