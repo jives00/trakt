@@ -139,7 +139,8 @@ export async function startPollLoop(
       }
 
       if (!res.ok) {
-        console.log('❌ Trakt error response:', res.status);
+        const errorBody = await res.text().catch(() => 'unable to read response');
+        console.log('❌ Trakt error response:', res.status, errorBody);
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
         return;
