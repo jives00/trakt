@@ -105,14 +105,17 @@ export async function startPollLoop(
 
   const pollOnce = async () => {
     try {
+      console.log('🔄 Poll cycle for', imdbId);
       let token = await getTraktToken();
       if (!token) {
+        console.log('⚠️  No token found, stopping poll');
         stopPollLoop(imdbId);
         return;
       }
 
       // Auto-refresh if expired
       if (token.expiresAt < new Date()) {
+        console.log('🔄 Refreshing expired token');
         token = await refreshTraktToken();
       }
 
@@ -125,8 +128,10 @@ export async function startPollLoop(
         },
       });
 
+      console.log('📊 Trakt response:', res.status);
       if (res.status === 204) {
         // Nothing playing anymore
+        console.log('📊 Trakt returned 204 - nothing playing');
         await clearNowPlaying();
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
@@ -134,6 +139,7 @@ export async function startPollLoop(
       }
 
       if (!res.ok) {
+        console.log('❌ Trakt error response:', res.status);
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
         return;
