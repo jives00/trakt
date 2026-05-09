@@ -104,6 +104,8 @@ export async function startPollLoop(
     stopPollLoop(imdbId);
   }, SAFETY_TIMEOUT);
 
+  let hasSeenActive = false;
+
   const pollOnce = async () => {
     try {
       console.log('🔄 Poll cycle for', imdbId);
@@ -156,7 +158,14 @@ export async function startPollLoop(
 
       console.log('📊 Trakt response:', res.status);
       if (res.status === 204) {
-        // Nothing playing anymore
+        if (!hasSeenActive) {
+          // Trakt hasn't registered the stream yet — keep polling
+          console.log('📊 Trakt returned 204 - stream not registered yet, continuing to poll');
+          const nextTimeout = setTimeout(pollOnce, POLL_INTERVAL);
+          pollers.set(imdbId, nextTimeout);
+          return;
+        }
+        // User stopped watching
         console.log('📊 Trakt returned 204 - nothing playing');
         await clearNowPlaying();
         stopPollLoop(imdbId);
@@ -186,6 +195,8 @@ export async function startPollLoop(
           throw new Error(`Invalid JSON response: ${res.body.substring(0, 100)}`);
         }
       })();
+
+      hasSeenActive = true;
 
       // Calculate progress from elapsed time (Trakt API doesn't return progress directly)
       let progressPct = data.progress ? Math.round(data.progress) : 50;
