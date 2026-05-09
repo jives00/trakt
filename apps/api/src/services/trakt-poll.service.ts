@@ -1,3 +1,4 @@
+import https from 'https';
 import { getPool } from '../db';
 import { isScrobbleExcluded, upsertWatchHistory, updateNowPlaying, clearNowPlaying } from './scrobble.service';
 import { getOrFetchMovie } from './movies.service';
@@ -119,21 +120,31 @@ export async function startPollLoop(
         token = await refreshTraktToken();
       }
 
-      const res = await fetch(`${TRAKT_API}/users/${username}/watching`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': '*/*',
-          'Accept-Encoding': 'gzip, deflate, br',
-          'Accept-Language': 'en-US,en;q=0.9',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'Sec-Fetch-Dest': 'empty',
-          'Sec-Fetch-Mode': 'cors',
-          'Sec-Fetch-Site': 'none',
-          'Authorization': `Bearer ${token.accessToken}`,
-          'trakt-api-version': '2',
-          'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
-        },
+      const res = await new Promise<{
+        status: number;
+        body: string;
+      }>((resolve, reject) => {
+        const options = {
+          hostname: 'api.trakt.tv',
+          port: 443,
+          path: `/users/${username}/watching`,
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token.accessToken}`,
+            'trakt-api-version': '2',
+            'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
+            'User-Agent': 'curl/7.68.0',
+          },
+        };
+
+        const req = https.request(options, (res) => {
+          let body = '';
+          res.on('data', (chunk) => body += chunk);
+          res.on('end', () => resolve({ status: res.statusCode ?? 500, body }));
+        });
+
+        req.on('error', reject);
+        req.end();
       });
 
       console.log('📊 Trakt response:', res.status);
@@ -146,23 +157,28 @@ export async function startPollLoop(
         return;
       }
 
-      if (!res.ok) {
-        const errorBody = await res.text().catch(() => 'unable to read response');
-        console.log('❌ Trakt error response:', res.status, errorBody);
+      if (res.status < 200 || res.status >= 300) {
+        console.log('❌ Trakt error response:', res.status, res.body.substring(0, 200));
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
         return;
       }
 
-      const data = (await res.json()) as {
-        started_at?: string;
-        expires_at?: string;
-        progress?: number;
-        type: 'movie' | 'episode';
-        movie?: { ids: { tmdb: number } };
-        episode?: { ids: { tmdb: number }; season: number; number: number };
-        show?: { ids: { tmdb: number } };
-      };
+      const data = (() => {
+        try {
+          return JSON.parse(res.body) as {
+            started_at?: string;
+            expires_at?: string;
+            progress?: number;
+            type: 'movie' | 'episode';
+            movie?: { ids: { tmdb: number } };
+            episode?: { ids: { tmdb: number }; season: number; number: number };
+            show?: { ids: { tmdb: number } };
+          };
+        } catch {
+          throw new Error(`Invalid JSON response: ${res.body.substring(0, 100)}`);
+        }
+      })();
 
       // Calculate progress from elapsed time (Trakt API doesn't return progress directly)
       let progressPct = data.progress ? Math.round(data.progress) : 50;
