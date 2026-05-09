@@ -120,6 +120,13 @@ export async function startPollLoop(
         token = await refreshTraktToken();
       }
 
+      if (!process.env.TRAKT_CLIENT_ID) {
+        console.error('⚠️ TRAKT_CLIENT_ID not set in environment');
+        stopPollLoop(imdbId);
+        clearTimeout(safety4hTimeout);
+        return;
+      }
+
       const res = await new Promise<{
         status: number;
         body: string;
@@ -132,7 +139,7 @@ export async function startPollLoop(
           headers: {
             'Authorization': `Bearer ${token.accessToken}`,
             'trakt-api-version': '2',
-            'trakt-api-key': process.env.TRAKT_CLIENT_ID!,
+            'trakt-api-key': process.env.TRAKT_CLIENT_ID,
             'User-Agent': 'curl/7.68.0',
           },
         };

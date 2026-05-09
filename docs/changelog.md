@@ -10,6 +10,7 @@
 - Trakt API fix: changed User-Agent to Mozilla-compatible format and added Accept/Accept-Encoding headers to bypass Cloudflare 403 blocks on polling requests `48d6144`
 - Trakt API headers: added realistic browser headers (Cache-Control, Pragma, Sec-Fetch-*) to match legitimate client patterns and bypass Cloudflare detection `5112cc6`
 - Trakt API polling: switched from fetch to native https module with minimal curl-like headers to resolve Cloudflare 403 blocks `1c3fa76`
+- Trakt API: added guard for missing TRAKT_CLIENT_ID environment variable to prevent header value errors `223c744`
 
 ### Web
 - Now playing hero: dashboard hero conditionally renders NowPlayingHero when media is actively playing; shows backdrop/still image, title (linked to detail page), episode number/name (linked to episode detail), and progress bar `c6d014c`
