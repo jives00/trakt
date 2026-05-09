@@ -360,7 +360,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 function NowPlayingHero({ item }: { item: NowPlayingItem }) {
   const isEpisode = item.mediaType === 'episode';
   const title = isEpisode ? item.showTitle : item.movieTitle;
-  const rawBg = isEpisode ? (item.stillPath ?? item.showBackdropPath) : item.backdropPath;
+  const rawBg = isEpisode ? (item.showBackdropPath ?? item.stillPath) : item.backdropPath;
   const bgUrl = rawBg ? `${TMDB_IMG}original${rawBg}` : null;
 
   const titleHref = isEpisode && item.showTmdbId
