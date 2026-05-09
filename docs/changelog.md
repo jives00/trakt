@@ -12,6 +12,9 @@
 - Trakt API polling: switched from fetch to native https module with minimal curl-like headers to resolve Cloudflare 403 blocks `1c3fa76`
 - Trakt API: added guard for missing TRAKT_CLIENT_ID environment variable to prevent header value errors `223c744`
 
+### Build
+- docker-compose.yml: added TRAKT_CLIENT_ID and TRAKT_CLIENT_SECRET to api service environment so Stremio polling OAuth tokens are available `e8c00e8`
+
 ### Web
 - Now playing hero: dashboard hero conditionally renders NowPlayingHero when media is actively playing; shows backdrop/still image, title (linked to detail page), episode number/name (linked to episode detail), and progress bar `c6d014c`
 - Progress bar displays percentage and computed time watched/remaining using progressPct × runtimeMin; updates every 30s via polling GET /api/scrobble/now-playing `c6d014c`
