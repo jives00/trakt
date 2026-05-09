@@ -23,7 +23,10 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
       const { type, id } = request.params as { type: string; id: string; extra: string };
       console.log('🎬 Stremio subtitle request:', { type, id });
 
-      if (!id.startsWith('tt') || !/^tt\d+$/.test(id)) {
+      // Extract IMDb ID from Stremio format: "tt123456" (movie) or "tt123456:5:2" (episode season:number)
+      const imdbIdMatch = id.match(/^(tt\d+)/);
+      const imdbId = imdbIdMatch?.[1];
+      if (!imdbId) {
         return reply.send({ subtitles: [] });
       }
 
@@ -34,7 +37,7 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
           const token = await getTraktToken();
           console.log('🔍 Trakt token check:', { hasToken: !!token, hasUsername: !!token?.username });
           if (token?.username) {
-            startPollLoop(id, contentType, token.username);
+            startPollLoop(imdbId, contentType, token.username);
           } else {
             console.log('⚠️  No Trakt token or username found - poll loop not started');
           }
