@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { EpisodeItem } from "@/lib/api";
+import { WatchDatePicker } from "@/components/watch-date-picker";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -16,10 +17,12 @@ interface EpisodeRowProps {
   seasonNumber: number;
   ep: EpisodeItem;
   watched: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
+  onMark?: (watchedAt: string) => void;
+  onRemoveAll?: () => void;
 }
 
-export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle }: EpisodeRowProps) {
+export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark, onRemoveAll }: EpisodeRowProps) {
   const stillUrl = ep.stillPath ? `${TMDB_IMG}w500${ep.stillPath}` : null;
   const href = `/shows/${tmdbId}/seasons/${seasonNumber}/episodes/${ep.episodeNumber}`;
   return (
@@ -53,20 +56,32 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle }: Epis
         </div>
       </div>
       <div className="shrink-0 flex items-start pt-1">
-        <button
-          onClick={onToggle}
-          aria-label={watched ? "Mark unwatched" : "Mark watched"}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
-            watched
-              ? "bg-[#e8002d] border-[#e8002d] text-white"
-              : "border-white/20 text-white/40 hover:border-[#e8002d]/40 hover:text-[#e8002d]"
-          }`}
-        >
-          <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>
-            check_circle
-          </span>
-          {watched ? "Watched" : "Watch"}
-        </button>
+        {onMark || onRemoveAll ? (
+          <div className="w-32">
+            <WatchDatePicker
+              watched={watched}
+              releaseDate={ep.airDate ?? null}
+              onMark={onMark || (() => {})}
+              onRemoveAll={onRemoveAll}
+              releaseDateLabel="Air Date"
+            />
+          </div>
+        ) : (
+          <button
+            onClick={onToggle}
+            aria-label={watched ? "Mark unwatched" : "Mark watched"}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
+              watched
+                ? "bg-[#e8002d] border-[#e8002d] text-white"
+                : "border-white/20 text-white/40 hover:border-[#e8002d]/40 hover:text-[#e8002d]"
+            }`}
+          >
+            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>
+              check_circle
+            </span>
+            {watched ? "Watched" : "Watch"}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
+import { WatchDatePicker } from "./watch-date-picker";
 import type { UpNextItem } from "@trakt/types";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
@@ -69,13 +70,36 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
 
   const handleEpisodeWatched = async (episodeId: number) => {
     if (token) {
+      const removingIdx = items.findIndex(it => it.episodeId === episodeId);
+      const removingShow = items[removingIdx];
+
       try {
         const updated = await api.getUpNext(token);
-        setItems(updated);
+        const newItemForShow = updated.find(it => it.showTmdbId === removingShow?.showTmdbId);
+
+        // Wait for fade-out animation to complete
         setTimeout(() => {
-          setRemovingEpisodeId(null);
-          setRemovingIndex(null);
-        }, 50);
+          if (newItemForShow) {
+            // New episode exists - reorder to put it at the same position for fade-in
+            const reordered = updated.filter(it => it.episodeId !== newItemForShow.episodeId);
+            reordered.splice(removingIdx, 0, newItemForShow);
+            setItems(reordered);
+            // Keep removingIndex/removingEpisodeId set so new card at this position gets fadeIn=true
+          } else {
+            // No new episode - just use updated list and clear removal state
+            setItems(updated);
+            setRemovingEpisodeId(null);
+            setRemovingIndex(null);
+          }
+        }, 700);
+
+        // Only clear removal state AFTER fade-in animation completes (another 700ms)
+        if (newItemForShow) {
+          setTimeout(() => {
+            setRemovingEpisodeId(null);
+            setRemovingIndex(null);
+          }, 1400);
+        }
       } catch (error) {
         setRemovingEpisodeId(null);
         setRemovingIndex(null);
@@ -106,7 +130,7 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
           </div>
         )}
       </div>
-      <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style={{ scrollBehavior: "smooth" }}>
+      <div ref={scrollContainerRef} className="flex gap-gutter overflow-x-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden transition-all duration-700" style={{ scrollBehavior: "smooth" }}>
         {items.map((item, index) => {
           const shouldFadeIn = removingIndex !== null && removingIndex >= 0 && index === removingIndex && item.episodeId !== removingEpisodeId;
           return (
@@ -141,15 +165,15 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
   const episodeHref = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
   const showHref = `/shows/${item.showTmdbId}`;
 
-  const handleMarkAsWatched = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleMarkAsWatched = async (watchedAt: string) => {
     if (!token || isMarking) return;
 
     onRemovalStart(item.episodeId);
     setIsMarking(true);
     setIsRemoving(true);
     try {
-      await api.toggleEpisodeWatched(item.showTmdbId, item.seasonNumber, item.episodeNumber, false, token);
+      await api.toggleEpisodeWatched(item.showTmdbId, item.seasonNumber, item.episodeNumber, false, token, watchedAt);
+      await onWatched(item.episodeId);
     } catch (error) {
       setIsMarking(false);
       setIsRemoving(false);
@@ -190,17 +214,27 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
             {item.showTitle}
           </div>
         )}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3">
+        <div
+          className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3 pointer-events-none group-hover:pointer-events-auto"
+        >
+          <div className="w-full">
+            <WatchDatePicker
+              watched={false}
+              releaseDate={item.airDate ?? null}
+              onMark={handleMarkAsWatched}
+              releaseDateLabel="Air Date"
+            />
+          </div>
           <button
-            onClick={handleMarkAsWatched}
-            disabled={isMarking}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#e8002d] hover:bg-[#cc0028] disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
-          >
-            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            Watched
-          </button>
-          <button
-            onClick={handleDismiss}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleDismiss(e as any);
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             disabled={isRemoving}
             className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
           >

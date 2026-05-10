@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { RowDataPacket } from 'mysql2/promise';
 import { authenticate } from '../middleware/auth';
 import { getOrFetchMovie, getOrFetchMovieCast, getOrFetchMovieCrew, forceRefreshMovieMetadata, forceRefreshMovieCast } from '../services/movies.service';
 import {
@@ -6,6 +7,8 @@ import {
   markMovieWatched, unmarkMovieWatched,
 } from '../services/user-media.service';
 import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
+import { getPool } from '../db';
+import { HistoryItem } from '@trakt/types';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -28,8 +31,9 @@ export async function moviesRoutes(app: FastifyInstance) {
 
   app.post('/movies/:tmdbId/watched', auth, async (request: FastifyRequest) => {
     const tmdbId = Number((request.params as any).tmdbId);
+    const { watchedAt } = (request.body as any) ?? {};
     const movie = await getOrFetchMovie(tmdbId);
-    await markMovieWatched(userId(request), movie.id);
+    await markMovieWatched(userId(request), movie.id, watchedAt);
     return { watched: true };
   });
 
@@ -38,6 +42,24 @@ export async function moviesRoutes(app: FastifyInstance) {
     const movie = await getOrFetchMovie(tmdbId);
     await unmarkMovieWatched(userId(request), movie.id);
     return { watched: false };
+  });
+
+  app.get('/movies/:tmdbId/history', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number((request.params as any).tmdbId);
+    const movie = await getOrFetchMovie(tmdbId);
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT
+         CAST(wh.id AS UNSIGNED) AS id, wh.media_type AS mediaType, wh.media_id AS mediaId,
+         wh.watched_at AS watchedAt, wh.progress_pct AS progressPct, wh.source,
+         m.tmdb_id AS tmdbId, m.title, m.poster_path AS posterPath
+       FROM watch_history wh
+       LEFT JOIN movies m ON m.id=wh.media_id
+       WHERE wh.user_id=? AND wh.media_type='movie' AND wh.media_id=?
+       ORDER BY wh.watched_at DESC`,
+      [userId(request), movie.id],
+    );
+    return rows as HistoryItem[];
   });
 
   app.post('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {

@@ -7,6 +7,7 @@ import type { Movie } from "@trakt/types";
 const mockGetMovie = vi.fn();
 const mockGetMovieCast = vi.fn();
 const mockGetMovieCrew = vi.fn();
+const mockGetMovieHistory = vi.fn();
 const mockToggleWatched = vi.fn();
 const mockToggleWatchlist = vi.fn();
 const mockToggleCollection = vi.fn();
@@ -24,6 +25,7 @@ vi.mock("@/lib/api", () => ({
     getMovie: (...args: unknown[]) => mockGetMovie(...args),
     getMovieCast: (...args: unknown[]) => mockGetMovieCast(...args),
     getMovieCrew: (...args: unknown[]) => mockGetMovieCrew(...args),
+    getMovieHistory: (...args: unknown[]) => mockGetMovieHistory(...args),
     toggleMovieWatched: (...args: unknown[]) => mockToggleWatched(...args),
     toggleMovieWatchlist: (...args: unknown[]) => mockToggleWatchlist(...args),
     toggleMovieCollection: (...args: unknown[]) => mockToggleCollection(...args),
@@ -56,6 +58,7 @@ describe("MovieDetailPage", () => {
     vi.clearAllMocks();
     mockGetMovieCast.mockResolvedValue({ cast: [] });
     mockGetMovieCrew.mockResolvedValue({ crew: [] });
+    mockGetMovieHistory.mockResolvedValue([]);
   });
 
   it("renders movie title, genres, and overview", async () => {
@@ -84,9 +87,14 @@ describe("MovieDetailPage", () => {
     await waitFor(() => screen.getByText("Mark Watched"));
     await userEvent.click(screen.getByText("Mark Watched"));
 
-    await waitFor(() =>
-      expect(mockToggleWatched).toHaveBeenCalledWith(550, false, "test-token")
-    );
+    await waitFor(() => {
+      expect(mockToggleWatched).toHaveBeenCalled();
+      const calls = mockToggleWatched.mock.calls;
+      expect(calls[0][0]).toBe(550); // tmdbId
+      expect(calls[0][1]).toBe(false); // watched
+      expect(calls[0][2]).toBe("test-token"); // token
+      expect(calls[0][3]).toBeDefined(); // watchedAt (date string)
+    });
   });
 
   it("toggles watchlist status on button click", async () => {

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type EpisodeItem, type SeasonSummary } from "@/lib/api";
 import { EpisodeRow } from "../episode-row";
+import { WatchDatePicker } from "@/components/watch-date-picker";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -113,8 +114,13 @@ export default function AllSeasonsPage() {
     setStatus((s) => s && { ...s, inCollection: res.inCollection });
   }
 
-  async function handleWatched() {
-    const res = await api.toggleShowWatched(Number(tmdbId), status!.watched, token!);
+  async function handleMarkWatched(watchedAt: string) {
+    const res = await api.toggleShowWatched(Number(tmdbId), false, token!, watchedAt);
+    setStatus((s) => s && { ...s, watched: res.watched });
+  }
+
+  async function handleRemoveWatched() {
+    const res = await api.toggleShowWatched(Number(tmdbId), true, token!);
     setStatus((s) => s && { ...s, watched: res.watched });
   }
 
@@ -309,15 +315,15 @@ export default function AllSeasonsPage() {
                     <span className="material-symbols-outlined text-sm">library_add</span>
                     {status.inCollection ? "Collected" : "Collect"}
                   </button>
-                  <button
-                    onClick={handleWatched}
-                    className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.watched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                    {status.watched ? "Watched" : "Mark Watched"}
-                  </button>
+                  <div className="col-span-2">
+                    <WatchDatePicker
+                      watched={status.watched}
+                      releaseDate={null}
+                      onMark={handleMarkWatched}
+                      onRemoveAll={handleRemoveWatched}
+                      useReleaseDate={true}
+                    />
+                  </div>
                 </div>
               </div>
 

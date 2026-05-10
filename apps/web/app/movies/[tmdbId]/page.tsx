@@ -5,9 +5,10 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type MovieDetail, type MovieStatus, type MovieCastMember, type CrewMember } from "@/lib/api";
+import { api, type MovieDetail, type MovieStatus, type MovieCastMember, type CrewMember, type HistoryItem } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
+import { WatchDatePicker } from "@/components/watch-date-picker";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -47,6 +48,7 @@ export default function MovieDetailPage() {
   const [status, setStatus] = useState<MovieStatus | null>(null);
   const [cast, setCast] = useState<MovieCastMember[]>([]);
   const [crew, setCrew] = useState<CrewMember[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [tab, setTab] = useState<"cast" | "crew">("cast");
   const [castLoading, setCastLoading] = useState(false);
   const [rating, setRating] = useState<number>(0);
@@ -74,6 +76,9 @@ export default function MovieDetailPage() {
           .catch(() => {})
           .finally(() => setCastLoading(false));
         api.getMovieCrew(id, token).then((d) => setCrew(d.crew)).catch(() => {});
+        api.getMovieHistory(id, token)
+          .then((h) => setHistory(h))
+          .catch(() => {});
       })
       .catch(() => setError("Failed to load movie."));
   }, [isLoading, token, tmdbId]);
@@ -88,9 +93,21 @@ export default function MovieDetailPage() {
     setStatus((s) => s && { ...s, inCollection: res.inCollection });
   }
 
-  async function handleWatched() {
-    const res = await api.toggleMovieWatched(Number(tmdbId), status!.watched, token!);
+  async function handleMarkWatched(watchedAt: string) {
+    const res = await api.toggleMovieWatched(Number(tmdbId), false, token!, watchedAt);
     setStatus((s) => s && { ...s, watched: res.watched });
+    api.getMovieHistory(Number(tmdbId), token!).then((h) => setHistory(h)).catch(() => {});
+  }
+
+  async function handleRemoveLatest(id: number) {
+    await api.deleteHistory(id, token!);
+    api.getMovieHistory(Number(tmdbId), token!).then((h) => setHistory(h)).catch(() => {});
+  }
+
+  async function handleRemoveAll() {
+    const res = await api.toggleMovieWatched(Number(tmdbId), true, token!);
+    setStatus((s) => s && { ...s, watched: res.watched });
+    setHistory([]);
   }
 
   async function handleRating(r: number) {
@@ -341,17 +358,42 @@ export default function MovieDetailPage() {
                     <span className="material-symbols-outlined text-sm">library_add</span>
                     {status.inCollection ? "Collected" : "Collect"}
                   </button>
-                  <button
-                    onClick={handleWatched}
-                    className={`col-span-2 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.watched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                    {status.watched ? "Watched" : "Mark Watched"}
-                  </button>
+                  <div className="col-span-2">
+                    <WatchDatePicker
+                      watched={status.watched}
+                      releaseDate={movie.releaseDate ?? null}
+                      onMark={handleMarkWatched}
+                      onRemoveLatest={handleRemoveLatest}
+                      onRemoveAll={handleRemoveAll}
+                      latestEntryId={history[0]?.id ?? null}
+                    />
+                  </div>
                 </div>
               </div>
+
+              {history.length > 0 && (
+                <div className="border-t border-white/10 pt-4">
+                  <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
+                  <div className="space-y-2">
+                    {history.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                        <div className="flex-1">
+                          <p className="text-white text-sm">
+                            {new Date(entry.watchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                          <p className="text-white/50 text-xs capitalize">{entry.source}</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveLatest(entry.id)}
+                          className="text-white/40 hover:text-[#e8002d] transition-colors ml-2"
+                        >
+                          <span className="material-symbols-outlined text-base">close</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-white/10 pt-4">
                 <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>

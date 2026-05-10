@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { RowDataPacket } from 'mysql2/promise';
 import { authenticate } from '../middleware/auth';
 import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, forceRefreshShowMetadata, forceRefreshShowSeasons, forceRefreshEpisode, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
@@ -7,6 +8,8 @@ import {
   markShowWatched, unmarkShowWatched,
 } from '../services/user-media.service';
 import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
+import { getPool } from '../db';
+import { HistoryItem } from '@trakt/types';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -59,8 +62,9 @@ export async function showsRoutes(app: FastifyInstance) {
 
   app.post('/shows/:tmdbId/seasons/:season/episodes/:ep/watched', auth, async (request: FastifyRequest) => {
     const { tmdbId, season, ep } = params(request);
+    const { watchedAt } = (request.body as any) ?? {};
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
-    await markEpisodeWatched(userId(request), episodeId);
+    await markEpisodeWatched(userId(request), episodeId, watchedAt);
     return { watched: true, episodeId };
   });
 
@@ -69,6 +73,30 @@ export async function showsRoutes(app: FastifyInstance) {
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
     await unmarkEpisodeWatched(userId(request), episodeId);
     return { watched: false, episodeId };
+  });
+
+  app.get('/shows/:tmdbId/seasons/:season/episodes/:ep/history', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const tmdbId = Number(params(request).tmdbId);
+    const seasonNumber = Number(params(request).season);
+    const episodeNumber = Number(params(request).ep);
+    const { episodeId } = await getOrFetchEpisode(tmdbId, seasonNumber, episodeNumber);
+    const pool = getPool();
+    const [rows] = await pool.query<RowDataPacket[]>(
+      `SELECT
+         wh.id, wh.media_type AS mediaType, wh.media_id AS mediaId,
+         wh.watched_at AS watchedAt, wh.progress_pct AS progressPct, wh.source,
+         ts.tmdb_id AS tmdbId, e.title, ts.poster_path AS posterPath,
+         ts.title AS showTitle, seas.season_number AS seasonNumber,
+         e.episode_number AS episodeNumber
+       FROM watch_history wh
+       LEFT JOIN episodes e ON e.id=wh.media_id
+       LEFT JOIN seasons seas ON e.season_id=seas.id
+       LEFT JOIN tv_shows ts ON e.show_id=ts.id
+       WHERE wh.user_id=? AND wh.media_type='episode' AND wh.media_id=?
+       ORDER BY wh.watched_at DESC`,
+      [userId(request), episodeId],
+    );
+    return rows as HistoryItem[];
   });
 
   app.get('/shows/:tmdbId/seasons/:season/episodes/:ep', auth, async (request: FastifyRequest, reply: FastifyReply) => {
@@ -93,8 +121,9 @@ export async function showsRoutes(app: FastifyInstance) {
   });
 
   app.post('/shows/:tmdbId/watched', auth, async (request: FastifyRequest) => {
+    const { watchedAt } = (request.body as any) ?? {};
     const show = await getOrFetchShow(Number(params(request).tmdbId));
-    await markShowWatched(userId(request), show.id);
+    await markShowWatched(userId(request), show.id, watchedAt);
     return { watched: true };
   });
 

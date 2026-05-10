@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type ShowDetail, type ShowStatus, type EpisodeItem } from "@/lib/api";
 import { EpisodeRow } from "../episode-row";
 import { RefreshButton } from "@/components/refresh-button";
+import { WatchDatePicker } from "@/components/watch-date-picker";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -63,29 +64,38 @@ export default function SeasonDetailPage() {
   }, [isLoading, token, tmdbId, sn]);
 
 
-  async function handleWatched() {
+  async function handleMarkSeason(watchedAt: string) {
     if (!token) return;
     const allEpisodeIds = episodes.map(ep => ep.id);
-    const allWatched = allEpisodeIds.every(id => watchedIds.has(id));
 
     setWatchedIds((prev) => {
       const next = new Set(prev);
-      if (allWatched) {
-        allEpisodeIds.forEach(id => next.delete(id));
-      } else {
-        allEpisodeIds.forEach(id => next.add(id));
-      }
+      allEpisodeIds.forEach(id => next.add(id));
       return next;
     });
 
     Promise.all(
       episodes.map((ep) => {
-        const wasWatched = watchedIds.has(ep.id);
-        const shouldBeWatched = !allWatched;
-        if (wasWatched !== shouldBeWatched) {
-          return api.toggleEpisodeWatched(Number(tmdbId), sn, ep.episodeNumber, wasWatched, token);
-        }
-      }).filter(Boolean)
+        const dateToUse = watchedAt === 'release_date' ? (ep.airDate ?? new Date().toISOString().split('T')[0]) : watchedAt;
+        return api.toggleEpisodeWatched(Number(tmdbId), sn, ep.episodeNumber, false, token, dateToUse);
+      })
+    ).catch(() => {});
+  }
+
+  async function handleRemoveSeason() {
+    if (!token) return;
+    const allEpisodeIds = episodes.map(ep => ep.id);
+
+    setWatchedIds((prev) => {
+      const next = new Set(prev);
+      allEpisodeIds.forEach(id => next.delete(id));
+      return next;
+    });
+
+    Promise.all(
+      episodes.map((ep) =>
+        api.toggleEpisodeWatched(Number(tmdbId), sn, ep.episodeNumber, true, token)
+      )
     ).catch(() => {});
   }
 
@@ -248,18 +258,14 @@ export default function SeasonDetailPage() {
                   {(() => {
                     const allEpisodeIds = episodes.map(ep => ep.id);
                     const allWatched = allEpisodeIds.every(id => watchedIds.has(id));
-                    const someWatched = allEpisodeIds.some(id => watchedIds.has(id));
-                    const statusText = allWatched ? "Watched" : someWatched ? "Partially Watched" : "Mark Watched";
                     return (
-                      <button
-                        onClick={handleWatched}
-                        className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                          allWatched ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: allWatched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                        {statusText}
-                      </button>
+                      <WatchDatePicker
+                        watched={allWatched}
+                        releaseDate={null}
+                        onMark={handleMarkSeason}
+                        onRemoveAll={handleRemoveSeason}
+                        useReleaseDate={true}
+                      />
                     );
                   })()}
                 </div>

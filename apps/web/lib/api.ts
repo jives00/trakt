@@ -12,7 +12,7 @@ import type {
   UserProfile,
 } from "@trakt/types";
 
-export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem };
+export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem, HistoryItem };
 
 const BASE = "";
 
@@ -103,10 +103,14 @@ export const api = {
     request<{ cast: MovieCastMember[] }>(`/api/movies/${tmdbId}/cast`, { token }),
   getMovieCrew: (tmdbId: number, token: string) =>
     request<{ crew: CrewMember[] }>(`/api/movies/${tmdbId}/crew`, { token }),
-  toggleMovieWatched: (tmdbId: number, watched: boolean, token: string) =>
+  toggleMovieWatched: (tmdbId: number, watched: boolean, token: string, watchedAt?: string) =>
     request<{ watched: boolean }>(`/api/movies/${tmdbId}/watched`, {
-      method: watched ? "DELETE" : "POST", token,
+      method: watched ? "DELETE" : "POST",
+      token,
+      body: !watched && watchedAt ? JSON.stringify({ watchedAt }) : undefined,
     }),
+  getMovieHistory: (tmdbId: number, token: string) =>
+    request<HistoryItem[]>(`/api/movies/${tmdbId}/history`, { token }),
   toggleMovieWatchlist: (tmdbId: number, inWatchlist: boolean, token: string) =>
     request<{ inWatchlist: boolean }>(`/api/movies/${tmdbId}/watchlist`, {
       method: inWatchlist ? "DELETE" : "POST", token,
@@ -127,14 +131,24 @@ export const api = {
     request<{ episode: EpisodeDetail; watched: boolean }>(
       `/api/shows/${tmdbId}/seasons/${season}/episodes/${ep}`, { token },
     ),
-  toggleEpisodeWatched: (tmdbId: number, season: number, ep: number, watched: boolean, token: string) =>
+  toggleEpisodeWatched: (tmdbId: number, season: number, ep: number, watched: boolean, token: string, watchedAt?: string) =>
     request<{ watched: boolean; episodeId: number }>(
       `/api/shows/${tmdbId}/seasons/${season}/episodes/${ep}/watched`,
-      { method: watched ? "DELETE" : "POST", token },
+      {
+        method: watched ? "DELETE" : "POST",
+        token,
+        body: !watched && watchedAt ? JSON.stringify({ watchedAt }) : undefined,
+      },
     ),
-  toggleShowWatched: (tmdbId: number, watched: boolean, token: string) =>
+  getEpisodeHistory: (tmdbId: number, season: number, ep: number, token: string) =>
+    request<HistoryItem[]>(
+      `/api/shows/${tmdbId}/seasons/${season}/episodes/${ep}/history`, { token },
+    ),
+  toggleShowWatched: (tmdbId: number, watched: boolean, token: string, watchedAt?: string) =>
     request<{ watched: boolean }>(`/api/shows/${tmdbId}/watched`, {
-      method: watched ? "DELETE" : "POST", token,
+      method: watched ? "DELETE" : "POST",
+      token,
+      body: !watched && watchedAt ? JSON.stringify({ watchedAt }) : undefined,
     }),
   toggleShowWatchlist: (tmdbId: number, inWatchlist: boolean, token: string) =>
     request<{ inWatchlist: boolean }>(`/api/shows/${tmdbId}/watchlist`, {

@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember, type SeasonSummary } from "@/lib/api";
+import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember, type SeasonSummary, type HistoryItem } from "@/lib/api";
 import { RefreshButton } from "@/components/refresh-button";
+import { WatchDatePicker } from "@/components/watch-date-picker";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -25,6 +26,7 @@ export default function EpisodeDetailPage() {
   const [status, setStatus] = useState<ShowStatus | null>(null);
   const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
   const [watched, setWatched] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [error, setError] = useState("");
@@ -37,14 +39,16 @@ export default function EpisodeDetailPage() {
       api.getEpisode(id, sn, ep, token),
       api.getEpisodeCast(id, sn, ep, token),
       api.getShowSeasons(id, token),
+      api.getEpisodeHistory(id, sn, ep, token),
     ])
-      .then(([showData, episodeData, castData, seasonsData]) => {
+      .then(([showData, episodeData, castData, seasonsData, historyData]) => {
         setShow(showData.show);
         setStatus(showData.status);
         setEpisode(episodeData.episode);
         setWatched(episodeData.watched);
         setCast(castData.cast);
         setSeasons(seasonsData.seasons);
+        setHistory(historyData);
       })
       .catch(() => setError("Failed to load episode."));
   }, [isLoading, token, tmdbId, sn, ep]);
@@ -90,10 +94,24 @@ export default function EpisodeDetailPage() {
     }
   }
 
-  async function handleWatched() {
+  async function handleMarkWatched(watchedAt: string) {
     if (!token) return;
-    const res = await api.toggleEpisodeWatched(Number(tmdbId), sn, ep, watched, token);
+    const res = await api.toggleEpisodeWatched(Number(tmdbId), sn, ep, false, token, watchedAt);
     setWatched(res.watched);
+    api.getEpisodeHistory(Number(tmdbId), sn, ep, token).then((h) => setHistory(h)).catch(() => {});
+  }
+
+  async function handleRemoveLatest(id: number) {
+    await api.deleteHistory(id, token!);
+    const h = await api.getEpisodeHistory(Number(tmdbId), sn, ep, token!);
+    setHistory(h);
+    setWatched(h.length > 0);
+  }
+
+  async function handleRemoveAll() {
+    const res = await api.toggleEpisodeWatched(Number(tmdbId), sn, ep, true, token!);
+    setWatched(res.watched);
+    setHistory([]);
   }
 
   async function handleRefreshEpisodeData() {
@@ -263,18 +281,40 @@ export default function EpisodeDetailPage() {
                   <span className="material-symbols-outlined text-[#e8002d]">person</span>
                   Personal Tracking
                 </h3>
-                <button
-                  onClick={handleWatched}
-                  className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                    watched
-                      ? "bg-[#e8002d] text-white"
-                      : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
-                  {watched ? "Watched" : "Mark Watched"}
-                </button>
+                <WatchDatePicker
+                  watched={watched}
+                  releaseDate={episode?.airDate ?? null}
+                  onMark={handleMarkWatched}
+                  onRemoveLatest={handleRemoveLatest}
+                  onRemoveAll={handleRemoveAll}
+                  latestEntryId={history[0]?.id ?? null}
+                  releaseDateLabel="Air Date"
+                />
               </div>
+
+              {history.length > 0 && (
+                <div className="border-t border-white/10 pt-4">
+                  <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
+                  <div className="space-y-2">
+                    {history.map((entry) => (
+                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                        <div className="flex-1">
+                          <p className="text-white text-sm">
+                            {new Date(entry.watchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                          <p className="text-white/50 text-xs capitalize">{entry.source}</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveLatest(entry.id)}
+                          className="text-white/40 hover:text-[#e8002d] transition-colors ml-2"
+                        >
+                          <span className="material-symbols-outlined text-base">close</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <Link
                 href={`https://www.themoviedb.org/tv/${tmdbId}/season/${sn}/episode/${ep}`}

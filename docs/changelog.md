@@ -9,12 +9,18 @@
 - Security headers: @fastify/helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, and Content-Security-Policy on all responses to prevent MIME-type sniffing, clickjacking, and script injection attacks `417fa2c`
 - Rate limiting: @fastify/rate-limit on POST /api/auth/login restricts to 10 attempts per 15 minutes per IP to prevent brute-force attacks `417fa2c`
 - Remove verbose 'already has rating' logs from show metadata backfill to reduce terminal clutter `f987e05`
+- Watch date marking: added optional watchedAt parameter to markMovieWatched, markEpisodeWatched, and markShowWatched functions; supports custom dates and 'release_date' sentinel for bulk marking with each episode's air_date `49b3d36`
+- Watch history endpoints: GET /api/movies/{tmdbId}/history and GET /api/shows/{tmdbId}/seasons/{season}/episodes/{ep}/history return all watch_history entries ordered by watched_at DESC with media metadata `49b3d36`
 
 ### Web
 - Abort controllers: all fetch calls in api.ts support AbortSignal to cancel in-flight requests on component unmount or route change, preventing memory leaks and race conditions `417fa2c`
 - useApiController hook: React hook that creates and cleans up an AbortController on component mount/unmount; useApiCleanup hook for route-level cleanup `417fa2c`
 - API utilities: createApiController() creates and registers controllers for cleanup; cancelAllRequests() cancels all active requests on navigation `417fa2c`
 - Dashboard hero stats: changed from Shows Collected/Episodes Watched/Days Watched to Movies Watched/Shows Watched/Episodes Watched `55d07ba`
+- Watch date picker: new WatchDatePicker component with split-button UI (left click marks with today's date, right chevron opens dropdown with date options) `49b3d36`
+- Date selection options: Today, Release Date (movie releaseDate or episode airDate), or Pick Date (calendar widget); integrated across all episode/movie/show marking UI `49b3d36`
+- Watch history tracking: displays all watch entries with date and source in Personal Tracking sidebar; each entry has a delete button; supports multiple entries per media item `49b3d36`
+- Up Next section: marked episodes fade out smoothly; next episode fades in at same position if available; other shows shift left only when no replacement exists; season page bulk marking converts 'release_date' sentinel to each episode's air_date `49b3d36`
 
 ## May 8, 2026
 
