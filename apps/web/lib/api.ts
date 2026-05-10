@@ -22,22 +22,52 @@ export class ApiError extends Error {
   }
 }
 
+const activeControllers = new Set<AbortController>();
+
+export function createApiController(): { signal: AbortSignal; abort: () => void } {
+  const controller = new AbortController();
+  activeControllers.add(controller);
+
+  return {
+    signal: controller.signal,
+    abort: () => {
+      controller.abort();
+      activeControllers.delete(controller);
+    },
+  };
+}
+
+export function cancelAllRequests(): void {
+  for (const controller of activeControllers) {
+    controller.abort();
+  }
+  activeControllers.clear();
+}
+
 async function request<T>(
   path: string,
-  options: RequestInit & { token?: string } = {}
+  options: RequestInit & { token?: string; signal?: AbortSignal } = {}
 ): Promise<T> {
-  const { token, ...init } = options;
+  const { token, signal, ...init } = options;
   const headers = new Headers(init.headers);
   if (init.body) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include" });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, body.error ?? res.statusText);
+  try {
+    const res = await fetch(`${BASE}${path}`, { ...init, headers, credentials: "include", signal });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new ApiError(res.status, body.error ?? res.statusText);
+    }
+    if (res.status === 204) return undefined as T;
+    return res.json();
+  } finally {
+    if (signal?.aborted) {
+      activeControllers.forEach((c) => {
+        if (c.signal === signal) activeControllers.delete(c);
+      });
+    }
   }
-  if (res.status === 204) return undefined as T;
-  return res.json();
 }
 
 export const api = {

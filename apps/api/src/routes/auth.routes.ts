@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import rateLimitPlugin from '@fastify/rate-limit';
 import { LoginBody } from '@trakt/types';
 import {
   findUserByUsername,
@@ -12,6 +13,11 @@ import {
 const COOKIE = 'refreshToken';
 
 export async function authRoutes(app: FastifyInstance) {
+  void app.register(rateLimitPlugin, {
+    max: 10,
+    timeWindow: '15 minutes',
+  });
+
   app.post('/login', async (request: FastifyRequest, reply: FastifyReply) => {
     const result = LoginBody.safeParse(request.body);
     if (!result.success) return reply.status(400).send({ error: 'Invalid request body' });

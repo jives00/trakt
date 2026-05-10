@@ -1,5 +1,16 @@
 # Changelog
 
+## May 10, 2026
+
+### API
+- Security headers: @fastify/helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, and Content-Security-Policy on all responses to prevent MIME-type sniffing, clickjacking, and script injection attacks `417fa2c`
+- Rate limiting: @fastify/rate-limit on POST /api/auth/login restricts to 10 attempts per 15 minutes per IP to prevent brute-force attacks `417fa2c`
+
+### Web
+- Abort controllers: all fetch calls in api.ts support AbortSignal to cancel in-flight requests on component unmount or route change, preventing memory leaks and race conditions `417fa2c`
+- useApiController hook: React hook that creates and cleans up an AbortController on component mount/unmount; useApiCleanup hook for route-level cleanup `417fa2c`
+- API utilities: createApiController() creates and registers controllers for cleanup; cancelAllRequests() cancels all active requests on navigation `417fa2c`
+
 ## May 8, 2026
 
 ### API

@@ -4,7 +4,7 @@
 
 Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Exposes a scrobbling API so Emby, Kodi, and Stremio can push watch events automatically. Single-user only — no community or social features. Metadata sourced from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2.
 
-**Current Status:** Phase 3 in progress. Production environment live on EC2 with automated GitHub deployment. Building detail pages and UI enhancements.
+**Current Status:** Phase 5 in progress. Phase 4 (Trakt.tv import) complete with Season 0 (specials) support. Production environment live on EC2 with automated GitHub deployment. Security hardening (helmet + rate limiting) implemented.
 
 ---
 
@@ -36,6 +36,22 @@ docs/                 Documentation, screenshots, and design guidelines
 | Infra | Docker Compose on EC2 (api, web); API on `network_mode: host` |
 | TLS | Handled upstream (not Caddy) |
 | CI/CD | GitHub Actions → SSH deploy to EC2 on push to main |
+
+---
+
+## Security Hardening (Phase 5)
+
+**API Security:**
+- **@fastify/helmet** (`apps/api/src/app.ts:27-36`): Sets security headers on all responses including `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `HSTS`, and `Content-Security-Policy` (self-only by default, allows unsafe-inline for styles and external images/data URIs).
+- **@fastify/rate-limit** (`apps/api/src/routes/auth.routes.ts:16-19`): Rate limiting on `POST /api/auth/login` — max 10 attempts per 15 minutes per IP to prevent brute-force attacks.
+
+**Web Security:**
+- **Abort Controllers** (`apps/web/lib/api.ts`, `apps/web/lib/use-api-controller.ts`): All fetch calls support AbortSignal to cancel in-flight requests. Utilities:
+  - `createApiController()`: Creates an AbortController and registers it for cleanup.
+  - `cancelAllRequests()`: Cancels all active requests (called on route change).
+  - `useApiController()`: React hook that creates and cleans up an AbortController on component mount/unmount.
+  - `useApiCleanup()`: Route-level cleanup hook to cancel all pending requests on navigation.
+- Prevents memory leaks, race conditions, and unnecessary network traffic when components unmount or users navigate away.
 
 ---
 
@@ -85,7 +101,7 @@ All scrobble sources (Emby, Stremio, Kodi) update a `now_playing` table via `upd
 
 **Database:** `now_playing` table stores `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE constraint on `user_id` (single active session). `updated_at` auto-updates, enabling a 5-minute staleness guard to clean up ghost sessions if a player crashes.
 
-**Frontend:** Dashboard hero shows current playback with backdrop/still image, title (linked to detail page), episode number/name or tagline (episode link to episode page), and a progress bar with time watched/% /time remaining. Computes time from `progressPct × runtimeMin` (both sources support this calculation).
+**Frontend:** Dashboard hero shows current playback with backdrop image (show backdrop for episodes, movie backdrop for movies), title (linked to detail page), episode number/name or tagline (episode link to episode page), and a progress bar with time watched/% /time remaining. Computes time from `progressPct × runtimeMin` (both sources support this calculation).
 
 ### Metadata sourcing
 
@@ -98,6 +114,31 @@ All scrobble sources (Emby, Stremio, Kodi) update a `now_playing` table via `upd
 
 - All DTOs and DB model types live in `packages/types/`. Read one file there to understand any data shape.
 - No barrel re-exports unless necessary.
+
+### Season 0 (Specials) Support
+
+The `seasons` table includes a `season_type` column (`'regular'` or `'special'`) to distinguish special episodes. TMDB returns this in the season detail response. The UI correctly filters and displays Season 0 specials alongside regular seasons on show detail pages.
+
+### Trakt.tv Data Import
+
+One-time import script at `apps/api/scripts/import-trakt.ts` imports existing watch history, ratings, watchlist, collection, and lists from a Trakt data export.
+
+**Usage:**
+1. Export data from https://trakt.tv/settings/data-export
+2. Extract zip to `docs/trakt-export/`
+3. Run: `pnpm --filter api run import:trakt`
+
+**What it does:**
+- Pre-fetches all seasons from TMDB to populate `episodes.tmdb_id` (performance optimization to bound API calls)
+- Imports watch history, ratings, watchlist, collection, and lists
+- Deduplicates on re-run (safe to retry after failures)
+- Logs summary: rows inserted per table, skipped (duplicates), missing TMDB IDs
+
+**Schema expectations:**
+- `watch_history.source` includes `'trakt.tv'` enum value
+- `episodes.tmdb_id` column populated with TMDB episode IDs
+- `watchlist.sort_order` column for Trakt ranking
+- `lists.sort_by` and `sort_how` columns for list sorting preferences
 
 ## Deployment
 

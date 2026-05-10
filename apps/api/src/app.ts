@@ -1,6 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import cookiePlugin from '@fastify/cookie';
 import corsPlugin from '@fastify/cors';
+import helmetPlugin from '@fastify/helmet';
 import jwtPlugin from '@fastify/jwt';
 import { authRoutes } from './routes/auth.routes';
 import { searchRoutes } from './routes/search.routes';
@@ -23,7 +24,18 @@ import { settingsRoutes } from './routes/settings.routes';
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false, trustProxy: true });
 
-void app.register(corsPlugin, {
+  void app.register(helmetPlugin, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+  });
+
+  void app.register(corsPlugin, {
     origin: true, // Allow all origins; sensitive endpoints are JWT-protected
     credentials: true,
   });

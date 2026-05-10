@@ -15,7 +15,9 @@
   "dependencies": {
     "@fastify/cookie": "^9",
     "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11",
     "@fastify/jwt": "^7",
+    "@fastify/rate-limit": "^9",
     "@trakt/types": "workspace:*",
     "bcryptjs": "^2",
     "dotenv": "^16",
