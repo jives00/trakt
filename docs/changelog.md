@@ -5,6 +5,7 @@
 ### API
 - Security headers: @fastify/helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, and Content-Security-Policy on all responses to prevent MIME-type sniffing, clickjacking, and script injection attacks `417fa2c`
 - Rate limiting: @fastify/rate-limit on POST /api/auth/login restricts to 10 attempts per 15 minutes per IP to prevent brute-force attacks `417fa2c`
+- Remove verbose 'already has rating' logs from show metadata backfill to reduce terminal clutter `f987e05`
 
 ### Web
 - Abort controllers: all fetch calls in api.ts support AbortSignal to cancel in-flight requests on component unmount or route change, preventing memory leaks and race conditions `417fa2c`

@@ -185,7 +185,6 @@ async function backfillShowImdbRating(showInternalId: number, showTmdbId: number
       [showInternalId],
     );
     if (rows.length === 0) {
-      console.log(`[IMDb] Show ${showTmdbId} already has rating`);
       return;
     }
 
@@ -222,7 +221,6 @@ async function backfillShowTmdbRating(showInternalId: number, showTmdbId: number
       [showInternalId],
     );
     if (rows.length === 0) {
-      console.log(`[TMDB] Show ${showTmdbId} already has TMDB rating`);
       return;
     }
 
