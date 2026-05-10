@@ -265,16 +265,16 @@ export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number)
 
     if (!existing) {
       const [r] = await pool.query<ResultSetHeader>(
-        `INSERT INTO seasons (show_id, season_number, episode_count, poster_path, air_date, fetched_at)
-         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [show.id, seasonNumber, tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate],
+        `INSERT INTO seasons (show_id, season_number, episode_count, poster_path, air_date, season_type, fetched_at)
+         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+        [show.id, seasonNumber, tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate, tmdbSeason.seasonType ?? 'regular'],
       );
       seasonId = r.insertId;
     } else {
       seasonId = existing.id;
       await pool.query(
-        `UPDATE seasons SET episode_count = ?, poster_path = ?, air_date = ?, fetched_at = NOW() WHERE id = ?`,
-        [tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate, seasonId],
+        `UPDATE seasons SET episode_count = ?, poster_path = ?, air_date = ?, season_type = ?, fetched_at = NOW() WHERE id = ?`,
+        [tmdbSeason.episodeCount, tmdbSeason.posterPath, tmdbSeason.airDate, tmdbSeason.seasonType ?? 'regular', seasonId],
       );
     }
 
@@ -331,7 +331,7 @@ export async function getShowSeasonList(showTmdbId: number) {
   const show = showRows[0];
   if (!show) throw new Error(`Show ${showTmdbId} not in DB`);
   const [rows] = await pool.query<SeasonRow[]>(
-    'SELECT season_number, episode_count, poster_path FROM seasons WHERE show_id = ? AND season_number > 0 ORDER BY season_number',
+    'SELECT season_number, episode_count, poster_path FROM seasons WHERE show_id = ? ORDER BY season_number',
     [show.id],
   );
   return rows.map((r) => ({ seasonNumber: r.season_number, episodeCount: r.episode_count, posterPath: r.poster_path }));

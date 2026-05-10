@@ -80,6 +80,7 @@ export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise
     overview: raw['overview'] ?? null,
     posterPath: raw['poster_path'] ?? null,
     airDate: raw['air_date'] ?? null,
+    seasonType: raw['type'] ?? 'regular',
     episodes: (raw['episodes'] ?? []).map((ep: Record<string, any>) =>
       transformEpisode(ep),
     ),

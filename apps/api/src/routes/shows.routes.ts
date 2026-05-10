@@ -37,7 +37,7 @@ export async function showsRoutes(app: FastifyInstance) {
   app.get('/shows/:tmdbId/seasons/:season', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const tmdbId = Number(params(request).tmdbId);
     const seasonNumber = Number(params(request).season);
-    if (!tmdbId || !seasonNumber) return reply.status(400).send({ error: 'Invalid params' });
+    if (!Number.isInteger(tmdbId) || tmdbId <= 0 || !Number.isInteger(seasonNumber) || seasonNumber < 0) return reply.status(400).send({ error: 'Invalid params' });
 
     const { episodes, showId } = await getOrFetchSeason(tmdbId, seasonNumber);
     const uid = userId(request);

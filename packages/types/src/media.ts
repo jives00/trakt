@@ -63,6 +63,7 @@ export interface Season {
   overview: string | null;
   posterPath: string | null;
   airDate: string | null;
+  seasonType?: string; // 'regular' or 'special' from TMDB
   episodes?: Episode[];
 }
 

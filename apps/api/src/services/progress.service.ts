@@ -28,7 +28,7 @@ export async function getProgress(
        JOIN episodes e2 ON e2.id = wh2.media_id
        WHERE wh2.user_id = ? AND wh2.media_type = 'episode'
      ) watched_shows ON watched_shows.show_id = ts.id
-     JOIN seasons seas ON seas.show_id = ts.id AND seas.season_number > 0
+     JOIN seasons seas ON seas.show_id = ts.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
      JOIN episodes e ON e.season_id = seas.id
        AND (e.air_date IS NULL OR e.air_date <= CURDATE())
      LEFT JOIN watch_history wh
@@ -64,7 +64,7 @@ export async function getProgress(
            PARTITION BY ts.id ORDER BY seas.season_number, e.episode_number
          ) AS rn
        FROM tv_shows ts
-       JOIN seasons seas ON seas.show_id = ts.id AND seas.season_number > 0
+       JOIN seasons seas ON seas.show_id = ts.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
        JOIN episodes e ON e.season_id = seas.id
        LEFT JOIN watch_history wh
          ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?

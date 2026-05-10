@@ -59,7 +59,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
          ) AS rn
        FROM tv_shows s
        JOIN ${TRACKED_SHOWS} tracked ON tracked.media_id = s.id
-       JOIN seasons seas ON seas.show_id = s.id
+       JOIN seasons seas ON seas.show_id = s.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
        JOIN episodes e   ON e.season_id  = seas.id
        LEFT JOIN watch_history wh
          ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
@@ -70,7 +70,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
                 ROW_NUMBER() OVER (PARTITION BY seas2.show_id ORDER BY wh2.watched_at DESC) AS rn2
          FROM watch_history wh2
          JOIN episodes e2   ON e2.id = wh2.media_id
-         JOIN seasons seas2 ON seas2.id = e2.season_id
+         JOIN seasons seas2 ON seas2.id = e2.season_id AND seas2.season_number > 0 AND (seas2.season_type IS NULL OR seas2.season_type != 'special')
          WHERE wh2.media_type = 'episode' AND wh2.user_id = ?
        ) last_watched ON last_watched.show_id = s.id AND last_watched.rn2 = 1
        WHERE wh.id IS NULL
@@ -92,7 +92,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        COUNT(DISTINCT CASE WHEN wh.id IS NOT NULL THEN wh.media_id END) AS watchedCount,
        COUNT(DISTINCT e.id) AS totalAired
      FROM tv_shows s
-     LEFT JOIN seasons seas ON seas.show_id = s.id
+     LEFT JOIN seasons seas ON seas.show_id = s.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
      LEFT JOIN episodes e ON e.season_id = seas.id AND e.air_date <= CURDATE()
      LEFT JOIN watch_history wh ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
      WHERE s.id IN (${showIds.map(() => '?').join(',')})

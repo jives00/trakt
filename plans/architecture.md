@@ -802,7 +802,7 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 - Nav links for `/history`, `/calendar`, `/watchlist` route correctly (no 404s)
 - Integrations page renders the static Emby and Stremio setup guides (exclusion list UI deferred to Phase 2)
 
-### Phase 2 — Scrobbling & Client Addons
+### Phase 2 — Scrobbling & Client Addons ✅ COMPLETE
 1. Scrobble API endpoints in `apps/api`: `POST /api/scrobble/emby`, `POST /api/scrobble/stremio`
 2. Scrobble exclusion endpoints: `GET/POST/DELETE /api/settings/exclusions`
 3. Configure Emby Webhook plugin to point at our endpoint; verify TMDB ID matching from `ProviderIds`
@@ -814,7 +814,7 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 - **TODO (Phase 3):** Test Stremio on devices on the same network by configuring the addon to use the dev machine's local IP (e.g. `http://192.168.1.X:3002/stremio-addon`)
 - **TODO (Phase 3):** Update Stremio addon configuration to use the production domain instead of localhost when deployed to EC2 (e.g. `https://yourdomain.com/stremio-addon/manifest.json`)
 
-### Phase 3 — Production
+### Phase 3 — Production ✅ COMPLETE
 
 **EC2 Deployment:**
 1. SSH into EC2, clone repo, create `.env` from `.env.example`
@@ -838,90 +838,165 @@ Complete all remaining web pages. Build order: API-first (all new endpoints + Su
 
 ---
 
-### Phase 4 — Trakt.tv Data Import (one-time)
+### Phase 4 — Trakt.tv Data Import (one-time) ✅ COMPLETE
 
 A one-time import of existing Trakt.tv data — watch history, ratings, watchlist, collection, and lists. Run once after the app is deployed; data is deduplicated so it's safe to re-run.
 
 #### How it works
 
-Trakt exposes a public REST API (free, no OAuth needed for read-only personal data exports via the `/users/me/...` endpoints when authenticated). The import is a Node.js script in `apps/api/scripts/import-trakt.ts` — not an ongoing service, not a UI feature.
+The import uses a local Trakt data export (JSON files) in `docs/trakt-export/` rather than the live API. This eliminates rate limiting and API call overhead. The import is a Node.js script in `apps/api/scripts/import-trakt.ts` — not an ongoing service, not a UI feature.
 
-**Auth:** Trakt uses OAuth2. The script follows the device-code flow: print a code + URL, wait for the user to approve in a browser, then exchange the code for an access token. Token is used only for the import run and not stored permanently.
+**Data source:** User exports their Trakt data from trakt.tv/settings/data-export as a zip file. Extract to `docs/trakt-export/`. The script parses JSON files locally — no OAuth or API calls needed for Trakt data.
 
 **Data fetched and mapped:**
 
-| Trakt endpoint | Maps to |
-|---|---|
-| `GET /users/me/history/movies` | `watch_history` rows (`media_type=movie`) |
-| `GET /users/me/history/episodes` | `watch_history` rows (`media_type=episode`) |
-| `GET /users/me/ratings/movies` | `ratings` rows |
-| `GET /users/me/ratings/shows` | `ratings` rows |
-| `GET /users/me/ratings/episodes` | `ratings` rows |
-| `GET /users/me/watchlist/movies` | `watchlist` rows |
-| `GET /users/me/watchlist/shows` | `watchlist` rows |
-| `GET /users/me/collection/movies` | `collection` rows |
-| `GET /users/me/collection/shows` | `collection` rows |
-| `GET /users/me/lists` + `/lists/:id/items` | `lists` + `list_items` rows |
+| Trakt endpoint | Maps to | Notes |
+|---|---|---|
+| `GET /users/me/history/movies` | `watch_history` rows (`media_type=movie`) | `source='trakt.tv'` |
+| `GET /users/me/history/episodes` | `watch_history` rows (`media_type=episode`) | `source='trakt.tv'`; episode resolved via TMDB pre-fetch (see below) |
+| `GET /users/me/ratings/movies` | `ratings` rows (`media_type=movie`) | |
+| `GET /users/me/ratings/shows` | `ratings` rows (`media_type=show`) | UI filter tab "Shows" surfaces these |
+| `GET /users/me/watchlist/movies` | `watchlist` rows (`media_type=movie`) | `listed_at` → `added_at`; `rank` → `sort_order`; `notes` dropped |
+| `GET /users/me/watchlist/shows` | `watchlist` rows (`media_type=show`) | Same field mapping as movies |
+| `GET /users/me/collection/movies` | `collection` rows (`media_type=movie`) | `collected_at` → `added_at`; `available_on`/`metadata` dropped |
+| `GET /users/me/collection/shows` | `collection` rows (`media_type=show`) | One row per show using `last_collected_at`; per-episode/season detail dropped |
+| `GET /users/me/lists` | `lists` rows | Created first so item inserts can reference the DB id; `sort_by`/`sort_how` stored (see Lists Sorting below) |
+| `GET /users/me/lists/:slug/items` | `list_items` rows | `rank` → `sort_order`; `notes` dropped; mixed movie/show items both carry `ids.tmdb` |
 
-Trakt includes TMDB IDs on every item (`ids.tmdb`), so all records resolve directly to our canonical TMDB-keyed schema without extra lookups.
+**What is not imported:** episode ratings (none exist), season ratings (no equivalent), watchlist/list-item notes (no equivalent), collection per-episode granularity and format metadata, comments/shouts, social/friend data.
 
-**Deduplication:** Each insert uses `INSERT IGNORE` (keyed on `user_id + media_type + media_id + watched_at` for history; `user_id + media_type + media_id` for ratings, collection, watchlist). Safe to re-run.
+#### Schema changes required before running the import
 
-**Pagination:** All Trakt history endpoints are paginated (default 1000/page). The script loops until all pages are consumed.
+**1. `watch_history.source` — add `'trakt.tv'`**
 
-**Rate limiting:** Trakt allows 1000 API calls per 5-minute window. The script throttles to ~3 req/s to stay well under the limit. Large histories (10k+ entries) take a few minutes.
+The `source` column must be extended to include a new enum value:
+```sql
+ALTER TABLE watch_history MODIFY COLUMN source ENUM('manual','emby','stremio','trakt.tv') NOT NULL DEFAULT 'manual';
+```
+
+**2. `episodes.tmdb_id` — add column and index**
+
+Episodes fetched from TMDB will store their TMDB episode ID, enabling direct lookup during import instead of repeated API calls:
+```sql
+ALTER TABLE episodes ADD COLUMN tmdb_id INT NULL AFTER id;
+ALTER TABLE episodes ADD UNIQUE INDEX idx_episodes_tmdb_id (tmdb_id);
+```
+The TMDB episode fetch code must be updated to populate this column when inserting/updating episode rows.
+
+**3. `watchlist` table — add sort_order column**
+
+```sql
+ALTER TABLE watchlist ADD COLUMN sort_order INT NULL;
+```
+The watchlist API (`GET /api/watchlist`) should order by `sort_order ASC NULLS LAST` so manually ranked items appear first and any items added outside of Trakt fall at the end.
+
+**4. `lists` table — add sorting columns**
+
+```sql
+ALTER TABLE lists ADD COLUMN sort_by VARCHAR(32) NOT NULL DEFAULT 'rank';
+ALTER TABLE lists ADD COLUMN sort_how VARCHAR(4) NOT NULL DEFAULT 'asc';
+```
+The lists API and UI should be updated to expose and use these columns (see Lists Sorting below).
+
+#### Episode resolution strategy (performance)
+
+Trakt history provides `episode.ids.tmdb` (the episode's TMDB ID) plus `show.ids.tmdb`, `episode.season`, and `episode.number`. Our `watch_history` table stores the internal DB episode ID, so we must resolve each episode before inserting.
+
+**The problem:** a large history (thousands of episodes) across dozens of shows could require hundreds of TMDB season-fetch API calls if no episodes are cached yet.
+
+**The solution — two-pass approach:**
+
+1. **Pre-fetch pass:** Collect all unique `(showTmdbId, seasonNumber)` pairs from the full episode history before inserting any rows. Fetch each unique season from TMDB in order at ~3 req/s. `getOrFetchEpisode` already caches season results in the DB and will populate `episodes.tmdb_id`. After this pass, all required episodes exist locally.
+
+2. **Import pass:** For each history row, look up the episode by `SELECT id FROM episodes WHERE tmdb_id = ?` — pure DB lookup, no API calls. Insert the `watch_history` row.
+
+This bounds TMDB calls to the number of unique seasons (e.g., 50 shows × 5 seasons avg = ~250 calls, ~90 seconds at 3 req/s), not the number of history rows.
+
+#### Lists — creation order
+
+Lists must be inserted before their items. The script processes in this order:
+1. Fetch all lists → insert into `lists` → capture the returned DB `id` for each
+2. For each list, fetch its items → resolve each item's TMDB ID to a DB `media_id` → insert into `list_items`
+
+Collection and watchlist are flat tables with no container; those rows are inserted directly.
+
+#### Lists sorting
+
+Trakt stores `sort_by` (title | rank | added | watchers | plays | percentage | votes | my_rating | random | watched | collected) and `sort_how` (asc | desc) per list. These will be stored in the new `lists.sort_by` and `sort_how` columns and used to default the sort order on the `/lists/[id]` page. The lists API (`GET /api/lists/:id/items`) should accept an optional `?sort_by=` and `?sort_how=` query param that overrides the stored preference.
+
+#### Deduplication
+
+Each insert uses `INSERT IGNORE`:
+- `watch_history`: keyed on `(user_id, media_type, media_id, watched_at)`
+- `ratings`: keyed on `(user_id, media_type, media_id)`
+- `watchlist`: keyed on `(user_id, media_type, media_id)`
+- `collection`: keyed on `(user_id, media_type, media_id)`
+- `lists`: keyed on `(user_id, name)` — re-run will not duplicate lists
+- `list_items`: keyed on `(list_id, media_type, media_id)`
+
+Safe to re-run after partial failures.
+
+#### Pre-import data clear
+
+Before running the import, all existing user data must be truncated so Trakt becomes the source of truth:
+
+```sql
+DELETE FROM watch_history WHERE user_id = 1;
+DELETE FROM ratings WHERE user_id = 1;
+DELETE FROM watchlist WHERE user_id = 1;
+DELETE FROM collection WHERE user_id = 1;
+DELETE FROM list_items WHERE list_id IN (SELECT id FROM lists WHERE user_id = 1);
+DELETE FROM lists WHERE user_id = 1;
+DELETE FROM now_playing WHERE user_id = 1;
+```
+
+The script should include a `--clear` flag that runs these deletes before importing, or the user should run them manually if preferred.
+
+**Performance:** With 329 unique shows and ~12,850 episodes across 19 history files, the pre-fetch must handle ~1,300 unique seasons. At 3 req/s throttle (TMDB limit), pre-fetch takes ~7 minutes. Parse + insert passes are pure local/DB and fast (~2 minutes total). **Total runtime: ~10 minutes.**
 
 #### Script location and usage
 
 ```
 apps/api/scripts/import-trakt.ts
+docs/trakt-export/          # extracted Trakt data export zip
 ```
 
 ```bash
-# From repo root
 pnpm --filter api import:trakt
-
-# Or directly
-npx tsx apps/api/scripts/import-trakt.ts
 ```
 
-The script logs a summary on completion: rows inserted per table, rows skipped (duplicates), any items where TMDB ID was missing (logged but not fatal).
+The script:
+1. Parses all JSON files from `docs/trakt-export/`
+2. Collects unique `(showTmdbId, seasonNumber)` pairs from history
+3. Pre-fetches all seasons from TMDB (throttled ~3 req/s)
+4. Inserts data into all tables
+5. Logs summary: rows inserted per table, rows skipped (duplicates), any items where TMDB ID was missing
 
-#### Required env vars (add to `.env`)
+#### Setup before running
 
-```env
-TRAKT_CLIENT_ID=your_trakt_app_client_id
-TRAKT_CLIENT_SECRET=your_trakt_app_client_secret
-```
-
-Register a Trakt app at [trakt.tv/oauth/applications/new](https://trakt.tv/oauth/applications/new) (free, select "Media Center" type, redirect URI can be `urn:ietf:wg:oauth:2.0:oob` for device-code flow).
-
-#### What is NOT imported
-
-- Comments and shouts (no equivalent in this app)
-- Trakt-specific ratings for seasons (Trakt supports season ratings; this app does not)
-- Social / friend data
+1. Export data from Trakt: https://trakt.tv/settings/data-export
+2. Extract the zip to `docs/trakt-export/` (script looks for files there)
+3. Run pre-import data clear (see "Pre-import data clear" section above)
+4. Run the script
 
 #### Verification
 
-After the import, check the dashboard: watch history totals should match your Trakt profile's "movies watched" and "episodes watched" counts. Spot-check 3–5 entries in `/history` against Trakt's history page.
+After the import, check the dashboard: watch history totals should match your Trakt profile's "movies watched" and "episodes watched" counts. Spot-check 3–5 entries in `/history` against Trakt's history page. Re-running the script should report 0 new rows inserted.
 
 ---
 
-### Phase 5 — Polish
+### Phase 5 — Web Finalization & Security Hardening
 
-**Security hardening:**
+**Security:**
 - Add `@fastify/helmet` to `apps/api/src/app.ts` — sets `X-Content-Type-Options`, `X-Frame-Options`, `HSTS`, and CSP headers on every response
 - Add rate limiting to `POST /api/auth/login` using `@fastify/rate-limit` (e.g. 10 attempts / 15 min per IP) to prevent brute-force attacks
-- Strengthen password validation in `packages/types/src/auth.ts` — minimum 8 characters (the single admin password is set once at deploy time; complexity requirements protect the seeded account)
 - Add abort controllers to all fetch calls in `apps/web/lib/api.ts` so in-flight requests are cancelled on component unmount or route change
 
-**Mobile offline / caching:**
-- Add TanStack Query (React Query) to the mobile app for data caching and stale-while-revalidate
-- Cache TTLs: metadata (shows/movies) 24h, dashboard 5min, history/progress 1h
-- On app focus, background refetch silently
-- No write-queue or true offline mode — reads show cached data when offline, writes fail with a toast notification
-- No changes needed to the API
+**Web UI refinement:**
+- User testing and feedback iteration
+- Visual polish and UX enhancements
+- Edge case handling and error states
+- Performance optimization (bundle size, render optimization)
 
 ---
 
@@ -937,6 +1012,7 @@ Full feature parity with the web. Build in the same order as Phases 0–1.
 7. Library tab: History, Progress, Collection, Lists, Ratings, Calendar
 8. Stats screens
 9. Settings + Integrations screens
+10. Offline caching: Add TanStack Query (React Query) for data caching and stale-while-revalidate. Cache TTLs: metadata (shows/movies) 24h, dashboard 5min, history/progress 1h. On app focus, background refetch silently. No write-queue or true offline mode — reads show cached data when offline, writes fail with a toast notification.
 
 ---
 
