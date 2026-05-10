@@ -94,15 +94,19 @@ export async function getOrFetchShow(tmdbId: number) {
         `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ? WHERE id = ?`,
         [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
-      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      if (process.env.NODE_ENV !== 'test') {
+        backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+        backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      }
       return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc, imdbId));
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
       await pool.query('UPDATE tv_shows SET season_count = ? WHERE id = ?', [seasonCount, row.id]);
-      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      if (process.env.NODE_ENV !== 'test') {
+        backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+        backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      }
       return applyImageOverrides('show', rowToShow(row, seasonCount, imdbId));
     }
     const show = rowToShow(row, row.season_count, imdbId);
@@ -116,8 +120,10 @@ export async function getOrFetchShow(tmdbId: number) {
         await pool.query('UPDATE tv_shows SET runtime_min = ? WHERE id = ?', [show.runtimeMin, row.id]);
       }
     }
-    backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-    backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+    if (process.env.NODE_ENV !== 'test') {
+      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
+      backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+    }
     return applyImageOverrides('show', show);
   }
 
@@ -135,7 +141,9 @@ export async function getOrFetchShow(tmdbId: number) {
   const [inserted] = await pool.query<ShowRow[]>('SELECT * FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
   const imdbId = await getShowImdbId(inserted[0].id);
   const result = rowToShow(inserted[0], seasonCount, imdbId);
-  backfillShowImdbRating(result.id, tmdbId).catch(() => {});
+  if (process.env.NODE_ENV !== 'test') {
+    backfillShowImdbRating(result.id, tmdbId).catch(() => {});
+  }
   return applyImageOverrides('show', result);
 }
 

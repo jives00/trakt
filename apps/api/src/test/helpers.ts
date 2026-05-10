@@ -2,18 +2,24 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import mysql from 'mysql2/promise';
 
-const DB_CONFIG = {
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 3306),
-  database: process.env.DB_NAME ?? 'trakt_test',
-  user: process.env.DB_USER ?? 'trakt',
-  password: process.env.DB_PASSWORD ?? '',
-};
-
 let pool: mysql.Pool | null = null;
 
 export function getPool(): mysql.Pool {
-  if (!pool) pool = mysql.createPool(DB_CONFIG);
+  if (!pool) {
+    const workerId = process.env.VITEST_WORKER_ID ?? '0';
+    const workerNum = (Number(workerId) % 18) + 1; // Map to 1-18
+    const dbName = `trakt_test_${workerNum}`;
+
+    const DB_CONFIG = {
+      host: process.env.DB_HOST ?? 'localhost',
+      port: Number(process.env.DB_PORT ?? 3306),
+      database: dbName,
+      user: process.env.DB_USER ?? 'trakt',
+      password: process.env.DB_PASSWORD ?? '',
+    };
+
+    pool = mysql.createPool(DB_CONFIG);
+  }
   return pool;
 }
 
@@ -31,9 +37,6 @@ const SEED_SQL = readFileSync(
 );
 
 export async function resetDb(): Promise<void> {
-  // Drain any in-flight async operations (e.g. prefetchAllSeasons) before truncating,
-  // so their inserts don't race with the seed's explicit IDs.
-  await new Promise(resolve => setTimeout(resolve, 50));
   const conn = await getPool().getConnection();
   try {
     await conn.query('SET FOREIGN_KEY_CHECKS = 0');

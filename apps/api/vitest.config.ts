@@ -13,11 +13,12 @@ export default defineConfig({
   test: {
     environment: 'node',
     testTimeout: 10000,
-    maxWorkers: 1,
+    maxWorkers: 4,
     minWorkers: 1,
+    globalSetup: './src/test/globalSetup.ts',
+    globalTeardown: './src/test/globalTeardown.ts',
     env: {
       ...env,
-      DB_NAME: 'trakt_test',
     },
   },
 });

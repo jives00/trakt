@@ -130,8 +130,10 @@ export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { i
   if (rows.length > 0) {
     const imdbId = await getMovieImdbId(rows[0].id);
     const movie = rowToMovie(rows[0], imdbId);
-    backfillMovieImdbRating(movie.id, tmdbId).catch(() => {});
-    backfillMovieTmdbRating(movie.id, tmdbId).catch(() => {});
+    if (process.env.NODE_ENV !== 'test') {
+      backfillMovieImdbRating(movie.id, tmdbId).catch(() => {});
+      backfillMovieTmdbRating(movie.id, tmdbId).catch(() => {});
+    }
     return movie;
   }
 
@@ -149,8 +151,10 @@ export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { i
   const [inserted] = await pool.query<MovieRow[]>('SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId]);
   const imdbId = await getMovieImdbId(inserted[0].id);
   const result = rowToMovie(inserted[0], imdbId);
-  backfillMovieImdbRating(result.id, tmdbId).catch(() => {});
-  backfillMovieTmdbRating(result.id, tmdbId).catch(() => {});
+  if (process.env.NODE_ENV !== 'test') {
+    backfillMovieImdbRating(result.id, tmdbId).catch(() => {});
+    backfillMovieTmdbRating(result.id, tmdbId).catch(() => {});
+  }
   return result;
 }
 

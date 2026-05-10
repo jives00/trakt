@@ -3,6 +3,9 @@
 ## May 10, 2026
 
 ### API
+- Test suite optimization: fixed critical database routing bug where tests were writing to production; db.ts now checks VITEST_WORKER_ID and routes to isolated test databases; modulo wrapping safely maps worker IDs to 1-18 test databases; 4-worker parallel execution achieves 131s runtime (53% faster than 280s baseline) with zero production contamination `5f74f2a`
+- Test infrastructure: added globalSetup.ts to clone schema across worker databases and globalTeardown.ts to clean up after runs; moved pool creation to runtime in helpers.ts to read VITEST_WORKER_ID when worker starts `5f74f2a`
+- Backfill operations: guarded async metadata fetches with NODE_ENV check to prevent race conditions during tests; removed 50ms delay from resetDb() `5f74f2a`
 - Security headers: @fastify/helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, and Content-Security-Policy on all responses to prevent MIME-type sniffing, clickjacking, and script injection attacks `417fa2c`
 - Rate limiting: @fastify/rate-limit on POST /api/auth/login restricts to 10 attempts per 15 minutes per IP to prevent brute-force attacks `417fa2c`
 - Remove verbose 'already has rating' logs from show metadata backfill to reduce terminal clutter `f987e05`

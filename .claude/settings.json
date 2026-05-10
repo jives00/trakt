@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(pnpm *)",
+      "PowerShell(gh *)",
+      "Read",
+      "Edit"
+    ]
+  }
+}
