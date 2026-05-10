@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, forceRefreshShowMetadata, forceRefreshShowSeasons, forceRefreshEpisode, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
-  getShowStatus, toggleWatchlist, toggleCollection,
+  getShowStatus, toggleWatchlist, toggleCollection, removeFromWatchlist, removeFromCollection,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
   markShowWatched, unmarkShowWatched,
 } from '../services/user-media.service';
@@ -115,8 +115,8 @@ export async function showsRoutes(app: FastifyInstance) {
   app.delete('/shows/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
     const tmdbId = Number(params(request).tmdbId);
     const show = await getOrFetchShow(tmdbId);
-    const added = await toggleWatchlist(userId(request), 'show', show.id);
-    return { inWatchlist: added };
+    await removeFromWatchlist(userId(request), 'show', show.id);
+    return { inWatchlist: false };
   });
 
   app.post('/shows/:tmdbId/collection', auth, async (request: FastifyRequest) => {
@@ -129,8 +129,8 @@ export async function showsRoutes(app: FastifyInstance) {
   app.delete('/shows/:tmdbId/collection', auth, async (request: FastifyRequest) => {
     const tmdbId = Number(params(request).tmdbId);
     const show = await getOrFetchShow(tmdbId);
-    const added = await toggleCollection(userId(request), 'show', show.id);
-    return { inCollection: added };
+    await removeFromCollection(userId(request), 'show', show.id);
+    return { inCollection: false };
   });
 
   app.get('/shows/:tmdbId/cast', auth, async (request: FastifyRequest) => {

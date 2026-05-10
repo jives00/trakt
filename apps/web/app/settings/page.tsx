@@ -126,6 +126,25 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+
+          {/* Terminology */}
+          <div className="glass-panel rounded-xl p-5">
+            <h3 className="font-bold text-white mb-4">Watchlist vs Collection vs Lists</h3>
+            <div className="space-y-4 text-sm text-white/40">
+              <div>
+                <h4 className="font-semibold text-white mb-1">Watchlist</h4>
+                <p className="text-xs leading-relaxed">Shows/movies you <span className="text-white/60">plan to watch</span>. Tracked shows appear in your Up Next dashboard for easy access to what's coming next. Use this for things you want to start.</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-white mb-1">Collection</h4>
+                <p className="text-xs leading-relaxed">Shows/movies you <span className="text-white/60">own or have access to</span> (physical media, subscription services, etc.). Also appears in Up Next like Watchlist. Use this to track what media you actually possess.</p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-white mb-1">Lists</h4>
+                <p className="text-xs leading-relaxed"><span className="text-white/60">Custom organizational containers</span> you create for any purpose (favorites, recommendations, themed collections, etc.). Can contain shows, movies, and episodes. Does NOT affect Up Next — purely for curation and reference.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

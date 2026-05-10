@@ -107,6 +107,38 @@ export async function toggleCollection(userId: number, mediaType: MediaType, med
   }
 }
 
+export async function removeFromWatchlist(userId: number, mediaType: MediaType, mediaId: number) {
+  const pool = getPool();
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query('DELETE FROM watchlist WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
+    await conn.commit();
+    return true;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
+export async function removeFromCollection(userId: number, mediaType: MediaType, mediaId: number) {
+  const pool = getPool();
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query('DELETE FROM collection WHERE user_id=? AND media_type=? AND media_id=?', [userId, mediaType, mediaId]);
+    await conn.commit();
+    return true;
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
 export async function markMovieWatched(userId: number, movieId: number) {
   const pool = getPool();
   await pool.query(

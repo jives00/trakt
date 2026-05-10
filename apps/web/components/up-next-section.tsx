@@ -141,21 +141,6 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
   const episodeHref = `/shows/${item.showTmdbId}/seasons/${item.seasonNumber}/episodes/${item.episodeNumber}`;
   const showHref = `/shows/${item.showTmdbId}`;
 
-  useEffect(() => {
-    if (!isRemoving) return;
-    const timer = setTimeout(async () => {
-      if (token) {
-        try {
-          await onWatched(item.episodeId);
-        } catch (error) {
-          console.error("Failed to remove card:", error);
-          setIsRemoving(false);
-        }
-      }
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [isRemoving, token, item.episodeId, onWatched]);
-
   const handleMarkAsWatched = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!token || isMarking) return;
@@ -167,6 +152,24 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
       await api.toggleEpisodeWatched(item.showTmdbId, item.seasonNumber, item.episodeNumber, false, token);
     } catch (error) {
       setIsMarking(false);
+      setIsRemoving(false);
+    }
+  };
+
+  const handleDismiss = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!token || isRemoving) return;
+
+    onRemovalStart(item.episodeId);
+    setIsRemoving(true);
+    try {
+      await Promise.all([
+        api.toggleShowWatchlist(item.showTmdbId, true, token),
+        api.toggleShowCollection(item.showTmdbId, true, token),
+      ]);
+      await onWatched(item.episodeId);
+    } catch (error) {
+      console.error("Failed to dismiss show:", error);
       setIsRemoving(false);
     }
   };
@@ -187,14 +190,22 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
             {item.showTitle}
           </div>
         )}
-        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3">
           <button
             onClick={handleMarkAsWatched}
             disabled={isMarking}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#e8002d] hover:bg-[#cc0028] disabled:opacity-50 text-white font-semibold transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#e8002d] hover:bg-[#cc0028] disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
           >
             <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-            Mark as Watched
+            Watched
+          </button>
+          <button
+            onClick={handleDismiss}
+            disabled={isRemoving}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
+          >
+            <span className="material-symbols-outlined text-base">close</span>
+            Remove
           </button>
         </div>
         <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">

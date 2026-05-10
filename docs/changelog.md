@@ -10,6 +10,7 @@
 - Abort controllers: all fetch calls in api.ts support AbortSignal to cancel in-flight requests on component unmount or route change, preventing memory leaks and race conditions `417fa2c`
 - useApiController hook: React hook that creates and cleans up an AbortController on component mount/unmount; useApiCleanup hook for route-level cleanup `417fa2c`
 - API utilities: createApiController() creates and registers controllers for cleanup; cancelAllRequests() cancels all active requests on navigation `417fa2c`
+- Dashboard hero stats: changed from Shows Collected/Episodes Watched/Days Watched to Movies Watched/Shows Watched/Episodes Watched `55d07ba`
 
 ## May 8, 2026
 

@@ -76,7 +76,6 @@ export default function DashboardPage() {
 }
 
 function HeroSection({ username, alltime }: { username: string; alltime: StatsAllTime | null }) {
-  const daysWatched = alltime ? Math.round(alltime.totalMinutes / 1440) : 0;
   return (
     <section className="relative overflow-hidden bg-surface-container-low">
       <div className="px-margin-page py-12 md:py-16">
@@ -96,9 +95,9 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
             <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
             {alltime && (
               <div className="flex gap-8 md:gap-12">
-                <Stat label="Shows Collected" value={alltime.totalShows.toLocaleString()} />
+                <Stat label="Movies Watched" value={alltime.totalMovies.toLocaleString()} />
+                <Stat label="Shows Watched" value={alltime.totalShows.toLocaleString()} />
                 <Stat label="Episodes Watched" value={alltime.totalEpisodes.toLocaleString()} />
-                <Stat label="Days Watched" value={daysWatched.toLocaleString()} />
               </div>
             )}
           </div>

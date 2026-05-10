@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import { getOrFetchMovie, getOrFetchMovieCast, getOrFetchMovieCrew, forceRefreshMovieMetadata, forceRefreshMovieCast } from '../services/movies.service';
 import {
-  getMovieStatus, toggleWatchlist, toggleCollection,
+  getMovieStatus, toggleWatchlist, toggleCollection, removeFromWatchlist, removeFromCollection,
   markMovieWatched, unmarkMovieWatched,
 } from '../services/user-media.service';
 import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
@@ -50,8 +50,8 @@ export async function moviesRoutes(app: FastifyInstance) {
   app.delete('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
     const tmdbId = Number((request.params as any).tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
-    const added = await toggleWatchlist(userId(request), 'movie', movie.id);
-    return { inWatchlist: added };
+    await removeFromWatchlist(userId(request), 'movie', movie.id);
+    return { inWatchlist: false };
   });
 
   app.post('/movies/:tmdbId/collection', auth, async (request: FastifyRequest) => {
@@ -64,8 +64,8 @@ export async function moviesRoutes(app: FastifyInstance) {
   app.delete('/movies/:tmdbId/collection', auth, async (request: FastifyRequest) => {
     const tmdbId = Number((request.params as any).tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
-    const added = await toggleCollection(userId(request), 'movie', movie.id);
-    return { inCollection: added };
+    await removeFromCollection(userId(request), 'movie', movie.id);
+    return { inCollection: false };
   });
 
   app.get('/movies/:tmdbId/cast', auth, async (request: FastifyRequest) => {
