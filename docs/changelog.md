@@ -13,6 +13,10 @@
 - Watch history endpoints: GET /api/movies/{tmdbId}/history and GET /api/shows/{tmdbId}/seasons/{season}/episodes/{ep}/history return all watch_history entries ordered by watched_at DESC with media metadata `49b3d36`
 
 ### Web
+- Multi-theme support: CSS custom properties (--accent-rgb) replace all hardcoded #e8002d values; Tailwind config uses rgb(var(--accent-rgb)/<alpha-value>) tokens; ThemeProvider context with localStorage persistence and no-flash inline script; theme picker in Settings `8540232`
+- Blue Dark theme: #0066ff accent with neutral glass panel backgrounds; all interactive elements (sidebar active border, buttons, hovers, progress bars, charts) switch with theme `8540232`
+- Watch date picker buttons: increased opacity for better visibility over artwork; text-white for legibility; font-semibold to match Remove button weight `8540232`
+- Fix search placeholder mojibake: corrected "…" encoding in top-nav.tsx `8540232`
 - Abort controllers: all fetch calls in api.ts support AbortSignal to cancel in-flight requests on component unmount or route change, preventing memory leaks and race conditions `417fa2c`
 - useApiController hook: React hook that creates and cleans up an AbortController on component mount/unmount; useApiCleanup hook for route-level cleanup `417fa2c`
 - API utilities: createApiController() creates and registers controllers for cleanup; cancelAllRequests() cancels all active requests on navigation `417fa2c`

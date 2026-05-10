@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -46,7 +46,7 @@ export default function CollectionPage() {
               onClick={() => setFilter(f)}
               className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
                 filter === f
-                  ? "bg-[#e8002d] text-white"
+                  ? "bg-accent text-white"
                   : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
               }`}
             >
@@ -55,7 +55,7 @@ export default function CollectionPage() {
           ))}
         </div>
 
-        {fetching && <p className="text-white/40">Loading…</p>}
+        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
@@ -97,8 +97,9 @@ function CollectionCard({ item }: { item: CollectionItem }) {
           </span>
         </div>
       </div>
-      <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#e8002d] transition-colors">{item.title}</p>
+      <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-accent transition-colors">{item.title}</p>
       {item.year && <p className="text-xs text-white/40">{item.year}</p>}
     </Link>
   );
 }
+

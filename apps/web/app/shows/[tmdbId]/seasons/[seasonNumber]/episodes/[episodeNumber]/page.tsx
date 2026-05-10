@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -278,7 +278,7 @@ export default function EpisodeDetailPage() {
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#e8002d]">person</span>
+                  <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
                 <WatchDatePicker
@@ -306,7 +306,7 @@ export default function EpisodeDetailPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveLatest(entry.id)}
-                          className="text-white/40 hover:text-[#e8002d] transition-colors ml-2"
+                          className="text-white/40 hover:text-accent transition-colors ml-2"
                         >
                           <span className="material-symbols-outlined text-base">close</span>
                         </button>
@@ -320,7 +320,7 @@ export default function EpisodeDetailPage() {
                 href={`https://www.themoviedb.org/tv/${tmdbId}/season/${sn}/episode/${ep}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
               >
                 View on TMDB
               </Link>
@@ -358,7 +358,7 @@ function CastCard({ member }: { member: CastMember }) {
           </div>
         )}
       </div>
-      <p className="text-white text-xs font-semibold line-clamp-2 group-hover:text-[#e8002d] transition-colors">{member.name}</p>
+      <p className="text-white text-xs font-semibold line-clamp-2 group-hover:text-accent transition-colors">{member.name}</p>
       <p className="text-white/50 text-[10px] line-clamp-2 mt-0.5">{member.character}</p>
     </a>
   );

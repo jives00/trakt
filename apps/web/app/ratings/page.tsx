@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -74,7 +74,7 @@ export default function RatingsPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                  filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                  filter === f ? "bg-accent text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
                 }`}
               >
                 {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1) + "s"}
@@ -96,7 +96,7 @@ export default function RatingsPage() {
           </div>
         </div>
 
-        {fetching && items.length === 0 && <p className="text-white/40">Loading…</p>}
+        {fetching && items.length === 0 && <p className="text-white/40">Loadingâ€¦</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
@@ -118,7 +118,7 @@ export default function RatingsPage() {
               disabled={fetching}
               className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
             >
-              {fetching ? "Loading…" : "Load More"}
+              {fetching ? "Loadingâ€¦" : "Load More"}
             </button>
           </div>
         )}
@@ -150,21 +150,21 @@ function RatingCard({ item, onDelete }: { item: RatingItem; onDelete: () => void
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
           <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-full">
-            <span className="material-symbols-outlined text-xs text-[#e8002d]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+            <span className="material-symbols-outlined text-xs text-accent" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
             <span className="text-xs font-bold text-white">{item.rating}/10</span>
           </div>
         </div>
-        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#e8002d] transition-colors">{displayTitle}</p>
+        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-accent transition-colors">{displayTitle}</p>
         {item.year && <p className="text-xs text-white/40">{item.year}</p>}
         {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
-          <p className="text-xs text-[#e8002d] font-bold">
+          <p className="text-xs text-accent font-bold">
             S{String(item.seasonNumber).padStart(2, "0")}E{String(item.episodeNumber).padStart(2, "0")}
           </p>
         )}
       </Link>
       <button
         onClick={onDelete}
-        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white/40 hover:text-[#e8002d] transition-colors opacity-0 group-hover:opacity-100 material-symbols-outlined text-base"
+        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white/40 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 material-symbols-outlined text-base"
         aria-label="Delete rating"
       >
         close
@@ -172,3 +172,4 @@ function RatingCard({ item, onDelete }: { item: RatingItem; onDelete: () => void
     </div>
   );
 }
+

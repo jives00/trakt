@@ -91,7 +91,7 @@ export default function StatsMonthPage() {
                     labelStyle={{ color: "#e2e2e2" }}
                     formatter={(v) => [`${typeof v === "number" ? v : 0}h`, "Hours"]}
                   />
-                  <Bar dataKey="hours" fill="#e8002d" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

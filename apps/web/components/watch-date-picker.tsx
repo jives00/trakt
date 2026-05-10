@@ -75,7 +75,7 @@ export function WatchDatePicker({
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-red-900/30 border border-red-500/50 text-red-400 hover:bg-red-900/50 transition-colors text-sm font-medium"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
           Watched
@@ -135,7 +135,7 @@ export function WatchDatePicker({
             handleMarkToday();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-l-md bg-red-900/30 border border-red-500/50 text-red-400 hover:bg-red-900/50 transition-colors text-sm font-medium"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-l-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
           Mark Watched
@@ -151,7 +151,7 @@ export function WatchDatePicker({
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="px-2 py-2 rounded-r-md bg-red-900/30 border border-l-0 border-red-500/50 text-red-400 hover:bg-red-900/50 transition-colors text-xs"
+          className="px-2 py-2 rounded-r-md bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs"
         >
           ▾
         </button>
@@ -182,7 +182,7 @@ export function WatchDatePicker({
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className="px-2 py-1 rounded bg-red-900 text-red-200 text-sm hover:bg-red-800 transition-colors"
+                  className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
                 >
                   Confirm
                 </button>

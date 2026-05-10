@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -63,7 +63,7 @@ export default function CalendarPage() {
       <div>
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
-            <span className="text-[#e8002d] text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
+            <span className="text-accent text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
             <h1 className="text-h1 font-black tracking-tight text-white">UPCOMING SCHEDULE</h1>
           </div>
           <div className="flex gap-3 items-center">
@@ -73,7 +73,7 @@ export default function CalendarPage() {
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                    filter === f ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
+                    filter === f ? "bg-accent text-white" : "text-white/40 hover:text-white"
                   }`}
                 >
                   {f === "all" ? "All" : f === "tv" ? "Episodes" : "Movies"}
@@ -83,7 +83,7 @@ export default function CalendarPage() {
             <select
               value={range}
               onChange={(e) => setRange(Number(e.target.value))}
-              className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-[#e8002d] transition-colors"
+              className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-accent transition-colors"
             >
               <option value={7}>Next 7 days</option>
               <option value={14}>Next 14 days</option>
@@ -93,7 +93,7 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        {fetching && <p className="text-white/40">Loading…</p>}
+        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
 
         {!fetching && groups.length === 0 && (
           <div className="text-center py-24">
@@ -134,16 +134,16 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
   return (
     <Link href={`/shows/${entry.showTmdbId}`} className="group relative overflow-hidden rounded-2xl glass-panel block">
       <div className="p-5">
-        <p className="text-[#e8002d] text-[10px] font-black uppercase tracking-widest mb-1">
-          {entry.showTitle} · S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
+        <p className="text-accent text-[10px] font-black uppercase tracking-widest mb-1">
+          {entry.showTitle} Â· S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
         </p>
-        <h3 className="text-white font-bold text-lg leading-tight mb-3 group-hover:text-[#e8002d] transition-colors line-clamp-2">
+        <h3 className="text-white font-bold text-lg leading-tight mb-3 group-hover:text-accent transition-colors line-clamp-2">
           {entry.episodeTitle ?? `Episode ${entry.episodeNumber}`}
         </h3>
         <div className="flex items-center justify-between">
           {time && (
             <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-              <span className="w-2 h-2 rounded-full bg-[#e8002d] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
               <span className="text-[10px] font-bold uppercase tracking-widest text-white">{time}</span>
             </div>
           )}
@@ -155,3 +155,4 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
     </Link>
   );
 }
+

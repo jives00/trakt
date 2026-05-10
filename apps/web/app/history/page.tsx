@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
@@ -40,7 +40,7 @@ function groupByDay(items: HistoryItem[]): [string, HistoryItem[]][] {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  emby: "text-[#e8002d]",
+  emby: "text-accent",
   kodi: "text-[#2a9d8f]",
   stremio: "text-[#8a2be2]",
   manual: "text-white/40",
@@ -112,7 +112,7 @@ export default function HistoryPage() {
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
               filter === f
-                ? "bg-[#e8002d] text-white"
+                ? "bg-accent text-white"
                 : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
             }`}
           >
@@ -122,7 +122,7 @@ export default function HistoryPage() {
       </div>
 
       {fetching && items.length === 0 && (
-        <p className="text-white/40">Loading…</p>
+        <p className="text-white/40">Loadingâ€¦</p>
       )}
 
       {groups.map(([day, dayItems]) => (
@@ -130,7 +130,7 @@ export default function HistoryPage() {
           <div className="flex items-center gap-4 mb-5">
             <h2 className="text-h2 font-bold text-white">{day}</h2>
             <div className="h-px flex-grow bg-white/5" />
-            <span className="text-xs font-bold uppercase tracking-widest text-[#e8002d]">
+            <span className="text-xs font-bold uppercase tracking-widest text-accent">
               {dayItems.length} {dayItems.length === 1 ? "ITEM" : "ITEMS"}
             </span>
           </div>
@@ -149,7 +149,7 @@ export default function HistoryPage() {
             disabled={fetching}
             className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
           >
-            {fetching ? "Loading…" : "Load More"}
+            {fetching ? "Loadingâ€¦" : "Load More"}
           </button>
         </div>
       )}
@@ -193,8 +193,8 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
             </h3>
             {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[11px] text-[#e8002d] font-bold">
-                  S{String(item.seasonNumber).padStart(2, "0")} · E{String(item.episodeNumber).padStart(2, "0")}
+                <span className="text-[11px] text-accent font-bold">
+                  S{String(item.seasonNumber).padStart(2, "0")} Â· E{String(item.episodeNumber).padStart(2, "0")}
                 </span>
                 {item.title && (
                   <span className="text-[11px] text-white/60 truncate">{item.title}</span>
@@ -209,7 +209,7 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
                 <span className="material-symbols-outlined text-xs text-white/20">star</span>
-                <span className="text-xs font-bold text-white/40">—</span>
+                <span className="text-xs font-bold text-white/40">â€”</span>
               </div>
               <div className="bg-[#2a2a2a] px-2 py-1 rounded border border-white/5">
                 <span className={`text-[9px] font-black tracking-tighter uppercase ${SOURCE_COLORS[item.source] ?? "text-white/40"}`}>
@@ -222,7 +222,7 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
             <span className="text-[10px] text-white/40">{formatWatchedAt(item.watchedAt)}</span>
             <button
               onClick={onDelete}
-              className="text-white/20 hover:text-[#e8002d] transition-colors material-symbols-outlined text-lg"
+              className="text-white/20 hover:text-accent transition-colors material-symbols-outlined text-lg"
               aria-label="Delete history entry"
             >
               delete
@@ -233,3 +233,4 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
     </div>
   );
 }
+

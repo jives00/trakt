@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -188,7 +188,7 @@ export default function SeasonDetailPage() {
               {show.status && (
                 <div>
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
-                  <p className="text-[#e8002d] font-bold">{show.status}</p>
+                  <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
@@ -251,7 +251,7 @@ export default function SeasonDetailPage() {
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#e8002d]">person</span>
+                  <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
                 <div className="space-y-2">
@@ -275,7 +275,7 @@ export default function SeasonDetailPage() {
                 href={`https://www.themoviedb.org/tv/${tmdbId}/season/${sn}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
               >
                 View on TMDB
               </Link>

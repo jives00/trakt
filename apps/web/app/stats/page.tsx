@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -35,7 +35,7 @@ export default function StatsPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!stats) return <p className="text-white/40">Loading…</p>;
+  if (!stats) return <p className="text-white/40">Loadingâ€¦</p>;
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
@@ -63,7 +63,7 @@ export default function StatsPage() {
             { label: "Episodes", value: stats.totalEpisodes.toLocaleString(), icon: "play_circle" },
           ].map((s) => (
             <div key={s.label} className="glass-panel rounded-xl p-5">
-              <span className="material-symbols-outlined text-[#e8002d] text-2xl mb-2 block">{s.icon}</span>
+              <span className="material-symbols-outlined text-accent text-2xl mb-2 block">{s.icon}</span>
               <p className="text-2xl font-black text-white">{s.value}</p>
               <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-1">{s.label}</p>
             </div>
@@ -73,7 +73,7 @@ export default function StatsPage() {
         {/* Streak */}
         {stats.longestStreak > 0 && (
           <div className="glass-panel rounded-xl p-5 mb-8 flex items-center gap-4">
-            <span className="material-symbols-outlined text-[#e8002d] text-3xl">local_fire_department</span>
+            <span className="material-symbols-outlined text-accent text-3xl">local_fire_department</span>
             <div>
               <p className="text-2xl font-black text-white">{stats.longestStreak} days</p>
               <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Longest Watch Streak</p>
@@ -93,11 +93,11 @@ export default function StatsPage() {
                   <Tooltip
                     contentStyle={{ background: "#181818", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
                     labelStyle={{ color: "#e2e2e2" }}
-                    itemStyle={{ color: "#e8002d" }}
+                    itemStyle={{ color: "rgb(var(--accent-rgb))" }}
                   />
                   <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                     {stats.topGenres.slice(0, 8).map((_entry, i) => (
-                      <Cell key={i} fill={i === 0 ? "#e8002d" : "rgba(232,0,45,0.4)"} />
+                      <Cell key={i} fill={i === 0 ? "rgb(var(--accent-rgb))" : "rgb(var(--accent-rgb) / 0.4)"} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -115,14 +115,14 @@ export default function StatsPage() {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w92${show.posterPath}` : null;
                 return (
                   <Link key={show.tmdbId} href={`/shows/${show.tmdbId}`}
-                    className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-[#e8002d]/30 transition-all group"
+                    className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-accent/30 transition-all group"
                   >
                     <span className="text-2xl font-black text-white/20 w-8 text-center">{i + 1}</span>
                     <div className="relative w-10 h-14 rounded overflow-hidden bg-[#181818] flex-shrink-0">
                       {posterUrl && <Image src={posterUrl} alt={show.title} fill className="object-cover" />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-white group-hover:text-[#e8002d] transition-colors">{show.title}</p>
+                      <p className="font-bold text-white group-hover:text-accent transition-colors">{show.title}</p>
                       <p className="text-xs text-white/40">{show.episodeCount} episode{show.episodeCount !== 1 ? "s" : ""}</p>
                     </div>
                   </Link>
@@ -148,7 +148,7 @@ export default function StatsPage() {
               <Link
                 key={y}
                 href={`/stats/year/${y}`}
-                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-[#e8002d]/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {y}
               </Link>
@@ -207,3 +207,4 @@ function HeatMap({ data }: { data: { date: string; count: number }[] }) {
     </div>
   );
 }
+

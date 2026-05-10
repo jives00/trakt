@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -65,7 +65,7 @@ export default function ProgressPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                  filter === f ? "bg-[#e8002d] text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                  filter === f ? "bg-accent text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
                 }`}
               >
                 {f === "all" ? "All" : f === "airing" ? "Currently Airing" : "Ended"}
@@ -74,7 +74,7 @@ export default function ProgressPage() {
           </div>
         </header>
 
-        {fetching && <p className="text-white/40">Loading…</p>}
+        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
@@ -123,7 +123,7 @@ function FeaturedCard({ item }: { item: ProgressItem }) {
         <div className="flex items-center gap-2 mb-4">
           <span className="bg-white/10 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">
             {item.nextEpisode
-              ? `S${String(item.nextEpisode.seasonNumber).padStart(2,"0")} · Ep ${item.nextEpisode.episodeNumber}`
+              ? `S${String(item.nextEpisode.seasonNumber).padStart(2,"0")} Â· Ep ${item.nextEpisode.episodeNumber}`
               : "In Progress"
             }
           </span>
@@ -134,18 +134,18 @@ function FeaturedCard({ item }: { item: ProgressItem }) {
         )}
         <div className="flex items-center gap-6">
           <Link href={`/shows/${item.tmdbId}`}
-            className="bg-[#e8002d] text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#e8002d]/20">
+            className="bg-accent text-white px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent/20">
             <span className="material-symbols-outlined text-sm">play_arrow</span> Play Next
           </Link>
           <div className="flex-1">
             <div className="flex justify-between items-center mb-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Total Progress</span>
-              <span className="text-[10px] font-bold text-[#e8002d]">{pct}%</span>
+              <span className="text-[10px] font-bold text-accent">{pct}%</span>
             </div>
             <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#e8002d] rounded-full"
-                style={{ width: `${pct}%`, boxShadow: "0 0 12px rgba(232,0,45,0.6)" }}
+                className="h-full bg-accent rounded-full"
+                style={{ width: `${pct}%`, boxShadow: "0 0 12px rgb(var(--accent-rgb) / 0.6)" }}
               />
             </div>
           </div>
@@ -168,7 +168,7 @@ function QuickStatsPanel({ items }: { items: ProgressItem[] }) {
           <span className="material-symbols-outlined text-sm">trending_up</span> Active this season
         </div>
       </div>
-      <div className="glass-panel p-6 rounded-2xl flex-1 border-l-4 border-[#e8002d]">
+      <div className="glass-panel p-6 rounded-2xl flex-1 border-l-4 border-accent">
         <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-2 block">Next Airing</span>
         {nextAiring ? (
           <>
@@ -176,7 +176,7 @@ function QuickStatsPanel({ items }: { items: ProgressItem[] }) {
             {nextAiring.nextEpisode && (
               <div className="text-sm text-white/60">
                 S{String(nextAiring.nextEpisode.seasonNumber).padStart(2,"0")}E{String(nextAiring.nextEpisode.episodeNumber).padStart(2,"0")}
-                {nextAiring.nextEpisode.title ? ` · ${nextAiring.nextEpisode.title}` : ""}
+                {nextAiring.nextEpisode.title ? ` Â· ${nextAiring.nextEpisode.title}` : ""}
               </div>
             )}
           </>
@@ -217,17 +217,17 @@ function ProgressCard({ item }: { item: ProgressItem }) {
         {item.nextEpisode && (
           <p className="text-white/40 text-xs font-medium mb-4 line-clamp-1">
             Next: S{String(item.nextEpisode.seasonNumber).padStart(2,"0")}E{String(item.nextEpisode.episodeNumber).padStart(2,"0")}
-            {item.nextEpisode.title ? ` · ${item.nextEpisode.title}` : ""}
+            {item.nextEpisode.title ? ` Â· ${item.nextEpisode.title}` : ""}
           </p>
         )}
         <div className="flex justify-between items-center text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
           <span>{item.watchedEpisodes} / {item.totalEpisodes} eps</span>
-          <span className="text-[#e8002d]">{pct}%</span>
+          <span className="text-accent">{pct}%</span>
         </div>
         <div className="h-1 bg-white/10 rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#e8002d] rounded-full"
-            style={{ width: `${pct}%`, boxShadow: "0 0 8px #e8002d" }}
+            className="h-full bg-accent rounded-full"
+            style={{ width: `${pct}%`, boxShadow: "0 0 8px rgb(var(--accent-rgb))" }}
           />
         </div>
         <div className="mt-4 flex gap-2">
@@ -237,3 +237,4 @@ function ProgressCard({ item }: { item: ProgressItem }) {
     </Link>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -245,7 +245,7 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
         <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
           {item.totalAired > 0 && (
             <div
-              className="h-full bg-[#e8002d] transition-all duration-300"
+              className="h-full bg-accent transition-all duration-300"
               style={{ width: `${(item.watchedCount / item.totalAired) * 100}%` }}
             />
           )}
@@ -274,3 +274,4 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
     </h2>
   );
 }
+

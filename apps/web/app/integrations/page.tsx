@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -167,7 +167,7 @@ export default function IntegrationsPage() {
               key={t}
               onClick={() => setTab(t)}
               className={`px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                tab === t ? "bg-[#e8002d] text-white" : "text-white/40 hover:text-white"
+                tab === t ? "bg-accent text-white" : "text-white/40 hover:text-white"
               }`}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
@@ -178,10 +178,10 @@ export default function IntegrationsPage() {
         {/* API key display */}
         <div className="glass-panel rounded-xl p-5 mb-8">
           <h3 className="font-bold text-white mb-1">API Key</h3>
-          <p className="text-xs text-white/40 mb-3">Use this key in the <code className="text-[#e8002d]">X-Api-Key</code> header for all integrations.</p>
+          <p className="text-xs text-white/40 mb-3">Use this key in the <code className="text-accent">X-Api-Key</code> header for all integrations.</p>
           <div className="flex items-center gap-3 bg-[#181818] rounded-lg px-4 py-2 border border-white/10">
             <code className="text-sm text-white/60 flex-grow font-mono tracking-widest">
-              {loading ? "Loading..." : showKey && apiKey ? apiKey : "••••••••••••••••••••••••"}
+              {loading ? "Loading..." : showKey && apiKey ? apiKey : "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"}
             </code>
             {!loading && apiKey && (
               <button
@@ -251,7 +251,7 @@ export default function IntegrationsPage() {
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-4">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#e8002d] flex items-center justify-center text-white text-xs font-black">{n}</div>
+      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-black">{n}</div>
       <div className="flex-grow">
         <h4 className="font-bold text-white mb-1">{title}</h4>
         <div className="text-sm text-white/60 space-y-2">{children}</div>
@@ -264,7 +264,7 @@ function CodeBlock({ children }: { children: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="relative group bg-[#181818] rounded-lg px-4 py-3 border border-white/10 mt-2 mb-2">
-      <code className="text-sm text-[#e8002d] font-mono break-all">{children}</code>
+      <code className="text-sm text-accent font-mono break-all">{children}</code>
       <button
         onClick={() => { navigator.clipboard.writeText(children); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
         className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-white/40 hover:text-white text-base"
@@ -282,19 +282,19 @@ function EmbyGuide({ baseUrl }: { baseUrl: string }) {
       <h2 className="text-h3 font-bold text-white mb-6">Emby Setup Guide</h2>
       <div className="flex flex-col gap-6">
         <Step n={1} title="Install the Webhook Plugin">
-          <p>Open Emby Server → <strong className="text-white">Plugins → Catalog</strong>. Search for <strong className="text-white">&quot;Webhook&quot;</strong> and install it, then restart Emby Server.</p>
+          <p>Open Emby Server â†’ <strong className="text-white">Plugins â†’ Catalog</strong>. Search for <strong className="text-white">&quot;Webhook&quot;</strong> and install it, then restart Emby Server.</p>
         </Step>
         <Step n={2} title="Add a New Webhook">
-          <p>Go to <strong className="text-white">Dashboard → Plugins → Webhook</strong> and click <strong className="text-white">Add Webhook</strong>.</p>
+          <p>Go to <strong className="text-white">Dashboard â†’ Plugins â†’ Webhook</strong> and click <strong className="text-white">Add Webhook</strong>.</p>
           <p>Set the URL to:</p>
           <CodeBlock>{webhookUrl}</CodeBlock>
         </Step>
         <Step n={3} title="Set the API Key Header">
           <p>Under <strong className="text-white">Request Headers</strong>, add:</p>
           <div className="bg-[#181818] rounded-lg px-4 py-2 border border-white/10 mt-1 font-mono text-sm">
-            <span className="text-white/60">Key:</span> <span className="text-[#e8002d]">X-Api-Key</span>
-            <span className="text-white/40 mx-2">·</span>
-            <span className="text-white/60">Value:</span> <span className="text-[#e8002d]">[your API key above]</span>
+            <span className="text-white/60">Key:</span> <span className="text-accent">X-Api-Key</span>
+            <span className="text-white/40 mx-2">Â·</span>
+            <span className="text-white/60">Value:</span> <span className="text-accent">[your API key above]</span>
           </div>
         </Step>
         <Step n={4} title="Select Events">
@@ -302,14 +302,14 @@ function EmbyGuide({ baseUrl }: { baseUrl: string }) {
           <ul className="list-none space-y-1 mt-1">
             {["PlaybackProgress", "PlaybackStopped"].map((e) => (
               <li key={e} className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#e8002d] text-base">check_circle</span>
+                <span className="material-symbols-outlined text-accent text-base">check_circle</span>
                 <code className="text-white/80">{e}</code>
               </li>
             ))}
           </ul>
         </Step>
         <Step n={5} title="Save and Test">
-          <p>Click <strong className="text-white">Save</strong>. Play any content in Emby — it should appear in your History within seconds.</p>
+          <p>Click <strong className="text-white">Save</strong>. Play any content in Emby â€” it should appear in your History within seconds.</p>
         </Step>
       </div>
     </div>
@@ -338,10 +338,10 @@ function StremioGuide({
             className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
               traktConnected
                 ? "bg-green-600/20 text-green-400 border border-green-600/30 cursor-default"
-                : "bg-[#e8002d] text-white hover:bg-[#b8002d]"
+                : "bg-accent text-white hover:bg-accent-hover"
             }`}
           >
-            {traktConnected ? "✓ Trakt Connected" : "Connect Trakt"}
+            {traktConnected ? "âœ“ Trakt Connected" : "Connect Trakt"}
           </button>
         </div>
         <div className="flex flex-col gap-6">
@@ -356,8 +356,8 @@ function StremioGuide({
           <Step n={3} title="Start Watching">
             <p>Play any content in Stremio. Watch events will be automatically scrobbled and appear in your History.</p>
           </Step>
-          <div className="bg-[#e8002d]/10 border border-[#e8002d]/20 rounded-xl p-4 text-sm text-white/60">
-            <span className="material-symbols-outlined text-[#e8002d] text-base align-middle mr-2">info</span>
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-white/60">
+            <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
             Make sure your Trakt server is reachable from the machine running Stremio (same network or public domain).
           </div>
         </div>
@@ -420,9 +420,9 @@ function ExclusionPanel({
             placeholder="Search titles to exclude..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-grow bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-[#e8002d]"
+            className="flex-grow bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white placeholder-white/40 focus:outline-none focus:border-accent"
           />
-          <button className="px-4 py-2 bg-[#e8002d] text-white rounded-lg font-bold hover:bg-[#b8002d] transition-colors">
+          <button className="px-4 py-2 bg-accent text-white rounded-lg font-bold hover:bg-accent-hover transition-colors">
             Add
           </button>
         </div>
@@ -444,7 +444,7 @@ function ExclusionPanel({
                 <button
                   onClick={() => handleRemove(excl.id)}
                   disabled={removing === excl.id}
-                  className="text-white/40 hover:text-[#e8002d] transition-colors material-symbols-outlined text-base"
+                  className="text-white/40 hover:text-accent transition-colors material-symbols-outlined text-base"
                 >
                   {removing === excl.id ? "hourglass_empty" : "close"}
                 </button>
@@ -478,7 +478,7 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
               href="https://trakt.tv/activate"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#e8002d] hover:underline text-sm font-mono break-all"
+              className="text-accent hover:underline text-sm font-mono break-all"
             >
               https://trakt.tv/activate
             </a>
@@ -486,8 +486,8 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
 
           <div>
             <p className="text-sm text-white/60 mb-2">2. Enter this code:</p>
-            <div className="flex items-center gap-2 bg-[#0a0a0a] rounded-lg px-4 py-3 border border-[#e8002d]/30">
-              <code className="text-lg font-bold text-[#e8002d] tracking-widest flex-grow">{userCode}</code>
+            <div className="flex items-center gap-2 bg-[#0a0a0a] rounded-lg px-4 py-3 border border-accent/30">
+              <code className="text-lg font-bold text-accent tracking-widest flex-grow">{userCode}</code>
               <button
                 onClick={handleCopy}
                 className="text-white/40 hover:text-white transition-colors material-symbols-outlined text-base"
@@ -497,9 +497,9 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
             </div>
           </div>
 
-          <div className="bg-[#e8002d]/10 border border-[#e8002d]/20 rounded-lg p-3">
+          <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
             <p className="text-xs text-white/60">
-              <span className="material-symbols-outlined text-[#e8002d] text-sm align-middle mr-1">info</span>
+              <span className="material-symbols-outlined text-accent text-sm align-middle mr-1">info</span>
               Waiting for authorization... This usually takes less than 30 seconds.
             </p>
           </div>
@@ -515,3 +515,4 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
     </div>
   );
 }
+

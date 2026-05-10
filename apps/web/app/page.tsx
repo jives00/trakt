@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -101,7 +101,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
               </div>
             )}
           </div>
-            {/* Now Playing card — renders only when scrobble is active (Phase 2+) */}
+            {/* Now Playing card â€” renders only when scrobble is active (Phase 2+) */}
         </div>
       </div>
     </section>
@@ -181,7 +181,7 @@ function RecPanel({ title, items, linkPrefix }: { title: string; items: Recommen
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <span className="block h-8 w-1 rounded-full bg-[#e8002d]" />
+        <span className="block h-8 w-1 rounded-full bg-accent" />
         <h3 className="text-h3 font-bold text-white">{title}</h3>
       </div>
       <div className="grid grid-cols-3 gap-3">
@@ -225,7 +225,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
   // Anchor to today in US Central time, then build a dense 30-day window
   const centralToday = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Chicago",
-  }).format(new Date()); // "en-CA" → YYYY-MM-DD
+  }).format(new Date()); // "en-CA" â†’ YYYY-MM-DD
   const [y, m, d] = centralToday.split("-").map(Number);
   const anchor = Date.UTC(y, m - 1, d);
 
@@ -260,7 +260,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
       <div>
         <SectionHeading>Last 30 Days</SectionHeading>
         {summary.plays > 0 && (
-          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" — ")}</p>
+          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" â€” ")}</p>
         )}
       </div>
       <div className="glass-panel p-5 rounded-xl flex-1">
@@ -289,7 +289,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
                 {chartData.map((_, i) => (
                   <Cell
                     key={i}
-                    fill={activeBar === i ? "#e8002d" : "rgba(255,255,255,0.2)"}
+                    fill={activeBar === i ? "rgb(var(--accent-rgb))" : "rgba(255,255,255,0.2)"}
                     onMouseEnter={() => setActiveBar(i)}
                   />
                 ))}
@@ -329,7 +329,7 @@ function GenreBar({ genres }: { genres: DashboardGenre[] }) {
             <span className="w-2.5 h-2.5 flex-none" style={{ background: GENRE_COLORS[genres.indexOf(h) % GENRE_COLORS.length] }} />
             <span className="text-sm font-black uppercase text-white/80">{h.genre}</span>
             <span className="text-xs text-white/40">
-              {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" · ")}
+              {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" Â· ")}
             </span>
             <span className="text-xs font-bold text-white/30">{Math.round((h.plays / total) * 100)}%</span>
           </div>
@@ -373,7 +373,7 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
     : null;
 
   const subLine = isEpisode && item.seasonNumber != null && item.episodeNumber != null
-    ? `S${String(item.seasonNumber).padStart(2, '0')} E${String(item.episodeNumber).padStart(2, '0')}${item.episodeTitle ? ` · ${item.episodeTitle}` : ''}`
+    ? `S${String(item.seasonNumber).padStart(2, '0')} E${String(item.episodeNumber).padStart(2, '0')}${item.episodeTitle ? ` Â· ${item.episodeTitle}` : ''}`
     : (item.tagline ?? '');
 
   const runtimeMin = isEpisode ? item.showRuntimeMin : item.runtimeMin;
@@ -389,7 +389,7 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
       <div className="relative z-10 px-margin-page pt-10 pb-6 flex flex-col justify-between min-h-[220px] md:min-h-[300px]">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
             <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Now Playing</span>
           </div>
           {titleHref ? (
@@ -420,10 +420,11 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
               : <span />}
           </div>
           <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-red-500 rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
+            <div className="h-full bg-accent rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
           </div>
         </div>
       </div>
     </section>
   );
 }
+

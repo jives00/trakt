@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -84,12 +84,12 @@ function ListItemCard({ item, onRemove }: { item: ListItemEntry; onRemove: () =>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-[#e8002d] transition-colors">{item.title}</p>
+        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-accent transition-colors">{item.title}</p>
         {item.year && <p className="text-xs text-white/40">{item.year}</p>}
       </Link>
       <button
         onClick={onRemove}
-        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white/40 hover:text-[#e8002d] transition-colors opacity-0 group-hover:opacity-100 material-symbols-outlined text-base"
+        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white/40 hover:text-accent transition-colors opacity-0 group-hover:opacity-100 material-symbols-outlined text-base"
         aria-label="Remove from list"
       >
         close

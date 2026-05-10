@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
@@ -209,7 +209,7 @@ export default function AllSeasonsPage() {
               {show.status && (
                 <div>
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
-                  <p className="text-[#e8002d] font-bold">{show.status}</p>
+                  <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
@@ -256,7 +256,7 @@ export default function AllSeasonsPage() {
               {loadedSeasons.map((season) => (
                 <div key={season.seasonNumber} className="mb-10">
                   <div className="flex items-center gap-4 mb-4">
-                    <Link href={`/shows/${tmdbId}/seasons/${season.seasonNumber}`} className="hover:text-[#e8002d] transition-colors">
+                    <Link href={`/shows/${tmdbId}/seasons/${season.seasonNumber}`} className="hover:text-accent transition-colors">
                       <h3 className="text-white font-black text-lg">Season {season.seasonNumber}</h3>
                     </Link>
                     <span className="text-white/30 text-sm">{season.episodes.length} episode{season.episodes.length !== 1 ? "s" : ""}</span>
@@ -293,14 +293,14 @@ export default function AllSeasonsPage() {
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#e8002d]">person</span>
+                  <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleWatchlist}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inWatchlist ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
@@ -309,7 +309,7 @@ export default function AllSeasonsPage() {
                   <button
                     onClick={handleCollection}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inCollection ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inCollection ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">library_add</span>
@@ -332,7 +332,7 @@ export default function AllSeasonsPage() {
                 <div className="flex gap-1 justify-between">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
                     <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
                 </div>
@@ -342,7 +342,7 @@ export default function AllSeasonsPage() {
                 href={`https://www.themoviedb.org/tv/${tmdbId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
               >
                 View on TMDB
               </Link>

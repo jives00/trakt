@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -92,7 +92,7 @@ export default function StatsYearPage() {
                     labelStyle={{ color: "#e2e2e2" }}
                     formatter={(v) => [`${typeof v === "number" ? v : 0}h`, "Hours"]}
                   />
-                  <Bar dataKey="hours" fill="#e8002d" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -108,14 +108,14 @@ export default function StatsYearPage() {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w92${show.posterPath}` : null;
                 return (
                   <Link key={show.tmdbId} href={`/shows/${show.tmdbId}`}
-                    className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-[#e8002d]/30 transition-all group"
+                    className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-accent/30 transition-all group"
                   >
                     <span className="text-2xl font-black text-white/20 w-8 text-center">{i + 1}</span>
                     <div className="relative w-10 h-14 rounded overflow-hidden bg-[#181818] flex-shrink-0">
                       {posterUrl && <Image src={posterUrl} alt={show.title} fill className="object-cover" />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-white group-hover:text-[#e8002d] transition-colors">{show.title}</p>
+                      <p className="font-bold text-white group-hover:text-accent transition-colors">{show.title}</p>
                       <p className="text-xs text-white/40">{show.episodeCount} episodes</p>
                     </div>
                   </Link>
@@ -148,7 +148,7 @@ export default function StatsYearPage() {
               <Link
                 key={m}
                 href={`/stats/month/${year}/${i + 1}`}
-                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-[#e8002d]/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {m}
               </Link>

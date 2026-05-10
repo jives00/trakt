@@ -1,17 +1,16 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme, THEMES } from "@/lib/theme-context";
 import { api } from "@/lib/api";
 import type { UserProfile } from "@trakt/types";
 
 export const dynamic = "force-dynamic";
 
-type Theme = "dark" | "light";
-
 export default function SettingsPage() {
   const { token, isLoading } = useAuth();
-  const [theme, setTheme] = useState<Theme>("dark");
+  const { theme, setTheme } = useTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -19,8 +18,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (isLoading || !token) return;
-    const saved = localStorage.getItem("theme") as Theme | null;
-    if (saved) setTheme(saved);
     api.getProfile(token).then(setProfile).catch(() => {});
   }, [token, isLoading]);
 
@@ -40,13 +37,6 @@ export default function SettingsPage() {
     } finally {
       setSaving(false);
     }
-  }
-
-  function applyTheme(t: Theme) {
-    setTheme(t);
-    localStorage.setItem("theme", t);
-    document.documentElement.classList.toggle("dark", t === "dark");
-    document.documentElement.classList.toggle("light", t === "light");
   }
 
   if (isLoading) return null;
@@ -71,13 +61,13 @@ export default function SettingsPage() {
                 onChange={(e) => { setDisplayName(e.target.value); setSaveError(""); }}
                 maxLength={50}
                 placeholder="Enter your name"
-                className="w-full px-3 py-2 rounded-lg bg-[#181818] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#e8002d] transition-colors"
+                className="w-full px-3 py-2 rounded-lg bg-[#181818] border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
               />
-              {saveError && <p className="text-xs text-[#e8002d]">{saveError}</p>}
+              {saveError && <p className="text-xs text-accent">{saveError}</p>}
               <button
                 onClick={handleSaveProfile}
                 disabled={saving || !displayName.trim()}
-                className="px-4 py-2 rounded-lg bg-[#e8002d] text-white font-bold text-sm uppercase tracking-widest hover:bg-[#d40026] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 rounded-lg bg-accent text-white font-bold text-sm uppercase tracking-widest hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {saving ? "Saving..." : "Save"}
               </button>
@@ -87,25 +77,25 @@ export default function SettingsPage() {
           {/* Theme */}
           <div className="glass-panel rounded-xl p-5">
             <h3 className="font-bold text-white mb-1">Theme</h3>
-            <p className="text-xs text-white/40 mb-4">Choose how the app looks.</p>
+            <p className="text-xs text-white/40 mb-4">Choose your accent color.</p>
             <div className="flex gap-3">
-              {([
-                { id: "dark", label: "Dark", icon: "dark_mode" },
-                { id: "light", label: "Light", icon: "light_mode" },
-              ] as { id: Theme; label: string; icon: string }[]).map((t) => (
+              {THEMES.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => applyTheme(t.id)}
+                  onClick={() => setTheme(t.id)}
                   className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
                     theme === t.id
-                      ? "border-[#e8002d] bg-[#e8002d]/10 text-white"
+                      ? "border-accent bg-accent/10 text-white"
                       : "border-white/10 bg-[#181818] text-white/40 hover:text-white"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-2xl">{t.icon}</span>
+                  <span
+                    className="w-5 h-5 rounded-full border-2 border-white/20"
+                    style={{ backgroundColor: t.previewColor }}
+                  />
                   <span className="text-xs font-bold uppercase tracking-widest">{t.label}</span>
                   {theme === t.id && (
-                    <span className="text-[9px] font-black text-[#e8002d] uppercase tracking-widest">Active</span>
+                    <span className="text-[9px] font-black text-accent uppercase tracking-widest">Active</span>
                   )}
                 </button>
               ))}
@@ -141,7 +131,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Lists</h4>
-                <p className="text-xs leading-relaxed"><span className="text-white/60">Custom organizational containers</span> you create for any purpose (favorites, recommendations, themed collections, etc.). Can contain shows, movies, and episodes. Does NOT affect Up Next — purely for curation and reference.</p>
+                <p className="text-xs leading-relaxed"><span className="text-white/60">Custom organizational containers</span> you create for any purpose (favorites, recommendations, themed collections, etc.). Can contain shows, movies, and episodes. Does NOT affect Up Next â€” purely for curation and reference.</p>
               </div>
             </div>
           </div>
@@ -150,3 +140,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

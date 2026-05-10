@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -61,7 +61,7 @@ export function TopNav() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search movies and shows…"
-              className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-2 text-white placeholder:text-white/40 focus:border-[#e8002d] focus:outline-none transition-colors text-sm"
+              className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-2 text-white placeholder:text-white/40 focus:border-accent focus:outline-none transition-colors text-sm"
             />
           </form>
         </div>
@@ -72,7 +72,7 @@ export function TopNav() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-white font-medium transition-colors hover:text-[#e8002d]"
+              className="text-white font-medium transition-colors hover:text-accent"
             >
               {link.label}
             </Link>
@@ -112,3 +112,4 @@ export function TopNav() {
     </header>
   );
 }
+

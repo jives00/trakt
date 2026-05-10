@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -43,7 +43,7 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark
         <p className="text-white/50 text-sm font-bold uppercase tracking-widest mb-1.5">
           S{String(seasonNumber).padStart(2, "0")} · E{String(ep.episodeNumber).padStart(2, "0")}
         </p>
-        <Link href={href} className="hover:text-[#e8002d] transition-colors">
+        <Link href={href} className="hover:text-accent transition-colors">
           <p className="text-white font-bold leading-snug mb-2 line-clamp-1 text-lg">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
         </Link>
         {ep.overview && (
@@ -72,8 +72,8 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark
             aria-label={watched ? "Mark unwatched" : "Mark watched"}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
               watched
-                ? "bg-[#e8002d] border-[#e8002d] text-white"
-                : "border-white/20 text-white/40 hover:border-[#e8002d]/40 hover:text-[#e8002d]"
+                ? "bg-accent border-accent text-white"
+                : "border-white/20 text-white/40 hover:border-accent/40 hover:text-accent"
             }`}
           >
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -54,7 +54,7 @@ export default function ListsPage() {
           </div>
           <button
             onClick={() => setCreating(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest hover:bg-[#c8001e] transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white text-xs font-bold uppercase tracking-widest hover:bg-accent-hover transition-colors"
           >
             <span className="material-symbols-outlined text-base">add</span>
             New List
@@ -70,7 +70,7 @@ export default function ListsPage() {
                 placeholder="List name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
+                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors"
                 autoFocus
               />
               <input
@@ -78,10 +78,10 @@ export default function ListsPage() {
                 placeholder="Description (optional)"
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-[#e8002d] transition-colors"
+                className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors"
               />
               <div className="flex gap-2">
-                <button type="submit" className="px-4 py-2 rounded-lg bg-[#e8002d] text-white text-xs font-bold uppercase tracking-widest">
+                <button type="submit" className="px-4 py-2 rounded-lg bg-accent text-white text-xs font-bold uppercase tracking-widest">
                   Create
                 </button>
                 <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 rounded-lg bg-[#181818] text-white/60 border border-white/10 text-xs font-bold uppercase tracking-widest">
@@ -92,7 +92,7 @@ export default function ListsPage() {
           </form>
         )}
 
-        {fetching && <p className="text-white/40">Loading…</p>}
+        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
 
         {!fetching && lists.length === 0 && !creating && (
           <div className="text-center py-24">
@@ -115,12 +115,12 @@ function ListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) 
   return (
     <div className="glass-panel rounded-xl p-5 red-glow-hover transition-all duration-300 group flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <Link href={`/lists/${list.id}`} className="font-bold text-white group-hover:text-[#e8002d] transition-colors line-clamp-1">
+        <Link href={`/lists/${list.id}`} className="font-bold text-white group-hover:text-accent transition-colors line-clamp-1">
           {list.name}
         </Link>
         <button
           onClick={onDelete}
-          className="text-white/20 hover:text-[#e8002d] transition-colors material-symbols-outlined text-base shrink-0"
+          className="text-white/20 hover:text-accent transition-colors material-symbols-outlined text-base shrink-0"
           aria-label="Delete list"
         >
           delete
@@ -133,7 +133,7 @@ function ListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) 
         <span className="text-xs text-white/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
         <Link
           href={`/lists/${list.id}`}
-          className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-[#e8002d] transition-colors flex items-center gap-1"
+          className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-accent transition-colors flex items-center gap-1"
         >
           View <span className="material-symbols-outlined text-sm">arrow_forward</span>
         </Link>
@@ -141,3 +141,4 @@ function ListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) 
     </div>
   );
 }
+

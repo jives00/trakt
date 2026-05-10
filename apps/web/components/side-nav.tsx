@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,7 +34,7 @@ export function SideNav() {
               href={link.href}
               className={
                 active
-                  ? "flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-[#e8002d]/20 to-transparent text-[#e8002d] border-l-4 border-[#e8002d] transition-all duration-200"
+                  ? "flex items-center gap-3 px-4 py-3 rounded-lg bg-gradient-to-r from-accent/20 to-transparent text-accent border-l-4 border-accent transition-all duration-200"
                   : "flex items-center gap-3 px-4 py-3 rounded-lg text-white/40 hover:text-white/80 hover:bg-white/5 transition-all duration-200"
               }
             >
@@ -47,3 +47,4 @@ export function SideNav() {
     </aside>
   );
 }
+

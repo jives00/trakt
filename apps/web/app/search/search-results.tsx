@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -72,7 +72,7 @@ export function SearchResults() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
           <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full md:w-2/3">
             <div className="flex items-center gap-2 mb-4">
-              <span className="bg-[#e8002d] text-white text-[10px] font-black px-2 py-1 rounded tracking-tighter uppercase">Top Result</span>
+              <span className="bg-accent text-white text-[10px] font-black px-2 py-1 rounded tracking-tighter uppercase">Top Result</span>
               {featured.mediaType && (
                 <span className="text-white/60 text-sm font-bold uppercase tracking-widest">
                   {featured.mediaType === "movie" ? "Movie" : "Show"}
@@ -86,7 +86,7 @@ export function SearchResults() {
             <div className="flex flex-wrap gap-4">
               <Link
                 href={featured.mediaType === "movie" ? `/movies/${featured.tmdbId}` : `/shows/${featured.tmdbId}`}
-                className="bg-[#e8002d] hover:bg-[#ff1a4a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all"
+                className="bg-accent hover:bg-accent-light text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all"
               >
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
                 View Details
@@ -104,7 +104,7 @@ export function SearchResults() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movies and shows…"
+          placeholder="Search movies and showsâ€¦"
           className="w-full rounded-full border border-outline-variant bg-surface-container px-5 py-3 text-on-surface placeholder:text-on-surface-variant focus:border-primary-container focus:outline-none"
         />
       </form>
@@ -118,7 +118,7 @@ export function SearchResults() {
               onClick={() => setActiveFilter(f)}
               className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
                 activeFilter === f
-                  ? "bg-[#e8002d] text-white"
+                  ? "bg-accent text-white"
                   : "bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-white/30"
               }`}
             >
@@ -133,7 +133,7 @@ export function SearchResults() {
             className="flex items-center gap-2 text-white font-bold text-sm"
           >
             {sort}
-            <span className="material-symbols-outlined text-[#e8002d]">expand_more</span>
+            <span className="material-symbols-outlined text-accent">expand_more</span>
           </button>
           {showSort && (
             <div className="absolute top-full right-0 mt-1 bg-[#181818] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl">
@@ -141,7 +141,7 @@ export function SearchResults() {
                 <button
                   key={s}
                   onClick={() => { setSort(s); setShowSort(false); }}
-                  className={`block w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-white/5 ${sort === s ? "text-[#e8002d]" : "text-white/60"}`}
+                  className={`block w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-white/5 ${sort === s ? "text-accent" : "text-white/60"}`}
                 >
                   {s}
                 </button>
@@ -151,7 +151,7 @@ export function SearchResults() {
         </div>
       </div>
 
-      {loading && <p className="text-center text-on-surface-variant py-8">Searching…</p>}
+      {loading && <p className="text-center text-on-surface-variant py-8">Searchingâ€¦</p>}
 
       {!loading && searched && results?.length === 0 && (
         <p className="text-center text-on-surface-variant py-8">No results found.</p>
@@ -208,7 +208,7 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
 
   return (
     <div className="flex flex-col gap-3 group">
-      <Link href={href} className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/5 bg-[#181818] block transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#e8002d]/20">
+      <Link href={href} className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/5 bg-[#181818] block transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20">
         {item.posterPath ? (
           <Image
             src={`${TMDB_IMG}${item.posterPath}`}
@@ -223,14 +223,14 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
           </div>
         )}
         {/* Rating badge */}
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-black text-[#e8002d]">
-          {item.year ?? "—"}
+        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-black text-accent">
+          {item.year ?? "â€”"}
         </div>
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center gap-3 px-4">
           <button
             onClick={handleWatchlist}
-            className="w-full bg-[#e8002d] text-white py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
+            className="w-full bg-accent text-white py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
           >
             <span className="material-symbols-outlined text-sm">bookmark</span> Watchlist
           </button>
@@ -245,9 +245,10 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
       <div>
         <h3 className="text-white font-bold text-sm truncate">{item.title}</h3>
         <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">
-          {item.mediaType === "movie" ? "Movie" : "Show"}{item.year ? ` · ${item.year}` : ""}
+          {item.mediaType === "movie" ? "Movie" : "Show"}{item.year ? ` Â· ${item.year}` : ""}
         </p>
       </div>
     </div>
   );
 }
+

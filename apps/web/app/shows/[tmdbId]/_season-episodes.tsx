@@ -1,4 +1,4 @@
-// Episode list accordion — retained for the season detail page (not yet built)
+﻿// Episode list accordion — retained for the season detail page (not yet built)
 "use client";
 
 import Image from "next/image";
@@ -52,7 +52,7 @@ export function SeasonEpisodeList({ tmdbId, seasonCount, token }: Props) {
             key={n}
             onClick={() => toggleSeason(n)}
             className={`text-h3 pb-2 whitespace-nowrap transition-colors border-b-2 ${
-              openSeason === n ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
+              openSeason === n ? "text-white border-accent" : "text-white/40 border-transparent hover:text-white"
             }`}
           >
             Season {n}
@@ -79,7 +79,7 @@ export function SeasonEpisodeList({ tmdbId, seasonCount, token }: Props) {
                     <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-[10px] font-bold text-white">{ep.runtimeMin} MIN</div>
                   )}
                   <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
-                    <div className="bg-[#e8002d] h-full" style={{ width: watched ? "100%" : "0%" }} />
+                    <div className="bg-accent h-full" style={{ width: watched ? "100%" : "0%" }} />
                   </div>
                 </div>
                 <div className="p-4 flex justify-between items-start">
@@ -89,7 +89,7 @@ export function SeasonEpisodeList({ tmdbId, seasonCount, token }: Props) {
                     </h3>
                   </div>
                   <button onClick={() => handleEpisodeWatched(openSeason, ep)} className="ml-2 shrink-0" aria-label={watched ? "Mark unwatched" : "Mark watched"}>
-                    <span className={`material-symbols-outlined text-sm ${watched ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
+                    <span className={`material-symbols-outlined text-sm ${watched ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>check_circle</span>
                   </button>
                 </div>
               </div>

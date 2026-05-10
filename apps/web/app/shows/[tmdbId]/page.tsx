@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -42,7 +42,7 @@ function EpisodeThumb({ showTmdbId, ep, label, showLabel = true }: { showTmdbId:
     <Link href={href}>
       <div>
         <div className="pb-3 mb-3 border-b border-white/5">
-          <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-[#e8002d]" : "text-transparent border-transparent"}`}>{label}</span>
+          <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-accent" : "text-transparent border-transparent"}`}>{label}</span>
         </div>
         <div className="bg-[#181818] border border-white/5 overflow-hidden hover:border-white/10 transition-colors cursor-pointer">
           <div className="relative aspect-video overflow-hidden">
@@ -237,7 +237,7 @@ export default function ShowDetailPage() {
           <button
             onClick={() => setPicker("hero")}
             aria-label="Change backdrop image"
-            className="absolute top-14 right-16 z-20 flex items-center gap-1.5 bg-black/60 border border-white/20 rounded-full px-3 py-2 text-white backdrop-blur-sm opacity-20 group-hover/hero:opacity-100 transition-opacity hover:border-[#e8002d]/60 hover:text-[#e8002d]"
+            className="absolute top-14 right-16 z-20 flex items-center gap-1.5 bg-black/60 border border-white/20 rounded-full px-3 py-2 text-white backdrop-blur-sm opacity-20 group-hover/hero:opacity-100 transition-opacity hover:border-accent/60 hover:text-accent"
           >
             <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 0" }}>edit</span>
             <span className="text-sm font-bold">Backdrop</span>
@@ -279,7 +279,7 @@ export default function ShowDetailPage() {
               {show.status && (
                 <div>
                   <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
-                  <p className="text-[#e8002d] font-bold">{show.status}</p>
+                  <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
@@ -336,7 +336,7 @@ export default function ShowDetailPage() {
                           key={tab}
                           onClick={() => setCastTab(tab)}
                           className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                            castTab === tab ? "text-white border-[#e8002d]" : "text-white/40 border-transparent hover:text-white"
+                            castTab === tab ? "text-white border-accent" : "text-white/40 border-transparent hover:text-white"
                           }`}
                         >
                           {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
@@ -376,7 +376,7 @@ export default function ShowDetailPage() {
                             </div>
                           )}
                         </div>
-                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-[#e8002d] transition-colors">{m.name}</p>
+                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
                         <p className="text-white/40 text-sm line-clamp-1">{m.character}</p>
                         <p className="text-white/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
                       </a>
@@ -443,14 +443,14 @@ export default function ShowDetailPage() {
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#e8002d]">person</span>
+                  <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleWatchlist}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inWatchlist ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
@@ -459,7 +459,7 @@ export default function ShowDetailPage() {
                   <button
                     onClick={handleCollection}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inCollection ? "bg-[#e8002d] text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inCollection ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">library_add</span>
@@ -482,7 +482,7 @@ export default function ShowDetailPage() {
                 <div className="flex gap-1 justify-between">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
                     <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-[#e8002d]" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
                 </div>
@@ -516,7 +516,7 @@ export default function ShowDetailPage() {
                 href={`https://www.themoviedb.org/tv/${tmdbId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
               >
                 View on TMDB
               </Link>
@@ -525,7 +525,7 @@ export default function ShowDetailPage() {
                   href={`https://www.imdb.com/title/${show.imdbId}/`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block w-full border border-white/10 hover:border-[#e8002d]/40 text-white/60 hover:text-[#e8002d] py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                  className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
                 >
                   View on IMDb
                 </Link>
