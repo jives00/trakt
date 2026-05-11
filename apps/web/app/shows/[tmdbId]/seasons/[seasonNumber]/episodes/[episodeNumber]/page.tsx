@@ -55,6 +55,7 @@ export default function EpisodeDetailPage() {
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
+      if (e.altKey) return;
       if (e.key === "ArrowLeft") {
         navigatePrevious();
       } else if (e.key === "ArrowRight") {
