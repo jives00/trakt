@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
     "build": "next build",
     "start": "next start",
     "test": "vitest run"
@@ -34,6 +34,7 @@
     "@types/react-dom": "^18",
     "@vitejs/plugin-react": "^4",
     "autoprefixer": "^10",
+    "cross-env": "^7",
     "jsdom": "^25",
     "postcss": "^8",
     "tailwindcss": "^3",

@@ -262,18 +262,11 @@ async function backfillShowTmdbRating(showInternalId: number, showTmdbId: number
       'SELECT tmdb_rating FROM tv_shows WHERE id = ? AND tmdb_rating IS NULL',
       [showInternalId],
     );
-    if (rows.length === 0) {
-      return;
-    }
+    if (rows.length === 0) return;
 
-    console.log(`[TMDB] Backfilling TMDB rating for show ${showTmdbId} (id: ${showInternalId})`);
     const { show } = await fetchShowWithSeasonCount(showTmdbId);
-    if (show.tmdbRating === null) {
-      console.log(`[TMDB] No rating found for show ${showTmdbId}`);
-      return;
-    }
+    if (show.tmdbRating === null) return;
 
-    console.log(`[TMDB] Updating show ${showTmdbId} with rating: ${show.tmdbRating}`);
     await pool.query(
       'UPDATE tv_shows SET tmdb_rating = ? WHERE id = ?',
       [show.tmdbRating, showInternalId],

@@ -91,32 +91,20 @@ async function backfillMovieImdbRating(movieInternalId: number, movieTmdbId: num
 
 async function backfillMovieTmdbRating(movieInternalId: number, movieTmdbId: number): Promise<void> {
   try {
-    console.log(`[TMDB] Backfilling TMDB rating for movie ${movieTmdbId} (id: ${movieInternalId})`);
     const pool = getPool();
     const [rows] = await pool.query<RowDataPacket[]>(
       'SELECT tmdb_rating FROM movies WHERE id = ? AND tmdb_rating IS NULL',
       [movieInternalId],
     );
-    console.log(`[TMDB] Query result rows.length: ${rows.length}`);
-    if (rows.length === 0) {
-      console.log(`[TMDB] Movie ${movieTmdbId} already has TMDB rating`);
-      return;
-    }
+    if (rows.length === 0) return;
 
-    console.log(`[TMDB] Fetching movie data for ${movieTmdbId}`);
     const movie = await fetchMovie(movieTmdbId);
-    console.log(`[TMDB] Got movie, tmdbRating: ${movie.tmdbRating}`);
-    if (movie.tmdbRating === null) {
-      console.log(`[TMDB] Movie ${movieTmdbId} has no TMDB rating`);
-      return;
-    }
+    if (movie.tmdbRating === null) return;
 
-    console.log(`[TMDB] Updating movie ${movieTmdbId} with rating: ${movie.tmdbRating}`);
     await pool.query(
       'UPDATE movies SET tmdb_rating = ? WHERE id = ?',
       [movie.tmdbRating, movieInternalId],
     );
-    console.log(`[TMDB] Update complete`);
   } catch (err) {
     console.error(`[TMDB] Error backfilling movie ${movieTmdbId}:`, err);
   }

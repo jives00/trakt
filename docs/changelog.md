@@ -7,6 +7,7 @@
 - Fixed cast refresh socket hang-up: replaced N+1 query pattern with batched inserts in getOrFetchCast, getOrFetchMovieCast, and getOrFetchMovieCrew; reduces 300+ queries for large casts to ~4 queries; added tests for POST /shows/:tmdbId/cast/refresh and POST /movies/:tmdbId/cast/refresh `2a4a099`
 - History date filtering: added optional date query parameter to GET /api/history to filter watch_history by DATE(watched_at); validates date format (YYYY-MM-DD) `4905d6d`
 - Test migration automation: extracted migration logic into reusable runMigrations.ts module; globalSetup now automatically applies all migrations to template database and clones migrated schema to all 18 parallel test databases; eliminates manual migration steps before running tests `37c5488`
+- Removed TMDB backfill debug logging: cleaned up verbose console.log statements from backfillMovieTmdbRating and backfillShowTmdbRating for quieter startup `6183e2c`
 
 ### Web
 - Search bar autocomplete: typing 2+ characters triggers a debounced (300ms) dropdown showing up to 6 matching titles with poster thumbnails, release year, and show/movie badge; click or keyboard navigate (arrow keys + Enter) to jump directly to detail pages, or press Escape to close; includes loading spinner while fetching `1552173`
@@ -16,6 +17,7 @@
 - Episode navigation: arrow key navigation on episode detail pages now only works without modifiers; ALT+arrow no longer switches episodes `039ae81`
 - Profile dropdown menu: added Integrations link to profile icon dropdown for quick access to integrations settings `9b3577f`
 - Season premiere/finale indicators: upcoming schedule section displays Premiere badge for episode 1 of each season and Finale badge for season finales (sourced from TMDB episode_type field); badges appear above episode number and title in accent color `f736d6f`
+- Suppressed Node.js deprecation warning: added cross-env to dev dependencies to handle cross-platform environment variables; dev server no longer shows util._extend deprecation warnings on startup `6183e2c`
 
 ## May 10, 2026
 
