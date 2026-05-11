@@ -68,6 +68,7 @@ export interface ScheduleItem {
   seasonNumber?: number;
   episodeNumber?: number;
   episodeTitle?: string | null;
+  episodeType?: string;
   date: string;
   airTime?: string | null;
 }

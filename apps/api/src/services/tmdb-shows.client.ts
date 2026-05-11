@@ -30,6 +30,7 @@ function transformEpisode(ep: Record<string, any>, showId = 0, seasonId = 0): Ep
     airDate: ep['air_date'] ?? null,
     airTime: ep['air_time'] ?? null,
     runtimeMin: ep['runtime'] ?? null,
+    episodeType: ep['episode_type'] ?? 'standard',
   };
 }
 

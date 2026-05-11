@@ -236,6 +236,8 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
 
   const episodeHref = `/shows/${entry.showTmdbId}/seasons/${entry.seasonNumber}/episodes/${entry.episodeNumber}`;
   const showHref = `/shows/${entry.showTmdbId}`;
+  const isSeasonPremiere = entry.episodeNumber === 1;
+  const isSeasonFinale = entry.episodeType === "finale";
 
   return (
     <div>
@@ -244,12 +246,19 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
           {entry.showTitle}
         </p>
       </Link>
-      <Link href={episodeHref} className="group">
-        <p className="text-xs text-on-surface-variant group-hover:text-primary-container">
-          S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
-          {entry.episodeTitle && ` · ${entry.episodeTitle}`}
-        </p>
-      </Link>
+      <div className="flex flex-col gap-1 mb-1">
+        {(isSeasonPremiere || isSeasonFinale) && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-accent">
+            {isSeasonPremiere ? 'Premiere' : 'Finale'}
+          </span>
+        )}
+        <Link href={episodeHref} className="group">
+          <p className="text-xs text-on-surface-variant group-hover:text-primary-container">
+            S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
+            {entry.episodeTitle && ` · ${entry.episodeTitle}`}
+          </p>
+        </Link>
+      </div>
       {(entry.airTime || entry.network) && (
         <p className="text-xs text-on-surface-variant">
           {entry.airTime && formatTime(entry.airTime)} {entry.airTime && entry.network ? 'on' : ''} {entry.network}

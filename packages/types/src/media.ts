@@ -78,6 +78,7 @@ export interface Episode {
   airDate: string | null;
   airTime: string | null;
   runtimeMin: number | null;
+  episodeType?: string;
 }
 
 export interface ShowDetail extends TvShow {

@@ -13,6 +13,7 @@
 - Up Next styling: reduced Remove button roundness from rounded-full to rounded-md to match watch button; updated dropdown background to match Mark Watched button color with 90% opacity; aligned dropdown borders and hover states with accent theme `3267bb3`
 - Episode navigation: arrow key navigation on episode detail pages now only works without modifiers; ALT+arrow no longer switches episodes `039ae81`
 - Profile dropdown menu: added Integrations link to profile icon dropdown for quick access to integrations settings `9b3577f`
+- Season premiere/finale indicators: upcoming schedule section displays Premiere badge for episode 1 of each season and Finale badge for season finales (sourced from TMDB episode_type field); badges appear above episode number and title in accent color `f736d6f`
 
 ## May 10, 2026
 

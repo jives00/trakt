@@ -14,6 +14,7 @@ export interface ScheduleEntry {
   seasonNumber?: number;
   episodeNumber?: number;
   episodeTitle?: string | null;
+  episodeType?: string;
   date: string;
   airTime?: string | null;
 }
@@ -49,6 +50,7 @@ export async function getSchedule(
        seas.season_number AS seasonNumber,
        e.episode_number   AS episodeNumber,
        e.title            AS episodeTitle,
+       e.episode_type     AS episodeType,
        e.air_date         AS date,
        e.air_time         AS airTime
      FROM tv_shows s
@@ -69,6 +71,7 @@ export async function getSchedule(
        NULL             AS seasonNumber,
        NULL             AS episodeNumber,
        NULL             AS episodeTitle,
+       NULL             AS episodeType,
        m.release_date   AS date,
        NULL             AS airTime
      FROM movies m
