@@ -171,13 +171,40 @@ export async function getOrFetchMovieCast(tmdbId: number): Promise<MovieCastMemb
 
   if (!hasExisting) {
     const { cast } = await fetchMovieCredits(tmdbId);
-    for (const m of cast) {
-      await pool.query('INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES (?, ?, ?)', [m.tmdbId, m.name, m.profilePath]);
-      const [pRows] = await pool.query<RowDataPacket[]>('SELECT id FROM people WHERE tmdb_id = ?', [m.tmdbId]);
+
+    if (cast.length > 0) {
+      const peopleValues = cast.map(m => [m.tmdbId, m.name, m.profilePath]);
+      const placeholders = peopleValues.map(() => '(?, ?, ?)').join(',');
+      const flatValues = peopleValues.flat();
       await pool.query(
-        'INSERT INTO credits (media_type, media_id, person_id, `character`, `role`, `order`) VALUES ("movie", ?, ?, ?, "cast", ?) ON DUPLICATE KEY UPDATE `character` = VALUES(`character`)',
-        [movieId, (pRows[0] as any).id, m.character, m.order],
+        `INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES ${placeholders}`,
+        flatValues,
       );
+
+      const tmdbIds = cast.map(m => m.tmdbId);
+      const placeholders2 = tmdbIds.map(() => '?').join(',');
+      const [personRows] = await pool.query<RowDataPacket[]>(
+        `SELECT tmdb_id, id FROM people WHERE tmdb_id IN (${placeholders2})`,
+        tmdbIds,
+      );
+      const personMap = new Map(personRows.map(r => [(r as any).tmdb_id, (r as any).id]));
+
+      const creditValues: any[] = [];
+      for (const m of cast) {
+        const personId = personMap.get(m.tmdbId);
+        if (personId) {
+          creditValues.push([movieId, personId, m.character, m.order]);
+        }
+      }
+
+      if (creditValues.length > 0) {
+        const creditsPlaceholders = creditValues.map(() => '("movie", ?, ?, ?, "cast", ?)').join(',');
+        const creditsFlatValues = creditValues.flat();
+        await pool.query(
+          `INSERT INTO credits (media_type, media_id, person_id, \`character\`, \`role\`, \`order\`) VALUES ${creditsPlaceholders} ON DUPLICATE KEY UPDATE \`character\` = VALUES(\`character\`)`,
+          creditsFlatValues,
+        );
+      }
     }
   }
 
@@ -210,13 +237,40 @@ export async function getOrFetchMovieCrew(tmdbId: number): Promise<CrewMember[]>
 
   if (!hasExisting) {
     const { crew } = await fetchMovieCredits(tmdbId);
-    for (const c of crew) {
-      await pool.query('INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES (?, ?, ?)', [c.tmdbId, c.name, c.profilePath]);
-      const [pRows] = await pool.query<RowDataPacket[]>('SELECT id FROM people WHERE tmdb_id = ?', [c.tmdbId]);
+
+    if (crew.length > 0) {
+      const peopleValues = crew.map(c => [c.tmdbId, c.name, c.profilePath]);
+      const placeholders = peopleValues.map(() => '(?, ?, ?)').join(',');
+      const flatValues = peopleValues.flat();
       await pool.query(
-        'INSERT INTO credits (media_type, media_id, person_id, `character`, `role`, department) VALUES ("movie", ?, ?, ?, "crew", ?) ON DUPLICATE KEY UPDATE `character` = VALUES(`character`), department = VALUES(department)',
-        [movieId, (pRows[0] as any).id, c.job, c.department],
+        `INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES ${placeholders}`,
+        flatValues,
       );
+
+      const tmdbIds = crew.map(c => c.tmdbId);
+      const placeholders2 = tmdbIds.map(() => '?').join(',');
+      const [personRows] = await pool.query<RowDataPacket[]>(
+        `SELECT tmdb_id, id FROM people WHERE tmdb_id IN (${placeholders2})`,
+        tmdbIds,
+      );
+      const personMap = new Map(personRows.map(r => [(r as any).tmdb_id, (r as any).id]));
+
+      const creditValues: any[] = [];
+      for (const c of crew) {
+        const personId = personMap.get(c.tmdbId);
+        if (personId) {
+          creditValues.push([movieId, personId, c.job, c.department]);
+        }
+      }
+
+      if (creditValues.length > 0) {
+        const creditsPlaceholders = creditValues.map(() => '("movie", ?, ?, ?, "crew", ?)').join(',');
+        const creditsFlatValues = creditValues.flat();
+        await pool.query(
+          `INSERT INTO credits (media_type, media_id, person_id, \`character\`, \`role\`, department) VALUES ${creditsPlaceholders} ON DUPLICATE KEY UPDATE \`character\` = VALUES(\`character\`), department = VALUES(department)`,
+          creditsFlatValues,
+        );
+      }
     }
   }
 

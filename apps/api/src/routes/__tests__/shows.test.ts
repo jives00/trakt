@@ -204,6 +204,23 @@ describe('GET /api/shows/:tmdbId/cast', () => {
   });
 });
 
+describe('POST /api/shows/:tmdbId/cast/refresh', () => {
+  it('refreshes cast from TMDB using batched queries', async () => {
+    const token = await getToken();
+    await supertest(app.server).get('/api/shows/1396').set('Authorization', `Bearer ${token}`);
+    await supertest(app.server).get('/api/shows/1396/cast').set('Authorization', `Bearer ${token}`);
+
+    const res = await supertest(app.server)
+      .post('/api/shows/1396/cast/refresh')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.cast).toHaveLength(3);
+    const cranston = res.body.cast.find((m: any) => m.name === 'Bryan Cranston');
+    expect(cranston).toMatchObject({ character: 'Walter White', episodeCount: 62 });
+  });
+});
+
 describe('GET /api/shows/:tmdbId/up-next', () => {
   it('returns first episode when nothing watched', async () => {
     const token = await getToken();

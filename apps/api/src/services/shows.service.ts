@@ -419,14 +419,42 @@ export async function getOrFetchCast(tmdbId: number): Promise<CastMember[]> {
     if (hasExisting) {
       await pool.query('DELETE FROM credits WHERE media_type = "show" AND media_id = ?', [showId]);
     }
-    for (const m of tmdbCast) {
-      await pool.query('INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES (?, ?, ?)', [m.tmdbId, m.name, m.profilePath]);
-      const [pRows] = await pool.query<RowDataPacket[]>('SELECT id FROM people WHERE tmdb_id = ?', [m.tmdbId]);
+
+    if (tmdbCast.length > 0) {
+      const peopleValues = tmdbCast.map(m => [m.tmdbId, m.name, m.profilePath]);
+      const placeholders = peopleValues.map(() => '(?, ?, ?)').join(',');
+      const flatValues = peopleValues.flat();
       await pool.query(
-        'INSERT INTO credits (media_type, media_id, person_id, `character`, `role`, `order`, episode_count, is_regular) VALUES ("show", ?, ?, ?, "cast", 0, ?, ?) ON DUPLICATE KEY UPDATE `character` = VALUES(`character`), episode_count = VALUES(episode_count), is_regular = VALUES(is_regular)',
-        [showId, (pRows[0] as any).id, m.character, m.episodeCount, m.isRegular ? 1 : 0],
+        `INSERT IGNORE INTO people (tmdb_id, name, profile_path) VALUES ${placeholders}`,
+        flatValues,
       );
+
+      const tmdbIds = tmdbCast.map(m => m.tmdbId);
+      const placeholders2 = tmdbIds.map(() => '?').join(',');
+      const [personRows] = await pool.query<RowDataPacket[]>(
+        `SELECT tmdb_id, id FROM people WHERE tmdb_id IN (${placeholders2})`,
+        tmdbIds,
+      );
+      const personMap = new Map(personRows.map(r => [(r as any).tmdb_id, (r as any).id]));
+
+      const creditValues: any[] = [];
+      for (const m of tmdbCast) {
+        const personId = personMap.get(m.tmdbId);
+        if (personId) {
+          creditValues.push([showId, personId, m.character, m.episodeCount, m.isRegular ? 1 : 0]);
+        }
+      }
+
+      if (creditValues.length > 0) {
+        const creditsPlaceholders = creditValues.map(() => '("show", ?, ?, ?, "cast", 0, ?, ?)').join(',');
+        const creditsFlatValues = creditValues.flat();
+        await pool.query(
+          `INSERT INTO credits (media_type, media_id, person_id, \`character\`, \`role\`, \`order\`, episode_count, is_regular) VALUES ${creditsPlaceholders} ON DUPLICATE KEY UPDATE \`character\` = VALUES(\`character\`), episode_count = VALUES(episode_count), is_regular = VALUES(is_regular)`,
+          creditsFlatValues,
+        );
+      }
     }
+
     await pool.query('UPDATE tv_shows SET cast_fetched_at = NOW() WHERE id = ?', [showId]);
   }
 

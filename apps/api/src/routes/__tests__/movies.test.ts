@@ -17,12 +17,25 @@ const TMDB_MOVIE = {
   vote_average: 8.8,
 };
 
+const TMDB_MOVIE_CREDITS = {
+  cast: [
+    { id: 819, name: 'Brad Pitt', profile_path: '/bp.jpg', character: 'Tyler Durden', order: 0 },
+    { id: 287, name: 'Edward Norton', profile_path: '/en.jpg', character: 'The Narrator', order: 1 },
+  ],
+  crew: [
+    { id: 7497, name: 'David Fincher', profile_path: '/df.jpg', job: 'Director', department: 'Directing' },
+  ],
+};
+
 beforeAll(async () => { await app.ready(); });
 beforeEach(async () => {
   await resetDb();
   vi.stubGlobal('fetch', vi.fn((url: string) => {
     if (url.includes('external_ids')) {
       return Promise.resolve({ ok: true, json: async () => ({ imdb_id: 'tt0137523' }) });
+    }
+    if (url.includes('credits')) {
+      return Promise.resolve({ ok: true, json: async () => TMDB_MOVIE_CREDITS });
     }
     return Promise.resolve({ ok: true, json: async () => TMDB_MOVIE });
   }));
@@ -111,5 +124,24 @@ describe('POST/DELETE /api/movies/:tmdbId/watchlist', () => {
       .delete('/api/movies/550/watchlist')
       .set('Authorization', `Bearer ${token}`);
     expect(removeRes.body.inWatchlist).toBe(false);
+  });
+});
+
+describe('POST /api/movies/:tmdbId/cast/refresh', () => {
+  it('refreshes cast and crew using batched queries', async () => {
+    const token = await getToken();
+    await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
+
+    const res = await supertest(app.server)
+      .post('/api/movies/550/cast/refresh')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.cast).toHaveLength(2);
+    expect(res.body.crew).toHaveLength(1);
+    const brad = res.body.cast.find((m: any) => m.name === 'Brad Pitt');
+    expect(brad).toMatchObject({ character: 'Tyler Durden' });
+    const fincher = res.body.crew.find((c: any) => c.name === 'David Fincher');
+    expect(fincher).toMatchObject({ job: 'Director', department: 'Directing' });
   });
 });
