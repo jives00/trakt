@@ -17,6 +17,7 @@ const avatarDropdownLinks = [
   { href: "/collection", label: "Collection" },
   { href: "/lists", label: "Lists" },
   { href: "/stats", label: "Stats" },
+  { href: "/integrations", label: "Integrations" },
   { href: "/settings", label: "Settings" },
 ];
 

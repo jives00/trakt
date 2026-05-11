@@ -11,6 +11,7 @@
 - History date filtering: dashboard Last 30 Days bar chart bars are now clickable; clicking a bar navigates to /history?date=YYYY-MM-DD; history page reads date param and filters results; infinite scroll pagination works with date filter applied `4905d6d`
 - Up Next styling: reduced Remove button roundness from rounded-full to rounded-md to match watch button; updated dropdown background to match Mark Watched button color with 90% opacity; aligned dropdown borders and hover states with accent theme `3267bb3`
 - Episode navigation: arrow key navigation on episode detail pages now only works without modifiers; ALT+arrow no longer switches episodes `039ae81`
+- Profile dropdown menu: added Integrations link to profile icon dropdown for quick access to integrations settings `9b3577f`
 
 ## May 10, 2026
 
