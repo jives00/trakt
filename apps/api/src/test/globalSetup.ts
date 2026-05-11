@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise';
 import { RowDataPacket } from 'mysql2';
+import { runMigrations } from './runMigrations';
 
 const NUM_WORKERS = 18;
 const DB_CONFIG = {
@@ -25,6 +26,12 @@ async function cloneSchema(adminConn: mysql.Connection, sourceDb: string, target
       await adminConn.query(
         `CREATE TABLE \`${targetDb}\`.\`${table}\` LIKE \`${sourceDb}\`.\`${table}\``
       );
+      // Copy data for migrations table so schema changes are tracked
+      if (table === 'migrations') {
+        await adminConn.query(
+          `INSERT INTO \`${targetDb}\`.\`migrations\` SELECT * FROM \`${sourceDb}\`.\`migrations\``
+        );
+      }
     } catch (err: any) {
       if (err.code !== 'ER_TABLE_EXISTS_ERROR') {
         throw err;
@@ -37,21 +44,25 @@ export async function setup(): Promise<void> {
   const adminConn = await mysql.createConnection(DB_CONFIG);
 
   try {
-    // Clone schema from trakt_test to each worker database
+    // Ensure trakt_test is migrated first (template database)
+    console.log('Ensuring trakt_test is migrated...');
+    await runMigrations('trakt_test', DB_CONFIG);
+
+    // Clone schema from fully-migrated trakt_test to each worker database
     for (let i = 1; i <= NUM_WORKERS; i++) {
       const dbName = `trakt_test_${i}`;
       try {
         console.log(`Setting up ${dbName}...`);
         await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await cloneSchema(adminConn, 'trakt_test', dbName);
-        console.log(`✓ ${dbName} schema cloned`);
+        console.log(`✓ ${dbName} ready with cloned migrated schema`);
       } catch (err) {
         console.error(`Failed to set up ${dbName}:`, err);
         throw err;
       }
     }
 
-    console.log('✓ All test databases ready with cloned schema');
+    console.log('✓ All test databases ready with migrated schema');
   } finally {
     await adminConn.end();
   }

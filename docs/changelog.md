@@ -6,6 +6,7 @@
 - Fixed stale show metadata: implemented TTL-based auto-refresh for shows imported from Trakt.tv (7 days for Returning Series, 30 days for others); added metadata_refreshed_at column and isShowMetadataStale() helper; fixed forceRefreshShowMetadata to prefetch new seasons `93a5958`
 - Fixed cast refresh socket hang-up: replaced N+1 query pattern with batched inserts in getOrFetchCast, getOrFetchMovieCast, and getOrFetchMovieCrew; reduces 300+ queries for large casts to ~4 queries; added tests for POST /shows/:tmdbId/cast/refresh and POST /movies/:tmdbId/cast/refresh `2a4a099`
 - History date filtering: added optional date query parameter to GET /api/history to filter watch_history by DATE(watched_at); validates date format (YYYY-MM-DD) `4905d6d`
+- Test migration automation: extracted migration logic into reusable runMigrations.ts module; globalSetup now automatically applies all migrations to template database and clones migrated schema to all 18 parallel test databases; eliminates manual migration steps before running tests `37c5488`
 
 ### Web
 - Search bar autocomplete: typing 2+ characters triggers a debounced (300ms) dropdown showing up to 6 matching titles with poster thumbnails, release year, and show/movie badge; click or keyboard navigate (arrow keys + Enter) to jump directly to detail pages, or press Escape to close; includes loading spinner while fetching `1552173`
