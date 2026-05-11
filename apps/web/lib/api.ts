@@ -218,10 +218,13 @@ export const api = {
     request<NowPlayingItem | null>("/api/scrobble/now-playing", { token }),
 
   // History
-  getHistory: (token: string, type = "all", page = 1, limit = 20) =>
-    request<{ items: HistoryItem[]; total: number; page: number; limit: number }>(
-      `/api/history?type=${type}&page=${page}&limit=${limit}`, { token },
-    ),
+  getHistory: (token: string, type = "all", page = 1, limit = 20, date?: string) => {
+    const params = new URLSearchParams({ type, page: String(page), limit: String(limit) });
+    if (date) params.append("date", date);
+    return request<{ items: HistoryItem[]; total: number; page: number; limit: number }>(
+      `/api/history?${params.toString()}`, { token },
+    );
+  },
   deleteHistory: (id: number, token: string) =>
     request<{ deleted: boolean }>(`/api/history/${id}`, { method: "DELETE", token }),
 

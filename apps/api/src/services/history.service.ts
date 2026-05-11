@@ -7,11 +7,14 @@ export async function getHistory(
   type: 'movie' | 'episode' | 'all',
   page: number,
   limit: number,
+  date?: string,
 ): Promise<{ items: HistoryItem[]; total: number }> {
   const pool = getPool();
   const offset = (page - 1) * limit;
   const typeWhere = type === 'all' ? '' : ' AND media_type = ?';
+  const dateWhere = date ? ' AND DATE(wh.watched_at) = ?' : '';
   const typeParam = type === 'all' ? [] : [type];
+  const dateParam = date ? [date] : [];
 
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
@@ -28,15 +31,16 @@ export async function getHistory(
      LEFT JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
      LEFT JOIN seasons seas ON e.season_id=seas.id
      LEFT JOIN tv_shows ts ON e.show_id=ts.id
-     WHERE wh.user_id=?${typeWhere}
+     WHERE wh.user_id=?${typeWhere}${dateWhere}
      ORDER BY wh.watched_at DESC
      LIMIT ? OFFSET ?`,
-    [userId, ...typeParam, limit, offset],
+    [userId, ...typeParam, ...dateParam, limit, offset],
   );
 
+  const dateWhereFull = date ? ' AND DATE(watched_at) = ?' : '';
   const [[countRow]] = await pool.query<RowDataPacket[]>(
-    `SELECT COUNT(*) AS total FROM watch_history WHERE user_id=?${typeWhere}`,
-    [userId, ...typeParam],
+    `SELECT COUNT(*) AS total FROM watch_history WHERE user_id=?${typeWhere}${dateWhereFull}`,
+    [userId, ...typeParam, ...dateParam],
   );
 
   return { items: rows as HistoryItem[], total: countRow.total as number };

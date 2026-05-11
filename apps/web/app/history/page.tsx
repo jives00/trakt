@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { HistoryItem } from "@trakt/types";
@@ -50,6 +51,8 @@ type FilterType = "all" | "movie" | "episode";
 
 export default function HistoryPage() {
   const { token, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+  const dateParam = searchParams.get("date") ?? undefined;
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -57,10 +60,10 @@ export default function HistoryPage() {
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
 
-  const load = useCallback(async (t: string, f: FilterType, p: number, reset = false) => {
+  const load = useCallback(async (t: string, f: FilterType, p: number, date: string | undefined, reset = false) => {
     setFetching(true);
     try {
-      const data = await api.getHistory(t, f, p);
+      const data = await api.getHistory(t, f, p, 20, date);
       setItems((prev) => reset ? data.items : [...prev, ...data.items]);
       setTotal(data.total);
     } catch {
@@ -72,9 +75,9 @@ export default function HistoryPage() {
 
   useEffect(() => {
     if (isLoading || !token) return;
-    load(token, filter, 1, true);
+    load(token, filter, 1, dateParam, true);
     setPage(1);
-  }, [token, isLoading, filter, load]);
+  }, [token, isLoading, filter, dateParam, load]);
 
   async function handleDelete(id: number) {
     if (!token) return;
@@ -87,7 +90,7 @@ export default function HistoryPage() {
     if (!token) return;
     const next = page + 1;
     setPage(next);
-    await load(token, filter, next);
+    await load(token, filter, next, dateParam);
   }
 
   if (isLoading) return null;

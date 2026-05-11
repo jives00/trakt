@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { token, isLoading } = useAuth();
   const [upNext, setUpNext] = useState<UpNextItem[]>([]);
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
@@ -67,7 +69,7 @@ export default function DashboardPage() {
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <ScheduleSection entries={schedule} />
-        {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} />}
+        {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} onBarClick={(date) => router.push(`/history?date=${date}`)} />}
         <RecentSection items={recentItems} />
         <RecommendationsSection showRecs={showRecs} movieRecs={movieRecs} />
       </div>
@@ -220,7 +222,7 @@ function formatWatchTime(totalMinutes: number): string {
 
 const GENRE_COLORS = ["#c0392b","#16a085","#e67e22","#7f5539","#f1c40f","#8e44ad","#2980b9","#c0392b"];
 
-function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[]; summary: DashboardSummary; genres: DashboardGenre[] }) {
+function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardDailyStats[]; summary: DashboardSummary; genres: DashboardGenre[]; onBarClick?: (date: string) => void }) {
   const [activeBar, setActiveBar] = useState<number | null>(null);
   // Anchor to today in US Central time, then build a dense 30-day window
   const centralToday = new Intl.DateTimeFormat("en-CA", {
@@ -239,6 +241,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
     const totalMinutes = entry ? entry.hours * 60 : 0;
     return {
       date: String(dt.getUTCDate()),
+      dateStr,
       hours: Math.round((entry?.hours ?? 0) * 10) / 10,
       totalMinutes,
       episodes: entry?.episodes ?? 0,
@@ -286,11 +289,13 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
                 }}
               />
               <Bar dataKey="hours" radius={[3, 3, 0, 0]} onMouseLeave={() => setActiveBar(null)}>
-                {chartData.map((_, i) => (
+                {chartData.map((item, i) => (
                   <Cell
                     key={i}
                     fill={activeBar === i ? "rgb(var(--accent-rgb))" : "rgba(255,255,255,0.2)"}
                     onMouseEnter={() => setActiveBar(i)}
+                    onClick={() => onBarClick?.(item.dateStr)}
+                    style={{ cursor: onBarClick ? "pointer" : "default" }}
                   />
                 ))}
               </Bar>

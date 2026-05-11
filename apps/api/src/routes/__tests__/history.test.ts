@@ -79,6 +79,14 @@ describe('GET /api/history', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(400);
   });
+
+  it('returns 400 for invalid date format', async () => {
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/history?date=invalid')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('DELETE /api/history/:id', () => {
