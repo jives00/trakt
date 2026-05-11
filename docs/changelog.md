@@ -1,5 +1,10 @@
 # Changelog
 
+## May 11, 2026
+
+### API
+- Fixed stale show metadata: implemented TTL-based auto-refresh for shows imported from Trakt.tv (7 days for Returning Series, 30 days for others); added metadata_refreshed_at column and isShowMetadataStale() helper; fixed forceRefreshShowMetadata to prefetch new seasons `93a5958`
+
 ## May 10, 2026
 
 ### API

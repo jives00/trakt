@@ -16,6 +16,7 @@ interface ShowRow extends RowDataPacket {
   air_time: string | null; airs_day: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
   tmdb_rating: number | null;
+  metadata_refreshed_at: Date | null;
 }
 
 interface SeasonRow extends RowDataPacket {
@@ -34,6 +35,16 @@ function isSeasonStale(fetchedAt: Date | null, airDate: string | null): boolean 
   if (!fetchedAt) return true;
   const ageMs = Date.now() - new Date(fetchedAt).getTime();
   return ageMs >= seasonTtlDays(airDate) * 86400000;
+}
+
+function showTtlDays(status: string | null): number {
+  return status === 'Returning Series' ? 7 : 30;
+}
+
+function isShowMetadataStale(metadataRefreshedAt: Date | null, status: string | null): boolean {
+  if (!metadataRefreshedAt) return true;
+  const ageMs = Date.now() - new Date(metadataRefreshedAt).getTime();
+  return ageMs >= showTtlDays(status) * 86400000;
 }
 
 interface EpisodeRow extends RowDataPacket {
@@ -91,7 +102,7 @@ export async function getOrFetchShow(tmdbId: number) {
       const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
       const sc = row.season_count > 0 ? row.season_count : freshCount;
       await pool.query(
-        `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ? WHERE id = ?`,
+        `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
         [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
       if (process.env.NODE_ENV !== 'test') {
@@ -102,13 +113,36 @@ export async function getOrFetchShow(tmdbId: number) {
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
-      await pool.query('UPDATE tv_shows SET season_count = ? WHERE id = ?', [seasonCount, row.id]);
+      await pool.query('UPDATE tv_shows SET season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?', [seasonCount, row.id]);
       if (process.env.NODE_ENV !== 'test') {
         backfillShowImdbRating(row.id, tmdbId).catch(() => {});
         backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
       }
       return applyImageOverrides('show', rowToShow(row, seasonCount, imdbId));
     }
+    // Path C: Check if show metadata is stale and refresh if needed
+    if (isShowMetadataStale(row.metadata_refreshed_at, row.status)) {
+      const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
+      const prevSeasonCount = row.season_count;
+      await pool.query(
+        `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
+        [freshCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, row.id],
+      );
+      row.season_count = freshCount;
+      row.status = fresh.status;
+      row.title = fresh.title;
+      row.overview = fresh.overview;
+      row.poster_path = fresh.posterPath;
+      row.backdrop_path = fresh.backdropPath;
+      row.first_air_date = fresh.firstAirDate;
+      row.origin_country = fresh.originCountry;
+      row.original_language = fresh.originalLanguage;
+      row.runtime_min = fresh.runtimeMin;
+      if (freshCount > prevSeasonCount) {
+        void prefetchAllSeasons(tmdbId).catch(() => {});
+      }
+    }
+
     const show = rowToShow(row, row.season_count, imdbId);
     if (show.runtimeMin === null) {
       const [rtRows] = await pool.query<RowDataPacket[]>(
@@ -131,8 +165,8 @@ export async function getOrFetchShow(tmdbId: number) {
   const tmdbRating = show.tmdbRating ?? null;
 
   await pool.query(
-    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min, tmdb_rating)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min, tmdb_rating, metadata_refreshed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
      ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id, tmdb_rating = VALUES(tmdb_rating)`,
     [tmdbId, show.title, show.year || null, show.overview, show.posterPath,
      show.backdropPath, show.status, show.network, JSON.stringify(show.genres), seasonCount,
@@ -578,7 +612,20 @@ export async function getEpisodeCast(tmdbId: number, seasonNumber: number, episo
 
 export async function forceRefreshShowMetadata(tmdbId: number): Promise<ShowDetail & { id: number }> {
   const pool = getPool();
-  await pool.query('DELETE FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  const existing = await pool.query('SELECT id FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  if ((existing as any)[0].length === 0) {
+    return getOrFetchShow(tmdbId);
+  }
+  const { show: fresh, seasonCount } = await fetchShowWithSeasonCount(tmdbId);
+  const [rows] = await pool.query<ShowRow[]>('SELECT season_count FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
+  const prevSeasonCount = rows[0]?.season_count ?? 0;
+  await pool.query(
+    `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, metadata_refreshed_at = NOW() WHERE tmdb_id = ?`,
+    [seasonCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, tmdbId],
+  );
+  if (seasonCount > prevSeasonCount) {
+    await prefetchAllSeasons(tmdbId);
+  }
   return getOrFetchShow(tmdbId);
 }
 
@@ -587,7 +634,9 @@ export async function forceRefreshShowSeasons(tmdbId: number): Promise<void> {
   const show = await getOrFetchShow(tmdbId);
 
   await pool.query('UPDATE seasons SET fetched_at = NULL WHERE show_id = ?', [show.id]);
+  const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
   await prefetchAllSeasons(tmdbId);
+  await pool.query('UPDATE tv_shows SET season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?', [seasonCount, show.id]);
 }
 
 export async function forceRefreshEpisode(tmdbId: number, seasonNumber: number): Promise<{ seasonId: number; showId: number; episodes: any[] }> {
