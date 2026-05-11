@@ -236,7 +236,7 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
               e.stopPropagation();
             }}
             disabled={isRemoving}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
+            className="flex items-center gap-2 px-4 py-2 rounded-md bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
           >
             <span className="material-symbols-outlined text-base">close</span>
             Remove

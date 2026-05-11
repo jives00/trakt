@@ -82,7 +82,7 @@ export function WatchDatePicker({
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-md shadow-lg z-50 overflow-hidden">
             {onRemoveLatest && latestEntryId ? (
               <button
                 onClick={(e) => {
@@ -95,7 +95,7 @@ export function WatchDatePicker({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
               >
                 Remove Latest
               </button>
@@ -112,7 +112,7 @@ export function WatchDatePicker({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
               >
                 Remove All
               </button>
@@ -158,9 +158,9 @@ export function WatchDatePicker({
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-md shadow-lg z-50 overflow-hidden">
           {showDateInput ? (
-            <div className="p-3 border-b border-slate-700">
+            <div className="p-3 border-b border-accent/60">
               <div className="flex gap-2">
                 <input
                   type="date"
@@ -170,7 +170,7 @@ export function WatchDatePicker({
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className="flex-1 px-2 py-1 rounded bg-slate-900 border border-slate-600 text-slate-200 text-sm"
+                  className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
                 />
                 <button
                   onClick={(e) => {
@@ -200,7 +200,7 @@ export function WatchDatePicker({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
               >
                 Today
               </button>
@@ -216,7 +216,7 @@ export function WatchDatePicker({
                     e.preventDefault();
                     e.stopPropagation();
                   }}
-                  className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                  className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
                 >
                   {releaseDateLabel}
                 </button>
@@ -232,7 +232,7 @@ export function WatchDatePicker({
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors border-t border-slate-700"
+                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
               >
                 Pick Date
               </button>
