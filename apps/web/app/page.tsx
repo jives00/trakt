@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -101,7 +101,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
               </div>
             )}
           </div>
-            {/* Now Playing card â€” renders only when scrobble is active (Phase 2+) */}
+            {/* Now Playing card – renders only when scrobble is active (Phase 2+) */}
         </div>
       </div>
     </section>
@@ -225,7 +225,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
   // Anchor to today in US Central time, then build a dense 30-day window
   const centralToday = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Chicago",
-  }).format(new Date()); // "en-CA" â†’ YYYY-MM-DD
+  }).format(new Date()); // "en-CA" → YYYY-MM-DD
   const [y, m, d] = centralToday.split("-").map(Number);
   const anchor = Date.UTC(y, m - 1, d);
 
@@ -260,7 +260,7 @@ function StatsBarChart({ data, summary, genres }: { data: DashboardDailyStats[];
       <div>
         <SectionHeading>Last 30 Days</SectionHeading>
         {summary.plays > 0 && (
-          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" â€” ")}</p>
+          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" - ")}</p>
         )}
       </div>
       <div className="glass-panel p-5 rounded-xl flex-1">
@@ -329,7 +329,7 @@ function GenreBar({ genres }: { genres: DashboardGenre[] }) {
             <span className="w-2.5 h-2.5 flex-none" style={{ background: GENRE_COLORS[genres.indexOf(h) % GENRE_COLORS.length] }} />
             <span className="text-sm font-black uppercase text-white/80">{h.genre}</span>
             <span className="text-xs text-white/40">
-              {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" Â· ")}
+              {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" · ")}
             </span>
             <span className="text-xs font-bold text-white/30">{Math.round((h.plays / total) * 100)}%</span>
           </div>
@@ -373,7 +373,7 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
     : null;
 
   const subLine = isEpisode && item.seasonNumber != null && item.episodeNumber != null
-    ? `S${String(item.seasonNumber).padStart(2, '0')} E${String(item.episodeNumber).padStart(2, '0')}${item.episodeTitle ? ` Â· ${item.episodeTitle}` : ''}`
+    ? `S${String(item.seasonNumber).padStart(2, '0')} E${String(item.episodeNumber).padStart(2, '0')}${item.episodeTitle ? ` · ${item.episodeTitle}` : ''}`
     : (item.tagline ?? '');
 
   const runtimeMin = isEpisode ? item.showRuntimeMin : item.runtimeMin;

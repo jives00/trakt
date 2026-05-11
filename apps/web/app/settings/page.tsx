@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -131,7 +131,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h4 className="font-semibold text-white mb-1">Lists</h4>
-                <p className="text-xs leading-relaxed"><span className="text-white/60">Custom organizational containers</span> you create for any purpose (favorites, recommendations, themed collections, etc.). Can contain shows, movies, and episodes. Does NOT affect Up Next â€” purely for curation and reference.</p>
+                <p className="text-xs leading-relaxed"><span className="text-white/60">Custom organizational containers</span> you create for any purpose (favorites, recommendations, themed collections, etc.). Can contain shows, movies, and episodes. Does NOT affect Up Next - purely for curation and reference.</p>
               </div>
             </div>
           </div>

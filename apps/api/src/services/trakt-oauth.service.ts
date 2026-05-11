@@ -34,46 +34,59 @@ export async function initiateDeviceCodeFlow(): Promise<{ userCode: string; expi
     throw new Error('TRAKT_CLIENT_ID not set in environment');
   }
 
-  const res = await fetch(`${TRAKT_API}/oauth/device/code`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'User-Agent': 'TraktClone/1.0 (+https://github.com/)',
-    },
-    body: JSON.stringify({
-      client_id: process.env.TRAKT_CLIENT_ID,
-    }),
-  });
+  try {
+    console.log('🔐 Calling Trakt device code endpoint...');
+    const res = await fetch(`${TRAKT_API}/oauth/device/code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'TraktClone/1.0 (+https://github.com/)',
+      },
+      body: JSON.stringify({
+        client_id: process.env.TRAKT_CLIENT_ID,
+      }),
+    });
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Failed to initiate device code flow: ${res.status} ${body}`);
+    console.log('🔐 Trakt response status:', res.status);
+
+    if (!res.ok) {
+      const body = await res.text();
+      console.error('🔐 Trakt error body:', body);
+      throw new Error(`Failed to initiate device code flow: ${res.status} ${body}`);
+    }
+
+    const data = (await res.json()) as DeviceCodeResponse;
+    console.log('🔐 Got device code, user code:', data.user_code);
+
+    deviceCodeCache = {
+      deviceCode: data.device_code,
+      expiresAt: Date.now() + data.expires_in * 1000,
+    };
+
+    return {
+      userCode: data.user_code,
+      expiresIn: data.expires_in,
+    };
+  } catch (err) {
+    console.error('🔐 Device code flow error:', err);
+    throw err;
   }
-
-  const data = (await res.json()) as DeviceCodeResponse;
-
-  deviceCodeCache = {
-    deviceCode: data.device_code,
-    expiresAt: Date.now() + data.expires_in * 1000,
-  };
-
-  return {
-    userCode: data.user_code,
-    expiresIn: data.expires_in,
-  };
 }
 
 export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
   if (!deviceCodeCache) {
+    console.log('🔐 No device code cache, returning expired');
     return { status: 'expired' };
   }
 
   if (Date.now() > deviceCodeCache.expiresAt) {
+    console.log('🔐 Device code expired');
     deviceCodeCache = null;
     return { status: 'expired' };
   }
 
   try {
+    console.log('🔐 Checking authorization status with device code...');
     const res = await fetch(`${TRAKT_API}/oauth/device/token`, {
       method: 'POST',
       headers: {
@@ -87,13 +100,15 @@ export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
       }),
     });
 
+    console.log('🔐 Token check response:', res.status);
+
     if (res.status === 400) {
-      // Still pending
+      console.log('🔐 Still pending (400)');
       return { status: 'pending', expiresAt: deviceCodeCache.expiresAt };
     }
 
     if (res.status === 401 || res.status === 403 || res.status === 409) {
-      // Denied, expired, or code no longer valid
+      console.log('🔐 Authorization denied/expired:', res.status);
       deviceCodeCache = null;
       if (res.status === 403 || res.status === 409) return { status: 'expired' };
       return { status: 'denied' };
@@ -101,10 +116,13 @@ export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
 
     if (!res.ok) {
       const body = await res.text();
+      console.error('🔐 Unexpected response:', res.status, body);
       throw new Error(`Failed to check authorization: ${res.status} ${body}`);
     }
 
+    console.log('🔐 Got token response, parsing...');
     const data = (await res.json()) as TokenResponse;
+    console.log('🔐 Token received, fetching user info...');
 
     // Fetch user info to get username
     const userRes = await fetch(`${TRAKT_API}/users/me`, {
@@ -120,20 +138,25 @@ export async function checkAuthorizationStatus(): Promise<AuthorizationStatus> {
     if (userRes.ok) {
       const userData = (await userRes.json()) as { username?: string };
       username = userData.username;
+      console.log('🔐 Got username:', username);
+    } else {
+      console.log('🔐 Failed to fetch user info:', userRes.status);
     }
 
     // Store the token with username
+    console.log('🔐 Storing token...');
     await setTraktToken({
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
       expiresAt: new Date(data.created_at * 1000 + data.expires_in * 1000),
       username,
     });
+    console.log('🔐 Token stored successfully!');
 
     deviceCodeCache = null;
     return { status: 'authorized' };
   } catch (err) {
-    console.error('Error checking authorization:', err);
+    console.error('🔐 Error checking authorization:', err);
     if (!deviceCodeCache) return { status: 'pending' };
     return { status: 'pending', expiresAt: deviceCodeCache.expiresAt };
   }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
@@ -98,13 +98,11 @@ export default function HistoryPage() {
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
-      <div>
       <header className="mb-8">
         <h1 className="text-h1 font-black tracking-tight text-white mb-1">History</h1>
         <p className="text-white/40">Your cinematic journey, chronologically curated.</p>
       </header>
 
-      {/* Filter tabs */}
       <div className="flex gap-2 mb-8">
         {(["all", "movie", "episode"] as FilterType[]).map((f) => (
           <button
@@ -122,7 +120,7 @@ export default function HistoryPage() {
       </div>
 
       {fetching && items.length === 0 && (
-        <p className="text-white/40">Loadingâ€¦</p>
+        <p className="text-white/40">Loading...</p>
       )}
 
       {groups.map(([day, dayItems]) => (
@@ -149,7 +147,7 @@ export default function HistoryPage() {
             disabled={fetching}
             className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
           >
-            {fetching ? "Loadingâ€¦" : "Load More"}
+            {fetching ? "Loading..." : "Load More"}
           </button>
         </div>
       )}
@@ -160,7 +158,6 @@ export default function HistoryPage() {
           <p className="text-white/40">No watch history yet.</p>
         </div>
       )}
-      </div>
     </div>
   );
 }
@@ -194,7 +191,7 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
             {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[11px] text-accent font-bold">
-                  S{String(item.seasonNumber).padStart(2, "0")} Â· E{String(item.episodeNumber).padStart(2, "0")}
+                  S{String(item.seasonNumber).padStart(2, "0")} &middot; E{String(item.episodeNumber).padStart(2, "0")}
                 </span>
                 {item.title && (
                   <span className="text-[11px] text-white/60 truncate">{item.title}</span>
@@ -209,7 +206,7 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
             <div className="flex items-center gap-2 mt-2">
               <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded">
                 <span className="material-symbols-outlined text-xs text-white/20">star</span>
-                <span className="text-xs font-bold text-white/40">â€”</span>
+                <span className="text-xs font-bold text-white/40">&ndash;</span>
               </div>
               <div className="bg-[#2a2a2a] px-2 py-1 rounded border border-white/5">
                 <span className={`text-[9px] font-black tracking-tighter uppercase ${SOURCE_COLORS[item.source] ?? "text-white/40"}`}>
@@ -233,4 +230,3 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
     </div>
   );
 }
-

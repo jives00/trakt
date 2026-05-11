@@ -46,11 +46,14 @@ export async function settingsRoutes(app: FastifyInstance) {
   // Start device code OAuth flow
   app.post('/settings/trakt-auth/start', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
+      console.log('Starting Trakt OAuth flow...');
       const { userCode, expiresIn } = await initiateDeviceCodeFlow();
+      console.log('OAuth flow initiated, user code:', userCode);
       return reply.status(200).send({ userCode, expiresIn, verificationUrl: 'https://trakt.tv/activate' });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Failed to initiate device code flow:', message);
+      console.error('Full error:', err);
       return reply.status(500).send({ error: message });
     }
   });

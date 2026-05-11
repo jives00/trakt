@@ -3,6 +3,14 @@
 ## May 10, 2026
 
 ### API
+- Background Trakt poller: startBackgroundPoller() runs on server startup, checking /users/{username}/watching every 60s independent of Stremio triggers; rewatches always record new history entries `989a793`
+- Hourly history sync: syncWatchHistory() fetches the last 50 items from Trakt history once per hour; global dedup (any source, any date) prevents duplicates while catching missed watches `989a793`
+- Reduced verbose logging: removed debug-level console.log from poll and history sync; errors still logged `989a793`
+
+### Web
+- Fixed UTF-8 BOM and smart/curly quote encoding across 24 web files; replaced encoded characters (â€", â€¦, â†', â€¢, âœ") with ASCII or HTML entities `989a793`
+
+### API
 - Test suite optimization: fixed critical database routing bug where tests were writing to production; db.ts now checks VITEST_WORKER_ID and routes to isolated test databases; modulo wrapping safely maps worker IDs to 1-18 test databases; 4-worker parallel execution achieves 131s runtime (53% faster than 280s baseline) with zero production contamination `5f74f2a`
 - Test infrastructure: added globalSetup.ts to clone schema across worker databases and globalTeardown.ts to clean up after runs; moved pool creation to runtime in helpers.ts to read VITEST_WORKER_ID when worker starts `5f74f2a`
 - Backfill operations: guarded async metadata fetches with NODE_ENV check to prevent race conditions during tests; removed 50ms delay from resetDb() `5f74f2a`

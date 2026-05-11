@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -74,7 +74,7 @@ export default function ProgressPage() {
           </div>
         </header>
 
-        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
+        {fetching && <p className="text-white/40">Loading…</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
@@ -123,7 +123,7 @@ function FeaturedCard({ item }: { item: ProgressItem }) {
         <div className="flex items-center gap-2 mb-4">
           <span className="bg-white/10 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-widest">
             {item.nextEpisode
-              ? `S${String(item.nextEpisode.seasonNumber).padStart(2,"0")} Â· Ep ${item.nextEpisode.episodeNumber}`
+              ? `S${String(item.nextEpisode.seasonNumber).padStart(2,"0")} · Ep ${item.nextEpisode.episodeNumber}`
               : "In Progress"
             }
           </span>
@@ -176,7 +176,7 @@ function QuickStatsPanel({ items }: { items: ProgressItem[] }) {
             {nextAiring.nextEpisode && (
               <div className="text-sm text-white/60">
                 S{String(nextAiring.nextEpisode.seasonNumber).padStart(2,"0")}E{String(nextAiring.nextEpisode.episodeNumber).padStart(2,"0")}
-                {nextAiring.nextEpisode.title ? ` Â· ${nextAiring.nextEpisode.title}` : ""}
+                {nextAiring.nextEpisode.title ? ` · ${nextAiring.nextEpisode.title}` : ""}
               </div>
             )}
           </>
@@ -217,7 +217,7 @@ function ProgressCard({ item }: { item: ProgressItem }) {
         {item.nextEpisode && (
           <p className="text-white/40 text-xs font-medium mb-4 line-clamp-1">
             Next: S{String(item.nextEpisode.seasonNumber).padStart(2,"0")}E{String(item.nextEpisode.episodeNumber).padStart(2,"0")}
-            {item.nextEpisode.title ? ` Â· ${item.nextEpisode.title}` : ""}
+            {item.nextEpisode.title ? ` · ${item.nextEpisode.title}` : ""}
           </p>
         )}
         <div className="flex justify-between items-center text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
@@ -237,4 +237,5 @@ function ProgressCard({ item }: { item: ProgressItem }) {
     </Link>
   );
 }
+
 

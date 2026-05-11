@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -93,7 +93,7 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
+        {fetching && <p className="text-white/40">Loading…</p>}
 
         {!fetching && groups.length === 0 && (
           <div className="text-center py-24">
@@ -135,7 +135,7 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
     <Link href={`/shows/${entry.showTmdbId}`} className="group relative overflow-hidden rounded-2xl glass-panel block">
       <div className="p-5">
         <p className="text-accent text-[10px] font-black uppercase tracking-widest mb-1">
-          {entry.showTitle} Â· S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
+          {entry.showTitle} · S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
         </p>
         <h3 className="text-white font-bold text-lg leading-tight mb-3 group-hover:text-accent transition-colors line-clamp-2">
           {entry.episodeTitle ?? `Episode ${entry.episodeNumber}`}
@@ -155,4 +155,5 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
     </Link>
   );
 }
+
 

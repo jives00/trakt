@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -35,7 +35,7 @@ export default function StatsPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!stats) return <p className="text-white/40">Loadingâ€¦</p>;
+  if (!stats) return <p className="text-white/40">Loading…</p>;
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
@@ -207,4 +207,5 @@ function HeatMap({ data }: { data: { date: string; count: number }[] }) {
     </div>
   );
 }
+
 

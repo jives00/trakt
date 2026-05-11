@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -92,7 +92,7 @@ export default function ListsPage() {
           </form>
         )}
 
-        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
+        {fetching && <p className="text-white/40">Loading…</p>}
 
         {!fetching && lists.length === 0 && !creating && (
           <div className="text-center py-24">
@@ -141,4 +141,5 @@ function ListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) 
     </div>
   );
 }
+
 

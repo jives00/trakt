@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
@@ -96,7 +96,7 @@ export default function RatingsPage() {
           </div>
         </div>
 
-        {fetching && items.length === 0 && <p className="text-white/40">Loadingâ€¦</p>}
+        {fetching && items.length === 0 && <p className="text-white/40">Loading…</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
@@ -118,7 +118,7 @@ export default function RatingsPage() {
               disabled={fetching}
               className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
             >
-              {fetching ? "Loadingâ€¦" : "Load More"}
+              {fetching ? "Loading…" : "Load More"}
             </button>
           </div>
         )}
@@ -172,4 +172,5 @@ function RatingCard({ item, onDelete }: { item: RatingItem; onDelete: () => void
     </div>
   );
 }
+
 

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -104,7 +104,7 @@ export function SearchResults() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movies and showsâ€¦"
+          placeholder="Search movies and shows…"
           className="w-full rounded-full border border-outline-variant bg-surface-container px-5 py-3 text-on-surface placeholder:text-on-surface-variant focus:border-primary-container focus:outline-none"
         />
       </form>
@@ -151,7 +151,7 @@ export function SearchResults() {
         </div>
       </div>
 
-      {loading && <p className="text-center text-on-surface-variant py-8">Searchingâ€¦</p>}
+      {loading && <p className="text-center text-on-surface-variant py-8">Searching…</p>}
 
       {!loading && searched && results?.length === 0 && (
         <p className="text-center text-on-surface-variant py-8">No results found.</p>
@@ -224,7 +224,7 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
         )}
         {/* Rating badge */}
         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-black text-accent">
-          {item.year ?? "â€”"}
+          {item.year ?? "–"}
         </div>
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center gap-3 px-4">
@@ -245,10 +245,11 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
       <div>
         <h3 className="text-white font-bold text-sm truncate">{item.title}</h3>
         <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">
-          {item.mediaType === "movie" ? "Movie" : "Show"}{item.year ? ` Â· ${item.year}` : ""}
+          {item.mediaType === "movie" ? "Movie" : "Show"}{item.year ? ` · ${item.year}` : ""}
         </p>
       </div>
     </div>
   );
 }
+
 

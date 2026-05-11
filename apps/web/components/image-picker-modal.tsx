@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
@@ -68,7 +68,7 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, mediaType, 
 
         <div className="overflow-y-auto p-6">
           {loading ? (
-            <p className="text-white/40 text-sm text-center py-12">Loading imagesâ€¦</p>
+            <p className="text-white/40 text-sm text-center py-12">Loading images…</p>
           ) : images.length === 0 ? (
             <p className="text-white/40 text-sm text-center py-12">No images available.</p>
           ) : (

@@ -18,6 +18,8 @@ const POLL_INTERVAL = process.env.POLL_INTERVAL ? parseInt(process.env.POLL_INTE
 const SAFETY_TIMEOUT = process.env.POLL_SAFETY_TIMEOUT ? parseInt(process.env.POLL_SAFETY_TIMEOUT, 10) : 4 * 60 * 60 * 1000; // 4h
 
 let pollers: Map<string, NodeJS.Timeout> = new Map();
+let backgroundPoller: NodeJS.Timeout | null = null;
+let lastHistorySync = 0;
 
 export async function getTraktToken(): Promise<StoredToken | null> {
   const pool = getPool();
@@ -93,6 +95,261 @@ export async function refreshTraktToken(): Promise<StoredToken> {
   return newToken;
 }
 
+async function syncWatchHistory(): Promise<void> {
+  const now = Date.now();
+  const ONE_HOUR = 60 * 60 * 1000;
+
+  // Only sync once per hour
+  if (now - lastHistorySync < ONE_HOUR) {
+    return;
+  }
+
+  lastHistorySync = now;
+
+  let token = await getTraktToken();
+  if (!token?.username) return;
+
+  if (token.expiresAt < new Date()) {
+    try {
+      token = await refreshTraktToken();
+    } catch {
+      return;
+    }
+  }
+
+  if (!process.env.TRAKT_CLIENT_ID) return;
+
+  const username = token.username;
+
+  try {
+    const res = await new Promise<{ status: number; body: string }>((resolve, reject) => {
+      const options = {
+        hostname: 'api.trakt.tv',
+        port: 443,
+        path: `/users/${username}/history?limit=50&extended=full`,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token!.accessToken}`,
+          'trakt-api-version': '2',
+          'trakt-api-key': process.env.TRAKT_CLIENT_ID,
+          'User-Agent': 'curl/7.68.0',
+        },
+      };
+
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => resolve({ status: res.statusCode ?? 500, body }));
+      });
+
+      req.on('error', reject);
+      req.end();
+    });
+
+    if (res.status < 200 || res.status >= 300) {
+      return;
+    }
+
+    let data: any[] = [];
+    try {
+      data = JSON.parse(res.body);
+    } catch (err) {
+      console.error('📚 Failed to parse history response:', err);
+      return;
+    }
+
+    if (!Array.isArray(data)) {
+      return;
+    }
+
+    const pool = getPool();
+    for (const item of data) {
+      try {
+        const watchedAt = item.watched_at ? new Date(item.watched_at) : new Date();
+
+        if (item.type === 'movie' && item.movie) {
+          const tmdbId = item.movie.ids?.tmdb;
+          if (!tmdbId) continue;
+
+          const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
+          if (isExcluded) continue;
+
+          const movie = await getOrFetchMovie(tmdbId);
+          // Check if already logged (any source, any date)
+          const [existing] = await pool.query(
+            `SELECT id FROM watch_history WHERE user_id = 1 AND media_type = 'movie' AND media_id = ?`,
+            [movie.id]
+          );
+          if ((existing as any[]).length === 0) {
+            await pool.query(
+              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
+               VALUES (1, 'movie', ?, 100, 'trakt.tv', ?)`,
+              [movie.id, watchedAt]
+            );
+          }
+        } else if (item.type === 'episode' && item.episode && item.show) {
+          const showTmdbId = item.show.ids?.tmdb;
+          const seasonNumber = item.episode.season;
+          const episodeNumber = item.episode.number;
+          if (!showTmdbId || seasonNumber === undefined || episodeNumber === undefined) continue;
+
+          const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
+          if (isExcluded) continue;
+
+          await getOrFetchShow(showTmdbId);
+          const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
+          // Check if already logged (any source, any date)
+          const [existing] = await pool.query(
+            `SELECT id FROM watch_history WHERE user_id = 1 AND media_type = 'episode' AND media_id = ?`,
+            [episode.episodeId]
+          );
+          if ((existing as any[]).length === 0) {
+            await pool.query(
+              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
+               VALUES (1, 'episode', ?, 100, 'trakt.tv', ?)`,
+              [episode.episodeId, watchedAt]
+            );
+          }
+        }
+      } catch (err) {
+        console.error('📚 Error processing history item:', err);
+      }
+    }
+  } catch (err) {
+    console.error('📚 History sync error:', err);
+  }
+}
+
+async function pollNow(): Promise<void> {
+  let token = await getTraktToken();
+  if (!token?.username) {
+    return;
+  }
+
+  if (token.expiresAt < new Date()) {
+    try {
+      token = await refreshTraktToken();
+    } catch (err) {
+      console.error('🔁 Background poll: token refresh failed', err);
+      return;
+    }
+  }
+
+  if (!process.env.TRAKT_CLIENT_ID) {
+    console.error('🔁 Background poll: TRAKT_CLIENT_ID not set');
+    return;
+  }
+
+  const username = token.username;
+  let res: { status: number; body: string };
+  try {
+    res = await new Promise<{ status: number; body: string }>((resolve, reject) => {
+      const options = {
+        hostname: 'api.trakt.tv',
+        port: 443,
+        path: `/users/${username}/watching`,
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token!.accessToken}`,
+          'trakt-api-version': '2',
+          'trakt-api-key': process.env.TRAKT_CLIENT_ID,
+          'User-Agent': 'curl/7.68.0',
+        },
+      };
+
+      const req = https.request(options, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => resolve({ status: res.statusCode ?? 500, body }));
+      });
+
+      req.on('error', reject);
+      req.end();
+    });
+  } catch (err) {
+    console.error('🔁 Background poll: request failed', err);
+    return;
+  }
+
+  if (res.status === 204) {
+    await clearNowPlaying();
+    return;
+  }
+
+  if (res.status < 200 || res.status >= 300) {
+    console.log('❌ Background poll - Trakt error:', res.status, res.body.substring(0, 200));
+    return;
+  }
+
+  let data: {
+    started_at?: string;
+    expires_at?: string;
+    progress?: number;
+    type: 'movie' | 'episode';
+    movie?: { ids: { tmdb: number } };
+    episode?: { ids: { tmdb: number }; season: number; number: number };
+    show?: { ids: { tmdb: number } };
+  } | null = null;
+
+  try {
+    data = JSON.parse(res.body);
+  } catch (err) {
+    console.error('🔁 Background poll: failed to parse response', err);
+    return;
+  }
+
+  if (!data) {
+    return;
+  }
+
+  let progressPct = data.progress ? Math.round(data.progress) : 50;
+  if (data.started_at && data.expires_at && !data.progress) {
+    const start = new Date(data.started_at).getTime();
+    const end = new Date(data.expires_at).getTime();
+    const now = Date.now();
+    const total = end - start;
+    if (total > 0) {
+      progressPct = Math.min(99, Math.round(((now - start) / total) * 100));
+    }
+  }
+
+  if (data.type === 'movie' && data.movie) {
+    const tmdbId = data.movie.ids.tmdb;
+    if (await isScrobbleExcluded(tmdbId, 'movie', 'stremio')) return;
+    const movie = await getOrFetchMovie(tmdbId);
+    await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
+    if (progressPct >= WATCH_THRESHOLD.movie) {
+      await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
+    }
+  } else if (data.type === 'episode' && data.show && data.episode) {
+    const showTmdbId = data.show.ids.tmdb;
+    if (await isScrobbleExcluded(showTmdbId, 'episode', 'stremio')) return;
+    await getOrFetchShow(showTmdbId);
+    const episode = await getOrFetchEpisode(showTmdbId, data.episode.season, data.episode.number);
+    await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
+    if (progressPct >= WATCH_THRESHOLD.episode) {
+      await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
+    }
+  }
+}
+
+export function startBackgroundPoller(): void {
+  if (backgroundPoller) return;
+  pollNow().catch(err => console.error('Background poll error:', err));
+  syncWatchHistory().catch(err => console.error('History sync error:', err));
+  backgroundPoller = setInterval(() => {
+    pollNow().catch(err => console.error('Background poll error:', err));
+    syncWatchHistory().catch(err => console.error('History sync error:', err));
+  }, POLL_INTERVAL);
+}
+
+export function stopBackgroundPoller(): void {
+  if (backgroundPoller) {
+    clearInterval(backgroundPoller);
+    backgroundPoller = null;
+  }
+}
+
 export async function startPollLoop(
   imdbId: string,
   contentType: 'movie' | 'series',
@@ -112,7 +369,6 @@ export async function startPollLoop(
 
   const pollOnce = async () => {
     try {
-      console.log('🔄 Poll cycle for', imdbId);
       let token = await getTraktToken();
       if (!token) {
         console.log('⚠️  No token found, stopping poll');
@@ -122,7 +378,6 @@ export async function startPollLoop(
 
       // Auto-refresh if expired
       if (token.expiresAt < new Date()) {
-        console.log('🔄 Refreshing expired token');
         token = await refreshTraktToken();
       }
 
@@ -160,17 +415,14 @@ export async function startPollLoop(
         req.end();
       });
 
-      console.log('📊 Trakt response:', res.status);
       if (res.status === 204) {
         if (!hasSeenActive) {
           // Trakt hasn't registered the stream yet — keep polling
-          console.log('📊 Trakt returned 204 - stream not registered yet, continuing to poll');
           const nextTimeout = setTimeout(pollOnce, POLL_INTERVAL);
           pollers.set(imdbId, nextTimeout);
           return;
         }
         // User stopped watching
-        console.log('📊 Trakt returned 204 - nothing playing');
         await clearNowPlaying();
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
@@ -221,7 +473,6 @@ export async function startPollLoop(
         const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
         if (!isExcluded) {
           const movie = await getOrFetchMovie(tmdbId);
-          console.log('📝 Updating now_playing: movie', movie.id, 'progress', progressPct);
           await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
           if (progressPct >= WATCH_THRESHOLD.movie) {
             await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
@@ -235,7 +486,6 @@ export async function startPollLoop(
         if (!isExcluded) {
           await getOrFetchShow(showTmdbId);
           const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
-          console.log('📝 Updating now_playing: episode', episode.episodeId, 'progress', progressPct);
           await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
           if (progressPct >= WATCH_THRESHOLD.episode) {
             await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);

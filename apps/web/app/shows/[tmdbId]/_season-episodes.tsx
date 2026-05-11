@@ -1,4 +1,4 @@
-﻿// Episode list accordion — retained for the season detail page (not yet built)
+// Episode list accordion — retained for the season detail page (not yet built)
 "use client";
 
 import Image from "next/image";

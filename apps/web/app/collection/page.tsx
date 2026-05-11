@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -55,7 +55,7 @@ export default function CollectionPage() {
           ))}
         </div>
 
-        {fetching && <p className="text-white/40">Loadingâ€¦</p>}
+        {fetching && <p className="text-white/40">Loading…</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
