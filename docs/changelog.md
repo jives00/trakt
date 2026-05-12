@@ -3,6 +3,7 @@
 ## May 11, 2026
 
 ### API
+- Delay recently-watched until 100% or playback stopped: split completion tracking with completion_progress (% marked complete) and playback_stopped_at (stop timestamp); episodes marked complete at 80% but hidden from Recently Watched until 100% progress or playback stops; allows in-progress items to show in hero while excluding incomplete viewings from lists `4a44adc`
 - Fixed stale show metadata: implemented TTL-based auto-refresh for shows imported from Trakt.tv (7 days for Returning Series, 30 days for others); added metadata_refreshed_at column and isShowMetadataStale() helper; fixed forceRefreshShowMetadata to prefetch new seasons `93a5958`
 - Fixed cast refresh socket hang-up: replaced N+1 query pattern with batched inserts in getOrFetchCast, getOrFetchMovieCast, and getOrFetchMovieCrew; reduces 300+ queries for large casts to ~4 queries; added tests for POST /shows/:tmdbId/cast/refresh and POST /movies/:tmdbId/cast/refresh `2a4a099`
 - History date filtering: added optional date query parameter to GET /api/history to filter watch_history by DATE(watched_at); validates date format (YYYY-MM-DD) `4905d6d`

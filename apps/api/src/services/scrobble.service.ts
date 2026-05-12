@@ -69,12 +69,12 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
     if (event === 'PlaybackProgress') {
       await updateNowPlaying('emby', mediaType, mediaIdDb, progressPct);
       if (progressPct >= WATCH_THRESHOLD[mediaType]) {
-        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
+        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, false);
       }
     } else if (event === 'PlaybackStopped') {
       await clearNowPlaying();
       if (progressPct >= WATCH_THRESHOLD[mediaType]) {
-        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct);
+        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, true);
       }
     }
   } catch (err) {
@@ -102,7 +102,8 @@ export async function upsertWatchHistory(
   source: 'emby' | 'stremio' | 'kodi',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
-  progressPct: number
+  progressPct: number,
+  isPlaybackStopped: boolean = false
 ): Promise<void> {
   const pool = getPool();
 
@@ -112,18 +113,21 @@ export async function upsertWatchHistory(
     [mediaType, mediaIdDb]
   );
 
+  const completionProgress = Math.min(progressPct, 100);
+  const playbackStoppedAtValue = isPlaybackStopped ? new Date() : null;
+
   if ((existingRow[0] as any[]).length > 0) {
     await pool.query(
       `UPDATE watch_history
-       SET progress_pct = ?, watched_at = NOW(), source = ?
+       SET progress_pct = ?, watched_at = NOW(), source = ?, completion_progress = ?, playback_stopped_at = ?
        WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-      [progressPct, source, mediaType, mediaIdDb]
+      [progressPct, source, completionProgress, playbackStoppedAtValue, mediaType, mediaIdDb]
     );
   } else {
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
-       VALUES (1, ?, ?, ?, ?, NOW())`,
-      [mediaType, mediaIdDb, progressPct, source]
+      `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress, playback_stopped_at)
+       VALUES (1, ?, ?, ?, ?, NOW(), ?, ?)`,
+      [mediaType, mediaIdDb, progressPct, source, completionProgress, playbackStoppedAtValue]
     );
   }
 }

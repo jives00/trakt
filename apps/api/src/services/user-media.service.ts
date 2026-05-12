@@ -42,16 +42,16 @@ export async function markShowWatched(userId: number, showId: number, watchedAt?
   let params: unknown[];
 
   if (watchedAt === 'release_date') {
-    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-           SELECT ?, 'episode', id, COALESCE(air_date, NOW()), 100, 'manual' FROM episodes WHERE show_id=?`;
+    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+           SELECT ?, 'episode', id, COALESCE(air_date, NOW()), 100, 'manual', 100 FROM episodes WHERE show_id=?`;
     params = [userId, showId];
   } else if (watchedAt) {
-    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-           SELECT ?, 'episode', id, ?, 100, 'manual' FROM episodes WHERE show_id=?`;
+    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+           SELECT ?, 'episode', id, ?, 100, 'manual', 100 FROM episodes WHERE show_id=?`;
     params = [userId, watchedAt, showId];
   } else {
-    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-           SELECT ?, 'episode', id, NOW(), 100, 'manual' FROM episodes WHERE show_id=?`;
+    sql = `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+           SELECT ?, 'episode', id, NOW(), 100, 'manual', 100 FROM episodes WHERE show_id=?`;
     params = [userId, showId];
   }
 
@@ -156,14 +156,14 @@ export async function markMovieWatched(userId: number, movieId: number, watchedA
   const pool = getPool();
   if (watchedAt) {
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (?, 'movie', ?, ?, 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (?, 'movie', ?, ?, 100, 'manual', 100)`,
       [userId, movieId, watchedAt],
     );
   } else {
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (?, 'movie', ?, NOW(), 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (?, 'movie', ?, NOW(), 100, 'manual', 100)`,
       [userId, movieId],
     );
   }
@@ -180,14 +180,14 @@ export async function markEpisodeWatched(userId: number, episodeId: number, watc
   const pool = getPool();
   if (watchedAt) {
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (?, 'episode', ?, ?, 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (?, 'episode', ?, ?, 100, 'manual', 100)`,
       [userId, episodeId, watchedAt],
     );
   } else {
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (?, 'episode', ?, NOW(), 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (?, 'episode', ?, NOW(), 100, 'manual', 100)`,
       [userId, episodeId],
     );
   }

@@ -94,6 +94,8 @@ describe('POST /api/scrobble/emby', () => {
       const row = (rows as any[])[0];
       expect(row.progress_pct).toBe(90);
       expect(row.source).toBe('emby');
+      expect(row.completion_progress).toBe(90);
+      expect(row.playback_stopped_at).not.toBeNull();
     });
 
     it('ignores movie below 80% threshold', async () => {
@@ -387,6 +389,93 @@ describe('POST /api/scrobble/emby', () => {
           }
         }
       }
+    });
+  });
+
+  describe('Completion tracking', () => {
+    it('sets completion_progress on PlaybackProgress but not playback_stopped_at', async () => {
+      const pool = getPool();
+      const moviePayload: EmbyWebhookPayload = {
+        Event: 'PlaybackProgress',
+        Item: {
+          Type: 'Movie',
+          ProviderIds: { Tmdb: '550' },
+          RunTimeTicks: 100000000000,
+        },
+        PlaybackInfo: {
+          PlaybackPositionTicks: 85000000000, // 85%
+        },
+      };
+
+      await supertest(app.server)
+        .post('/api/scrobble/emby')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(moviePayload);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
+
+      const row = (rows as any[])[0];
+      expect(row.progress_pct).toBe(85);
+      expect(row.completion_progress).toBe(85);
+      expect(row.playback_stopped_at).toBeNull();
+    });
+
+    it('sets playback_stopped_at on PlaybackStopped', async () => {
+      const pool = getPool();
+      const moviePayload: EmbyWebhookPayload = {
+        Event: 'PlaybackStopped',
+        Item: {
+          Type: 'Movie',
+          ProviderIds: { Tmdb: '550' },
+          RunTimeTicks: 100000000000,
+        },
+        PlaybackInfo: {
+          PlaybackPositionTicks: 85000000000, // 85%
+        },
+      };
+
+      await supertest(app.server)
+        .post('/api/scrobble/emby')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(moviePayload);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
+
+      const row = (rows as any[])[0];
+      expect(row.progress_pct).toBe(85);
+      expect(row.completion_progress).toBe(85);
+      expect(row.playback_stopped_at).not.toBeNull();
+    });
+
+    it('caps completion_progress at 100', async () => {
+      const pool = getPool();
+      const moviePayload: EmbyWebhookPayload = {
+        Event: 'PlaybackStopped',
+        Item: {
+          Type: 'Movie',
+          ProviderIds: { Tmdb: '550' },
+          RunTimeTicks: 100000000000,
+        },
+        PlaybackInfo: {
+          PlaybackPositionTicks: 100000000000, // 100%
+        },
+      };
+
+      await supertest(app.server)
+        .post('/api/scrobble/emby')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(moviePayload);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
+
+      const row = (rows as any[])[0];
+      expect(row.completion_progress).toBe(100);
     });
   });
 

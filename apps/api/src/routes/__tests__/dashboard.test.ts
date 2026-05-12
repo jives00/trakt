@@ -49,8 +49,8 @@ async function seedShowData() {
   );
 
   await pool.query(
-    `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-     VALUES (1, 'episode', ?, NOW(), 100, 'manual')`, [ep1.insertId],
+    `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+     VALUES (1, 'episode', ?, NOW(), 100, 'manual', 100)`, [ep1.insertId],
   );
 
   return { showId, seasonId, ep1Id: ep1.insertId, ep2Id: ep2.insertId };
@@ -177,8 +177,8 @@ describe('GET /api/dashboard/recent', () => {
     const pool = getPool();
     // Watch movie id=1 from seed (tmdb_id=90001)
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (1, 'movie', 1, NOW(), 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (1, 'movie', 1, NOW(), 100, 'manual', 100)`,
     );
     const token = await getToken();
     const res = await supertest(app.server)
@@ -187,6 +187,51 @@ describe('GET /api/dashboard/recent', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     expect(res.body[0]).toMatchObject({ mediaType: 'movie', tmdbId: 90001, title: 'Test Movie Alpha' });
+  });
+
+  it('excludes in-progress items (completion_progress < 100 and not stopped)', async () => {
+    const pool = getPool();
+    // Create an in-progress watch (85% complete, not stopped)
+    await pool.query(
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress, playback_stopped_at)
+       VALUES (1, 'movie', 1, NOW(), 85, 'emby', 85, NULL)`,
+    );
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/dashboard/recent')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('includes items with 100% completion_progress', async () => {
+    const pool = getPool();
+    // Create a completed watch
+    await pool.query(
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (1, 'movie', 1, NOW(), 100, 'emby', 100)`,
+    );
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/dashboard/recent')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
+  });
+
+  it('includes items with playback_stopped_at set', async () => {
+    const pool = getPool();
+    // Create a stopped watch (85% but stopped)
+    await pool.query(
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress, playback_stopped_at)
+       VALUES (1, 'movie', 1, NOW(), 85, 'emby', 85, NOW())`,
+    );
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/dashboard/recent')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(1);
   });
 });
 

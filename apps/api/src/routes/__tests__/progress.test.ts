@@ -21,10 +21,10 @@ async function getToken(): Promise<string> {
 async function seedInProgress() {
   const pool = getPool();
   await pool.query(
-    `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source) VALUES
-     (1, 'episode', 1, DATE_SUB(NOW(), INTERVAL 15 DAY), 100, 'manual'),
-     (1, 'episode', 2, DATE_SUB(NOW(), INTERVAL 10 DAY), 100, 'manual'),
-     (1, 'episode', 3, DATE_SUB(NOW(), INTERVAL 5 DAY),  100, 'manual')`,
+    `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress) VALUES
+     (1, 'episode', 1, DATE_SUB(NOW(), INTERVAL 15 DAY), 100, 'manual', 100),
+     (1, 'episode', 2, DATE_SUB(NOW(), INTERVAL 10 DAY), 100, 'manual', 100),
+     (1, 'episode', 3, DATE_SUB(NOW(), INTERVAL 5 DAY),  100, 'manual', 100)`,
   );
 }
 

@@ -105,7 +105,7 @@ export async function getRecentItems(userId: number, limit = 10): Promise<Recent
      LEFT JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
      LEFT JOIN seasons seas ON e.season_id=seas.id
      LEFT JOIN tv_shows ts ON e.show_id=ts.id
-     WHERE wh.user_id=?
+     WHERE wh.user_id=? AND (wh.completion_progress >= 100 OR wh.playback_stopped_at IS NOT NULL)
      ORDER BY wh.watched_at DESC
      LIMIT ?`,
     [userId, limit],

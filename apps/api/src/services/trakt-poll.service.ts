@@ -182,8 +182,8 @@ async function syncWatchHistory(): Promise<void> {
           );
           if ((existing as any[]).length === 0) {
             await pool.query(
-              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
-               VALUES (1, 'movie', ?, 100, 'trakt.tv', ?)`,
+              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
+               VALUES (1, 'movie', ?, 100, 'trakt.tv', ?, 100)`,
               [movie.id, watchedAt]
             );
           }
@@ -205,8 +205,8 @@ async function syncWatchHistory(): Promise<void> {
           );
           if ((existing as any[]).length === 0) {
             await pool.query(
-              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at)
-               VALUES (1, 'episode', ?, 100, 'trakt.tv', ?)`,
+              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
+               VALUES (1, 'episode', ?, 100, 'trakt.tv', ?, 100)`,
               [episode.episodeId, watchedAt]
             );
           }
