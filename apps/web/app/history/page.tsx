@@ -97,7 +97,6 @@ export default function HistoryPage() {
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <header className="mb-8">
         <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">History</h1>
-        <p className="text-on-surface-variant/70">Your cinematic journey, chronologically curated.</p>
       </header>
 
       <div className="flex gap-2 mb-8">

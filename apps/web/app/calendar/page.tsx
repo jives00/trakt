@@ -82,35 +82,33 @@ export default function CalendarPage() {
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <div ref={contentRef}>
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div>
-            <span className="text-accent text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
-            <h1 className="text-h1 font-black tracking-tight text-on-surface">UPCOMING SCHEDULE</h1>
-          </div>
-          <div className="flex gap-2 items-center">
-            {(["all", "tv", "movie"] as ContentType[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => handleFilterChange(f)}
-                className={`px-3 py-2 rounded-full text-sm transition-colors ${
-                  filter === f ? "bg-accent text-white" : "bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"
-                }`}
-              >
-                {f === "all" ? "All Media" : f === "tv" ? "Episodes" : "Movies"}
-              </button>
-            ))}
-            <select
-              value={range}
-              onChange={(e) => handleRangeChange(Number(e.target.value))}
-              className="bg-surface-container-low border border-white/10 rounded-full px-3 py-2 text-sm text-on-surface-variant/70 focus:outline-none focus:border-accent transition-colors"
-            >
-              <option value={7}>Next 7 days</option>
-              <option value={14}>Next 14 days</option>
-              <option value={30}>Next 30 days</option>
-              <option value={90}>Next 90 days</option>
-            </select>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-h1 font-black tracking-tight text-on-surface">Upcoming Schedule</h1>
         </header>
+
+        <div className="flex gap-2 mb-8 items-center flex-wrap">
+          {(["all", "tv", "movie"] as ContentType[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => handleFilterChange(f)}
+              className={`px-3 py-2 rounded-full text-sm transition-colors ${
+                filter === f ? "bg-accent text-white" : "bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"
+              }`}
+            >
+              {f === "all" ? "All Media" : f === "tv" ? "Episodes" : "Movies"}
+            </button>
+          ))}
+          <select
+            value={range}
+            onChange={(e) => handleRangeChange(Number(e.target.value))}
+            className="bg-surface-container-low border border-white/10 rounded-full px-3 py-2 text-sm text-on-surface-variant/70 focus:outline-none focus:border-accent transition-colors"
+          >
+            <option value={7}>Next 7 days</option>
+            <option value={14}>Next 14 days</option>
+            <option value={30}>Next 30 days</option>
+            <option value={90}>Next 90 days</option>
+          </select>
+        </div>
 
         {fetching && <p className="text-on-surface-variant/70">Loading…</p>}
 

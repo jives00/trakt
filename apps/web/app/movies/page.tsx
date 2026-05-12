@@ -71,7 +71,6 @@ export default function MoviesPage() {
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <div className="flex flex-col gap-8">
         <header>
-          <p className="text-[10px] uppercase tracking-widest font-black text-accent mb-2">Discover</p>
           <h1 className="text-h1 font-black tracking-tight text-on-surface">Movies</h1>
         </header>
 
