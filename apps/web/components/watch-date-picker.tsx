@@ -26,6 +26,7 @@ export function WatchDatePicker({
   const [isOpen, setIsOpen] = useState(false);
   const [showDateInput, setShowDateInput] = useState(false);
   const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const [addingWatch, setAddingWatch] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,40 +84,128 @@ export function WatchDatePicker({
 
         {isOpen && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-md shadow-lg z-50 overflow-hidden">
-            {onRemoveLatest && latestEntryId ? (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onRemoveLatest(latestEntryId);
-                  setIsOpen(false);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
-              >
-                Remove Latest
-              </button>
-            ) : null}
-            {onRemoveAll ? (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onRemoveAll();
-                  setIsOpen(false);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
-              >
-                Remove All
-              </button>
-            ) : null}
+            {addingWatch ? (
+              <div className="p-3 border-b border-accent/60">
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onMark(selectedDate);
+                      setIsOpen(false);
+                      setAddingWatch(false);
+                      setSelectedDate(getTodayString());
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onMark(getTodayString());
+                    setIsOpen(false);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
+                >
+                  Add Watch (Today)
+                </button>
+
+                {(releaseDate || useReleaseDate) && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleMarkReleaseDate();
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
+                  >
+                    Add Watch ({releaseDateLabel})
+                  </button>
+                )}
+
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setAddingWatch(true);
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
+                >
+                  Pick Date
+                </button>
+              </>
+            )}
+
+            {!addingWatch && (onRemoveLatest || onRemoveAll) && (
+              <div className="border-t border-accent/60">
+                {onRemoveLatest && latestEntryId ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveLatest(latestEntryId);
+                      setIsOpen(false);
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
+                  >
+                    Remove Latest
+                  </button>
+                ) : null}
+                {onRemoveAll ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onRemoveAll();
+                      setIsOpen(false);
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    className={`w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors ${onRemoveLatest && latestEntryId ? 'border-t border-accent/60' : ''}`}
+                  >
+                    Remove All
+                  </button>
+                ) : null}
+              </div>
+            )}
           </div>
         )}
       </div>

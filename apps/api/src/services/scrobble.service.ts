@@ -5,7 +5,7 @@ import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { applyImageOverrides } from './image-overrides.service';
 
-const WATCH_THRESHOLD = { movie: 80, episode: 70 };
+const WATCH_THRESHOLD = { movie: 90, episode: 90 };
 
 export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<void> {
   try {

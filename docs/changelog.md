@@ -3,6 +3,7 @@
 ## May 12, 2026
 
 ### Web
+- Add date picker to watch tracking: allow users to add additional watches to already-watched episodes/movies with custom date selection `f2e11d9`
 - Change calendar card labels from blue to white: updated show title and movie label styling from text-accent to text-white `17981c4`
 - Mark Watched button corner radius: fixed button styling to display fully rounded corners when closed; only top corners remain rounded when dropdown is open to create visual connection with dropdown menu below `7357afe`
 - TMDB discover pages: added /movies and /shows browse pages with category side rail, sharp-corner poster grids, top-rated period filters, and detail-page links; added Movies and Shows to the top nav; covered discover pages and nav links with Vitest tests `48855a5`
@@ -12,6 +13,7 @@
 - Simplify web page headers and move calendar filters: removed "Premium Tracking" subtitle from calendar; converted "Upcoming Schedule" from all-caps to title case; moved calendar filter pills and range selector below header for consistency with history page; removed "Discover" subtitles from movies and shows pages; removed cinematic journey tagline from history page `b411306`
 
 ### API
+- Increase watch completion threshold: raised minimum progress from 80% to 90% to reduce accidental marks on near-complete but interrupted viewings `7361605`
 - TMDB discover API: added authenticated GET /api/discover/movies and /api/discover/shows endpoints with category validation and top-rated period filters; fixed API test setup to recreate worker databases from the migrated template so schema changes are reflected reliably `48855a5`
 - Schedule API pagination: added `startDays` parameter to GET /api/dashboard/schedule to support date window navigation; schedule service now returns `backdropPath` for both episodes and movies, enabling backdrop images on calendar cards; applied hero image overrides to backdropPath in addition to posterPath `2dac9a0`
 
