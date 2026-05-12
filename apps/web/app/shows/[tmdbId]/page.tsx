@@ -44,7 +44,7 @@ function EpisodeThumb({ showTmdbId, ep, label, showLabel = true }: { showTmdbId:
         <div className="pb-3 mb-3 border-b border-white/5">
           <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-accent" : "text-transparent border-transparent"}`}>{label}</span>
         </div>
-        <div className="bg-[#181818] border border-white/5 overflow-hidden hover:border-white/10 transition-colors cursor-pointer">
+        <div className="bg-surface-container-high border border-white/5 overflow-hidden hover:border-white/10 transition-colors cursor-pointer">
           <div className="relative aspect-video overflow-hidden">
             {stillUrl ? (
               <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover" />
@@ -236,8 +236,9 @@ export default function ShowDetailPage() {
           ) : (
             <div className="w-full h-full bg-surface-container-low" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f]/25 via-[#0f0f0f]/5 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f]/25 via-transparent to-[#0f0f0f]/25" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
 
           {/* Hero edit button */}
           <button

@@ -155,8 +155,9 @@ export default function SeasonDetailPage() {
           ) : (
             <div className="w-full h-full bg-surface-container-low" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f]/25 via-[#0f0f0f]/5 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f]/25 via-transparent to-[#0f0f0f]/25" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {posterUrl && (

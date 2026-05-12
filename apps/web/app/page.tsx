@@ -91,7 +91,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
             filter: 'blur(3px) brightness(0.8)',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/70 via-surface-container-lowest/50 to-transparent z-0" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
             <h1 className="text-h1 font-black tracking-tight text-on-surface mb-4 capitalize">Hello, {username}</h1>
@@ -151,7 +151,7 @@ function RecentCard({ item }: { item: RecentItem }) {
           <span className="material-symbols-outlined text-4xl text-on-surface-variant/40">{isEpisode ? "tv" : "movie"}</span>
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex flex-col justify-end p-5">
         {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
           <p className="text-white text-[10px] font-black uppercase tracking-widest mb-1">
             S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}
@@ -197,7 +197,7 @@ function RecPanel({ title, items, linkPrefix }: { title: string; items: Recommen
                   <span className="material-symbols-outlined text-2xl text-on-surface-variant/40">image_not_supported</span>
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex flex-col justify-end p-3">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent flex flex-col justify-end p-3">
                 <p className="text-sm font-black text-white leading-tight line-clamp-2">{item.title}</p>
                 {item.year && <p className="text-[13px] text-white/50 mt-0.5">{item.year}</p>}
               </div>
@@ -389,8 +389,8 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
   return (
     <section className="relative overflow-hidden bg-black">
       {bgUrl && <Image src={bgUrl} alt={title ?? ''} fill sizes="100vw" className="object-cover object-center" priority />}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/10" />
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
       <div className="relative z-10 px-margin-page pt-10 pb-6 flex flex-col justify-between min-h-[220px] md:min-h-[300px]">
         <div>
           <div className="flex items-center gap-2 mb-3">
