@@ -94,7 +94,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
         <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/90 via-surface-container-lowest/70 to-transparent z-0" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
-            <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
+            <h1 className="text-h1 font-black tracking-tight text-on-surface mb-4 capitalize">Hello, {username}</h1>
             {alltime && (
               <div className="flex gap-8 md:gap-12">
                 <Stat label="Movies Watched" value={alltime.totalMovies.toLocaleString()} />
@@ -113,7 +113,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mb-1">{label}</p>
+      <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold mb-1">{label}</p>
       <p className="text-h2 font-black text-white">{value}</p>
     </div>
   );
@@ -148,7 +148,7 @@ function RecentCard({ item }: { item: RecentItem }) {
         <Image src={posterUrl} alt={title ?? ""} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-center transition-transform duration-500 group-hover:scale-110" />
       ) : (
         <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-          <span className="material-symbols-outlined text-4xl text-white/20">{isEpisode ? "tv" : "movie"}</span>
+          <span className="material-symbols-outlined text-4xl text-on-surface-variant/40">{isEpisode ? "tv" : "movie"}</span>
         </div>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5">
@@ -184,7 +184,7 @@ function RecPanel({ title, items, linkPrefix }: { title: string; items: Recommen
     <div>
       <div className="flex items-center gap-3 mb-4">
         <span className="block h-8 w-1 rounded-full bg-accent" />
-        <h3 className="text-h3 font-bold text-white">{title}</h3>
+        <h2 className="text-h2 font-black text-on-surface">{title}</h2>
       </div>
       <div className="grid grid-cols-3 gap-3">
         {items.map((item) => (
@@ -194,12 +194,12 @@ function RecPanel({ title, items, linkPrefix }: { title: string; items: Recommen
                 <Image src={`${TMDB_IMG}w185${item.posterPath}`} alt={item.title} fill sizes="33vw" className="object-cover" />
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <span className="material-symbols-outlined text-2xl text-white/20">image_not_supported</span>
+                  <span className="material-symbols-outlined text-2xl text-on-surface-variant/40">image_not_supported</span>
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex flex-col justify-end p-3">
-                <p className="text-sm font-bold text-white leading-tight line-clamp-2">{item.title}</p>
-                {item.year && <p className="text-xs text-white/50 mt-0.5">{item.year}</p>}
+                <p className="text-sm font-black text-white leading-tight line-clamp-2">{item.title}</p>
+                {item.year && <p className="text-[13px] text-white/50 mt-0.5">{item.year}</p>}
               </div>
             </div>
           </Link>
@@ -263,7 +263,7 @@ function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardD
       <div>
         <SectionHeading>Last 30 Days</SectionHeading>
         {summary.plays > 0 && (
-          <p className="text-sm text-white/40 mt-1 ml-4">{summaryParts.join(" - ")}</p>
+          <p className="text-sm text-on-surface-variant/70 mt-1 ml-4">{summaryParts.join(" - ")}</p>
         )}
       </div>
       <div className="glass-panel p-5 rounded-xl flex-1">
@@ -332,11 +332,11 @@ function GenreBar({ genres }: { genres: DashboardGenre[] }) {
         {h && (
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 flex-none" style={{ background: GENRE_COLORS[genres.indexOf(h) % GENRE_COLORS.length] }} />
-            <span className="text-sm font-black uppercase text-white/80">{h.genre}</span>
-            <span className="text-xs text-white/40">
+            <span className="text-sm font-black uppercase text-on-surface">{h.genre}</span>
+            <span className="text-[13px] text-on-surface-variant/70">
               {[h.episodes > 0 && `${h.episodes} ep`, h.shows > 0 && `${h.shows} show${h.shows !== 1 ? "s" : ""}`, h.movies > 0 && `${h.movies} movie${h.movies !== 1 ? "s" : ""}`].filter(Boolean).join(" · ")}
             </span>
-            <span className="text-xs font-bold text-white/30">{Math.round((h.plays / total) * 100)}%</span>
+            <span className="text-[13px] font-bold text-on-surface-variant/40">{Math.round((h.plays / total) * 100)}%</span>
           </div>
         )}
       </div>
@@ -344,7 +344,7 @@ function GenreBar({ genres }: { genres: DashboardGenre[] }) {
         {genres.map((g, i) => (
           <div key={g.genre} className="flex items-center gap-1.5">
             <span className="w-2 h-2 flex-none" style={{ background: GENRE_COLORS[i % GENRE_COLORS.length] }} />
-            <span className="text-xs font-bold uppercase tracking-wide text-white/50">{g.genre}</span>
+            <span className="text-[13px] font-bold uppercase tracking-wide text-on-surface-variant/70">{g.genre}</span>
           </div>
         ))}
       </div>

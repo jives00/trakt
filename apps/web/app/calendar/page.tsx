@@ -85,26 +85,24 @@ export default function CalendarPage() {
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <span className="text-accent text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
-            <h1 className="text-h1 font-black tracking-tight text-white">UPCOMING SCHEDULE</h1>
+            <h1 className="text-h1 font-black tracking-tight text-on-surface">UPCOMING SCHEDULE</h1>
           </div>
-          <div className="flex gap-3 items-center">
-            <div className="flex bg-[#181818] p-1 rounded-xl border border-white/5">
-              {(["all", "tv", "movie"] as ContentType[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => handleFilterChange(f)}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                    filter === f ? "bg-accent text-white" : "text-white/40 hover:text-white"
-                  }`}
-                >
-                  {f === "all" ? "All" : f === "tv" ? "Episodes" : "Movies"}
-                </button>
-              ))}
-            </div>
+          <div className="flex gap-2 items-center">
+            {(["all", "tv", "movie"] as ContentType[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => handleFilterChange(f)}
+                className={`px-3 py-2 rounded-full text-sm transition-colors ${
+                  filter === f ? "bg-accent text-white" : "bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"
+                }`}
+              >
+                {f === "all" ? "All Media" : f === "tv" ? "Episodes" : "Movies"}
+              </button>
+            ))}
             <select
               value={range}
               onChange={(e) => handleRangeChange(Number(e.target.value))}
-              className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-accent transition-colors"
+              className="bg-surface-container-low border border-white/10 rounded-full px-3 py-2 text-sm text-on-surface-variant/70 focus:outline-none focus:border-accent transition-colors"
             >
               <option value={7}>Next 7 days</option>
               <option value={14}>Next 14 days</option>
@@ -114,12 +112,12 @@ export default function CalendarPage() {
           </div>
         </header>
 
-        {fetching && <p className="text-white/40">Loading…</p>}
+        {fetching && <p className="text-on-surface-variant/70">Loading…</p>}
 
         {!fetching && groups.length === 0 && (
           <div className="text-center py-24">
-            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">calendar_today</span>
-            <p className="text-white/40">Nothing scheduled in this period.</p>
+            <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">calendar_today</span>
+            <p className="text-on-surface-variant/70">Nothing scheduled in this period.</p>
           </div>
         )}
 
@@ -129,8 +127,8 @@ export default function CalendarPage() {
             return (
               <div key={dateStr} className="grid grid-cols-[8rem_1fr] gap-x-8 gap-y-0 mb-10">
                 <div className="pt-1">
-                  <span className="font-sans uppercase tracking-widest text-sm font-bold text-white block">{label}</span>
-                  <span className="font-sans uppercase tracking-widest text-xs text-white/30 block mt-1">{sub}</span>
+                  <span className="font-sans uppercase tracking-widest text-sm font-bold text-on-surface block">{label}</span>
+                  <span className="font-sans uppercase tracking-widest text-xs text-on-surface-variant/40 block mt-1">{sub}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {dayEntries.map((entry, i) => (
@@ -149,7 +147,7 @@ export default function CalendarPage() {
               {startDays > 0 && (
                 <button
                   onClick={() => setStartDays(0)}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#181818] border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/20 transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">home</span>
                   Back to Today
@@ -157,7 +155,7 @@ export default function CalendarPage() {
               )}
               <button
                 onClick={() => setStartDays(startDays + range)}
-                className="flex items-center gap-2 px-6 py-3 bg-[#181818] border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/20 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 transition-colors"
               >
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
                 View Next {range} Days
@@ -193,7 +191,7 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
         />
       ) : (
-        <div className="absolute inset-0 bg-[#1a1a1a]" />
+        <div className="absolute inset-0 bg-surface-container-low" />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 via-40% to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-4">
@@ -219,12 +217,12 @@ function EpisodeCardContent({ entry }: { entry: ScheduleItem }) {
       </h3>
       <div className="flex items-center gap-3">
         {entry.airTime && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">
             {formatAirTime(entry.airTime)}
           </span>
         )}
         {entry.network && (
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">
             {entry.network}
           </span>
         )}

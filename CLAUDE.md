@@ -172,6 +172,14 @@ Push to `main` triggers workflow (`deploy.yml`), which:
 
 Refer to [docs/DESIGN.md](docs/DESIGN.md) for the project's visual identity, color palette, and UI/UX principles. All web and mobile development should adhere to these standards.
 
+**Key principles:**
+- Use Tailwind design tokens (`text-on-surface`, `text-on-surface-variant`, `bg-surface-container-low`, etc.) instead of hard-coded hex values.
+- Page H1 headings: `text-h1 font-black tracking-tight text-on-surface`.
+- Section headings (with accent rule bar): `text-h2 font-black tracking-tight text-on-surface`.
+- All filter pills: `rounded-full px-3 py-2 text-sm` with proper active/inactive states (see DESIGN.md section 8).
+- Avoid `text-xs` as default; prefer `text-sm` or `text-[13px]` for smaller text.
+- Avoid hard-coded colors like `#181818`, `#0f0f0f`; use surface tokens instead.
+
 ## Development Workflow
 
 Common `pnpm` commands:

@@ -96,8 +96,8 @@ export default function HistoryPage() {
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <header className="mb-8">
-        <h1 className="text-h1 font-black tracking-tight text-white mb-1">History</h1>
-        <p className="text-white/40">Your cinematic journey, chronologically curated.</p>
+        <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">History</h1>
+        <p className="text-on-surface-variant/70">Your cinematic journey, chronologically curated.</p>
       </header>
 
       <div className="flex gap-2 mb-8">
@@ -105,27 +105,27 @@ export default function HistoryPage() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
+            className={`px-3 py-2 rounded-full text-sm transition-colors ${
               filter === f
                 ? "bg-accent text-white"
-                : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                : "bg-surface-container-low text-on-surface-variant/70 border border-white/10 hover:bg-surface-container hover:text-on-surface"
             }`}
           >
-            {f === "all" ? "All" : f === "movie" ? "Movies" : "Episodes"}
+            {f === "all" ? "All Media" : f === "movie" ? "Movies" : "Episodes"}
           </button>
         ))}
       </div>
 
       {fetching && items.length === 0 && (
-        <p className="text-white/40">Loading...</p>
+        <p className="text-on-surface-variant/70">Loading...</p>
       )}
 
       {groups.map(([day, dayItems]) => (
         <section key={day} className="mb-10">
           <div className="flex items-center gap-4 mb-5">
-            <h2 className="text-h2 font-bold text-white">{day}</h2>
+            <h2 className="text-h2 font-black text-on-surface">{day}</h2>
             <div className="h-px flex-grow bg-white/5" />
-            <span className="text-xs font-bold uppercase tracking-widest text-accent">
+            <span className="text-sm font-bold uppercase tracking-widest text-accent">
               {dayItems.length} {dayItems.length === 1 ? "ITEM" : "ITEMS"}
             </span>
           </div>
@@ -142,7 +142,7 @@ export default function HistoryPage() {
           <button
             onClick={loadMore}
             disabled={fetching}
-            className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+            className="px-6 py-3 rounded-lg bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:text-on-surface text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
           >
             {fetching ? "Loading..." : "Load More"}
           </button>
@@ -151,8 +151,8 @@ export default function HistoryPage() {
 
       {!fetching && items.length === 0 && (
         <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">history</span>
-          <p className="text-white/40">No watch history yet.</p>
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">history</span>
+          <p className="text-on-surface-variant/70">No watch history yet.</p>
         </div>
       )}
     </div>
@@ -171,12 +171,12 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
 
   const inner = (
     <div className="flex h-44">
-      <div className="w-32 relative flex-shrink-0 bg-[#181818]">
+      <div className="w-32 relative flex-shrink-0 bg-surface-container-low">
         {posterUrl ? (
           <Image src={posterUrl} alt={item.title ?? ""} fill className="object-cover" />
         ) : (
           <div className="flex items-center justify-center h-full">
-            <span className="material-symbols-outlined text-3xl text-white/20">
+            <span className="material-symbols-outlined text-3xl text-on-surface-variant/40">
               {isEpisode ? "tv" : "movie"}
             </span>
           </div>
@@ -197,17 +197,17 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
           </div>
         )}
         {!isEpisode && (
-          <span className="text-sm text-white/40 font-bold uppercase">Movie</span>
+          <span className="text-sm text-on-surface-variant/70 font-bold uppercase">Movie</span>
         )}
         <div className="flex items-center gap-3 border-t border-white/5 pt-3 mt-auto">
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-            className="text-white/20 hover:text-accent transition-colors material-symbols-outlined text-lg"
+            className="text-on-surface-variant/40 hover:text-accent transition-colors material-symbols-outlined text-lg"
             aria-label="Delete history entry"
           >
             delete
           </button>
-          <span className="text-sm text-white/40">{formatWatchedAt(item.watchedAt)}</span>
+          <span className="text-sm text-on-surface-variant/70">{formatWatchedAt(item.watchedAt)}</span>
         </div>
       </div>
     </div>
