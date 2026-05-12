@@ -135,7 +135,7 @@ export function WatchDatePicker({
             handleMarkToday();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-l-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-tl-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
           Mark Watched
@@ -151,14 +151,14 @@ export function WatchDatePicker({
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="px-2 py-2 rounded-r-md bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs"
+          className="px-2 py-2 rounded-tr-md bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs"
         >
           ▾
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-md shadow-lg z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-b-md shadow-lg z-50 overflow-hidden">
           {showDateInput ? (
             <div className="p-3 border-b border-accent/60">
               <div className="flex gap-2">

@@ -83,6 +83,12 @@ export default function MovieDetailPage() {
       .catch(() => setError("Failed to load movie."));
   }, [isLoading, token, tmdbId]);
 
+  useEffect(() => {
+    if (movie) {
+      document.title = `Trakt - ${movie.title}`;
+    }
+  }, [movie]);
+
   async function handleWatchlist() {
     const res = await api.toggleMovieWatchlist(Number(tmdbId), status!.inWatchlist, token!);
     setStatus((s) => s && { ...s, inWatchlist: res.inWatchlist });

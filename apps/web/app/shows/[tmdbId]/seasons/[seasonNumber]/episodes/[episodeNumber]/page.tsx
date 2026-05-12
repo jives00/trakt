@@ -54,6 +54,12 @@ export default function EpisodeDetailPage() {
   }, [isLoading, token, tmdbId, sn, ep]);
 
   useEffect(() => {
+    if (show && episode) {
+      document.title = `Trakt - ${show.title} S${String(sn).padStart(2, "0")}E${String(ep).padStart(2, "0")}`;
+    }
+  }, [show, episode, sn, ep]);
+
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.altKey) return;
       if (e.key === "ArrowLeft") {

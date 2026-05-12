@@ -68,6 +68,12 @@ export default function AllSeasonsPage() {
       .catch(() => setError("Failed to load show."));
   }, [isLoading, token, tmdbId]);
 
+  useEffect(() => {
+    if (show) {
+      document.title = `Trakt - ${show.title} All Seasons`;
+    }
+  }, [show]);
+
   const loadNext = useCallback(async () => {
     if (loadingRef.current || !token || loadedCountRef.current >= seasons.length) return;
     loadingRef.current = true;

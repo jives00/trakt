@@ -230,26 +230,20 @@ async function backfillShowImdbRating(showInternalId: number, showTmdbId: number
       return;
     }
 
-    console.log(`[IMDb] Backfilling IMDb rating for show ${showTmdbId} (id: ${showInternalId})`);
     const imdbId = await getOrCacheShowImdbId(showInternalId, showTmdbId);
     if (!imdbId) {
-      console.log(`[IMDb] No IMDb ID found for show ${showTmdbId}`);
       return;
     }
 
-    console.log(`[IMDb] Got IMDb ID ${imdbId}, fetching rating...`);
     const rating = await fetchImdbRating(imdbId);
     if (rating === null) {
-      console.log(`[IMDb] No rating found for IMDb ${imdbId}`);
       return;
     }
 
-    console.log(`[IMDb] Updating show ${showTmdbId} with rating: ${rating}`);
     await pool.query(
       'UPDATE tv_shows SET rt_critic_score = ? WHERE id = ?',
       [rating, showInternalId],
     );
-    console.log(`[IMDb] Updated successfully`);
   } catch (err) {
     console.error(`[IMDb] Error backfilling show ${showTmdbId}:`, err);
   }
@@ -271,7 +265,6 @@ async function backfillShowTmdbRating(showInternalId: number, showTmdbId: number
       'UPDATE tv_shows SET tmdb_rating = ? WHERE id = ?',
       [show.tmdbRating, showInternalId],
     );
-    console.log(`[TMDB] Updated successfully`);
   } catch (err) {
     console.error(`[TMDB] Error backfilling show ${showTmdbId}:`, err);
   }

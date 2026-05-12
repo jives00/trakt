@@ -18,6 +18,7 @@
 - Profile dropdown menu: added Integrations link to profile icon dropdown for quick access to integrations settings `9b3577f`
 - Season premiere/finale indicators: upcoming schedule section displays Premiere badge for episode 1 of each season and Finale badge for season finales (sourced from TMDB episode_type field); badges appear above episode number and title in accent color `f736d6f`
 - Suppressed Node.js deprecation warning: added cross-env to dev dependencies to handle cross-platform environment variables; dev server no longer shows util._extend deprecation warnings on startup `6183e2c`
+- Web cleanup: removed footer links (Terms, Privacy, Help, API Status); added descriptive page titles with dynamic metadata for all pages (Trakt - Show Name, Trakt - Show Name Season N, Trakt - Show Name SXXEXX, Trakt - Movie Name); fixed mark as watched button styling to remove rounded corners for seamless dropdown connection; removed debug logging from IMDb/OMDB rating backfilling `0721fc5`
 
 ## May 10, 2026
 

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { SearchResults } from "./search-results";
 
-export const metadata = { title: "Search — Trakt" };
+export const metadata = { title: "Trakt - Search" };
 export const dynamic = "force-dynamic";
 
 export default function SearchPage() {

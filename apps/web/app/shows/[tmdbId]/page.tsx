@@ -143,6 +143,12 @@ export default function ShowDetailPage() {
       .finally(() => setSeasonsLoading(false));
   }, [isLoading, token, tmdbId]);
 
+  useEffect(() => {
+    if (show) {
+      document.title = `Trakt - ${show.title}`;
+    }
+  }, [show]);
+
   async function handleWatchlist() {
     const res = await api.toggleShowWatchlist(Number(tmdbId), status!.inWatchlist, token!);
     setStatus((s) => s && { ...s, inWatchlist: res.inWatchlist });

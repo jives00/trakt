@@ -63,6 +63,11 @@ export default function SeasonDetailPage() {
     }).catch(() => setError("Failed to load season."));
   }, [isLoading, token, tmdbId, sn]);
 
+  useEffect(() => {
+    if (show) {
+      document.title = `Trakt - ${show.title} Season ${sn}`;
+    }
+  }, [show, sn]);
 
   async function handleMarkSeason(watchedAt: string) {
     if (!token) return;

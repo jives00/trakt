@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Trakt",
+  title: "Trakt - Personal Media Tracker",
   description: "Personal media tracker",
 };
 
@@ -40,11 +40,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <div className="flex flex-col items-center md:items-start gap-1">
                     <span className="text-white font-bold italic tracking-tighter">TRAKT</span>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/30">© {new Date().getFullYear()} Personal Media Tracker</p>
-                  </div>
-                  <div className="flex gap-6">
-                    {["Terms", "Privacy", "Help", "API Status"].map((link) => (
-                      <a key={link} href="#" className="text-[10px] uppercase tracking-[0.15em] font-semibold text-white/30 hover:text-accent transition-colors">{link}</a>
-                    ))}
                   </div>
                 </div>
               </footer>
