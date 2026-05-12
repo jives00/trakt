@@ -20,6 +20,7 @@ import { exclusionsRoutes } from './routes/exclusions.routes';
 import { scrobbleRoutes } from './routes/scrobble.routes';
 import { stremioAddonRoutes } from './routes/stremio-addon.routes';
 import { settingsRoutes } from './routes/settings.routes';
+import { discoverRoutes } from './routes/discover.routes';
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false, trustProxy: true });
@@ -60,6 +61,7 @@ export function buildApp(): FastifyInstance {
   void app.register(exclusionsRoutes, { prefix: '/api' });
   void app.register(scrobbleRoutes, { prefix: '/api' });
   void app.register(settingsRoutes, { prefix: '/api' });
+  void app.register(discoverRoutes, { prefix: '/api' });
   void app.register(stremioAddonRoutes, { prefix: '/stremio-addon' });
 
   return app;

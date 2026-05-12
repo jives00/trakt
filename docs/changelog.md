@@ -3,12 +3,15 @@
 ## May 12, 2026
 
 ### Web
+- TMDB discover pages: added /movies and /shows browse pages with category side rail, sharp-corner poster grids, top-rated period filters, and detail-page links; added Movies and Shows to the top nav; covered discover pages and nav links with Vitest tests `48855a5`
 - Calendar page redesign: moved date labels to left column with sidebar-style typography (uppercase, tracking-widest, text-sm); cards now display TMDB backdrop images (16:9 aspect ratio) with gradient overlay for text legibility; added `startDays` pagination parameter to navigate date windows (e.g., next 14 days replaces current view, not appends); implemented "View Next N Days" and "Back to Today" navigation buttons that scroll to top after loading new content; separated content rendering by media type (episodes show show name, S##E##, air time, network; movies show title and tagline); fixed movie card links to /movies/[id]; added hero image overrides support for backdrop paths `2dac9a0`
 
 ### API
+- TMDB discover API: added authenticated GET /api/discover/movies and /api/discover/shows endpoints with category validation and top-rated period filters; fixed API test setup to recreate worker databases from the migrated template so schema changes are reflected reliably `48855a5`
 - Schedule API pagination: added `startDays` parameter to GET /api/dashboard/schedule to support date window navigation; schedule service now returns `backdropPath` for both episodes and movies, enabling backdrop images on calendar cards; applied hero image overrides to backdropPath in addition to posterPath `2dac9a0`
 
 ### Types
+- Added shared discover types and category/period unions for TMDB movie/show browse responses `48855a5`
 - Added `backdropPath` field to ScheduleItem interface for calendar card backgrounds `2dac9a0`
 
 ## May 11, 2026

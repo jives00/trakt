@@ -10,6 +10,8 @@ import type { SearchResult } from "@trakt/types";
 
 const topNavLinks = [
   { href: "/", label: "Dashboard" },
+  { href: "/movies", label: "Movies" },
+  { href: "/shows", label: "Shows" },
   { href: "/history", label: "History" },
   { href: "/calendar", label: "Schedule" },
 ];

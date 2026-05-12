@@ -141,3 +141,29 @@ export interface SearchResult {
   posterPath: string | null;
   overview: string;
 }
+
+export type MovieDiscoverCategory = 'trending' | 'popular' | 'now_playing' | 'upcoming' | 'top_rated';
+export type ShowDiscoverCategory = 'trending' | 'popular' | 'on_the_air' | 'airing_today' | 'top_rated';
+export type DiscoverCategory = MovieDiscoverCategory | ShowDiscoverCategory;
+export type DiscoverPeriod = 'all_time' | 'past_year' | 'past_6_months' | 'past_3_months' | 'past_month';
+
+export interface DiscoverItem {
+  tmdbId: number;
+  mediaType: 'movie' | 'show';
+  title: string;
+  year: number | null;
+  overview: string;
+  posterPath: string | null;
+  backdropPath: string | null;
+  rating: number | null;
+  releaseDate: string | null;
+}
+
+export interface DiscoverResponse {
+  category: DiscoverCategory;
+  period: DiscoverPeriod;
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  items: DiscoverItem[];
+}

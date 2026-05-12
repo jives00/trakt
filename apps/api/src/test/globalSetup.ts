@@ -53,6 +53,7 @@ export async function setup(): Promise<void> {
       const dbName = `trakt_test_${i}`;
       try {
         console.log(`Setting up ${dbName}...`);
+        await adminConn.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
         await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await cloneSchema(adminConn, 'trakt_test', dbName);
         console.log(`✓ ${dbName} ready with cloned migrated schema`);

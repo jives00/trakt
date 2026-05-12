@@ -47,6 +47,8 @@ describe("TopNav", () => {
   it("renders top nav links", () => {
     render(<TopNav />);
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Movies")).toBeInTheDocument();
+    expect(screen.getByText("Shows")).toBeInTheDocument();
     expect(screen.getByText("History")).toBeInTheDocument();
     expect(screen.getByText("Schedule")).toBeInTheDocument();
   });

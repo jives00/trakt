@@ -10,6 +10,7 @@ import type {
   MovieStatus, ShowStatus, UpNextItem, ScheduleItem,
   NowPlayingItem,
   UserProfile,
+  DiscoverResponse, MovieDiscoverCategory, ShowDiscoverCategory, DiscoverPeriod,
 } from "@trakt/types";
 
 export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem, HistoryItem };
@@ -95,6 +96,18 @@ export const api = {
   // Search
   search: (query: string, token: string) =>
     request<SearchResult[]>(`/api/search?q=${encodeURIComponent(query)}`, { token }),
+
+  // Discover
+  getMovieDiscover: (category: MovieDiscoverCategory, token: string, page = 1, region = "US", period: DiscoverPeriod = "all_time") =>
+    request<DiscoverResponse>(
+      `/api/discover/movies?category=${category}&page=${page}&region=${encodeURIComponent(region)}&period=${period}`,
+      { token },
+    ),
+  getShowDiscover: (category: ShowDiscoverCategory, token: string, page = 1, period: DiscoverPeriod = "all_time") =>
+    request<DiscoverResponse>(
+      `/api/discover/shows?category=${category}&page=${page}&period=${period}`,
+      { token },
+    ),
 
   // Movies
   getMovie: (tmdbId: number, token: string) =>
@@ -288,4 +301,3 @@ export const api = {
   getStatsMonth: (year: number, month: number, token: string) =>
     request<StatsMonth>(`/api/stats/month/${year}/${month}`, { token }),
 };
-

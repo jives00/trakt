@@ -106,6 +106,7 @@ All scrobble sources (Emby, Stremio, Kodi) update a `now_playing` table via `upd
 ### Metadata sourcing
 
 - TMDB is the canonical source and primary ID. Its `/external_ids` endpoint returns IMDB and TVDB IDs.
+- Discover pages for `/movies` and `/shows` are TMDB-first. API routes live at `GET /api/discover/movies` and `GET /api/discover/shows`; supported categories are defined in `apps/api/src/services/discover.service.ts`. Top-rated supports period filters (`all_time`, `past_year`, `past_6_months`, `past_3_months`, `past_month`); rolling periods use TMDB `/discover/movie` and `/discover/tv` with vote-average sorting and date windows.
 - `external_ids` table maps `(media_type, media_id)` to IDs from each source.
 - `metadata_fetched_at` is a JSON column tracking per-source fetch timestamps for TTL enforcement.
 - On cache miss or TTL expiry, all relevant sources are fetched in parallel then merged.
