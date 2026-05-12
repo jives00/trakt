@@ -3,6 +3,7 @@ import type { EmbyWebhookPayload, NowPlayingItem } from '@trakt/types';
 import { RowDataPacket } from 'mysql2/promise';
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
+import { applyImageOverrides } from './image-overrides.service';
 
 const WATCH_THRESHOLD = { movie: 80, episode: 70 };
 
@@ -186,7 +187,7 @@ export async function getNowPlaying(): Promise<NowPlayingItem | null> {
 
   if (!(rows as any[]).length) return null;
   const r = (rows as any[])[0];
-  return {
+  const item: NowPlayingItem = {
     mediaType:       r.mediaType,
     progressPct:     r.progressPct,
     movieTmdbId:     r.movieTmdbId     ?? null,
@@ -203,4 +204,16 @@ export async function getNowPlaying(): Promise<NowPlayingItem | null> {
     showBackdropPath:r.showBackdropPath ?? null,
     showRuntimeMin:  r.showRuntimeMin  ?? null,
   };
+
+  if (item.mediaType === 'episode' && item.showTmdbId) {
+    await applyImageOverrides('show', { tmdbId: item.showTmdbId, posterPath: null, backdropPath: item.showBackdropPath } as any).then(overridden => {
+      item.showBackdropPath = overridden.backdropPath;
+    });
+  } else if (item.mediaType === 'movie' && item.movieTmdbId) {
+    await applyImageOverrides('movie', { tmdbId: item.movieTmdbId, posterPath: null, backdropPath: item.backdropPath } as any).then(overridden => {
+      item.backdropPath = overridden.backdropPath;
+    });
+  }
+
+  return item;
 }

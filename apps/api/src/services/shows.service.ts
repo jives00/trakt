@@ -102,14 +102,14 @@ export async function getOrFetchShow(tmdbId: number) {
       const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
       const sc = row.season_count > 0 ? row.season_count : freshCount;
       await pool.query(
-        `UPDATE tv_shows SET first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
-        [fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
+        `UPDATE tv_shows SET backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
+        [fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
       );
       if (process.env.NODE_ENV !== 'test') {
         backfillShowImdbRating(row.id, tmdbId).catch(() => {});
         backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
       }
-      return applyImageOverrides('show', rowToShow({ ...row, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc, imdbId));
+      return applyImageOverrides('show', rowToShow({ ...row, backdrop_path: fresh.backdropPath, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc, imdbId));
     }
     if (row.season_count === 0) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
