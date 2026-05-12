@@ -3,6 +3,7 @@
 ## May 12, 2026
 
 ### Web
+- Change calendar card labels from blue to white: updated show title and movie label styling from text-accent to text-white `17981c4`
 - Mark Watched button corner radius: fixed button styling to display fully rounded corners when closed; only top corners remain rounded when dropdown is open to create visual connection with dropdown menu below `7357afe`
 - TMDB discover pages: added /movies and /shows browse pages with category side rail, sharp-corner poster grids, top-rated period filters, and detail-page links; added Movies and Shows to the top nav; covered discover pages and nav links with Vitest tests `48855a5`
 - Calendar page redesign: moved date labels to left column with sidebar-style typography (uppercase, tracking-widest, text-sm); cards now display TMDB backdrop images (16:9 aspect ratio) with gradient overlay for text legibility; added `startDays` pagination parameter to navigate date windows (e.g., next 14 days replaces current view, not appends); implemented "View Next N Days" and "Back to Today" navigation buttons that scroll to top after loading new content; separated content rendering by media type (episodes show show name, S##E##, air time, network; movies show title and tagline); fixed movie card links to /movies/[id]; added hero image overrides support for backdrop paths `2dac9a0`

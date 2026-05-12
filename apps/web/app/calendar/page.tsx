@@ -206,7 +206,7 @@ function CalendarCard({ entry }: { entry: ScheduleItem }) {
 function EpisodeCardContent({ entry }: { entry: ScheduleItem }) {
   return (
     <>
-      <p className="font-sans uppercase tracking-widest text-sm font-bold text-accent mb-1">
+      <p className="font-sans uppercase tracking-widest text-sm font-bold text-white mb-1">
         {entry.showTitle}
       </p>
       <h3 className="text-white font-bold text-base leading-tight mb-2 line-clamp-1">
@@ -232,7 +232,7 @@ function EpisodeCardContent({ entry }: { entry: ScheduleItem }) {
 function MovieCardContent({ entry }: { entry: ScheduleItem }) {
   return (
     <>
-      <p className="font-sans uppercase tracking-widest text-sm font-bold text-accent mb-1">
+      <p className="font-sans uppercase tracking-widest text-sm font-bold text-white mb-1">
         Movie
       </p>
       <h3 className="text-white font-bold text-base leading-tight mb-1 line-clamp-1">
