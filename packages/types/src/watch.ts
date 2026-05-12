@@ -64,6 +64,7 @@ export interface ScheduleItem {
   movieTitle?: string;
   movieTagline?: string | null;
   posterPath: string | null;
+  backdropPath?: string | null;
   network?: string | null;
   seasonNumber?: number;
   episodeNumber?: number;

@@ -204,8 +204,8 @@ export const api = {
   // Dashboard
   getUpNext: (token: string) =>
     request<UpNextItem[]>("/api/dashboard/up-next", { token }),
-  getSchedule: (token: string, range = 7, type = "all") =>
-    request<ScheduleItem[]>(`/api/dashboard/schedule?range=${range}&type=${type}`, { token }),
+  getSchedule: (token: string, range = 7, type = "all", startDays = 0) =>
+    request<ScheduleItem[]>(`/api/dashboard/schedule?range=${range}&type=${type}&startDays=${startDays}`, { token }),
   getRecentItems: (token: string, limit = 10) =>
     request<RecentItem[]>(`/api/dashboard/recent?limit=${limit}`, { token }),
   getDashboardStats: (token: string) =>

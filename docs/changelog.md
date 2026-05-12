@@ -1,5 +1,16 @@
 # Changelog
 
+## May 12, 2026
+
+### Web
+- Calendar page redesign: moved date labels to left column with sidebar-style typography (uppercase, tracking-widest, text-sm); cards now display TMDB backdrop images (16:9 aspect ratio) with gradient overlay for text legibility; added `startDays` pagination parameter to navigate date windows (e.g., next 14 days replaces current view, not appends); implemented "View Next N Days" and "Back to Today" navigation buttons that scroll to top after loading new content; separated content rendering by media type (episodes show show name, S##E##, air time, network; movies show title and tagline); fixed movie card links to /movies/[id]; added hero image overrides support for backdrop paths `2dac9a0`
+
+### API
+- Schedule API pagination: added `startDays` parameter to GET /api/dashboard/schedule to support date window navigation; schedule service now returns `backdropPath` for both episodes and movies, enabling backdrop images on calendar cards; applied hero image overrides to backdropPath in addition to posterPath `2dac9a0`
+
+### Types
+- Added `backdropPath` field to ScheduleItem interface for calendar card backgrounds `2dac9a0`
+
 ## May 11, 2026
 
 ### API

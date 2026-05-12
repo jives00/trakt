@@ -18,9 +18,10 @@ export async function dashboardRoutes(app: FastifyInstance) {
   });
 
   app.get('/dashboard/schedule', auth, async (request: FastifyRequest) => {
-    const { range = '7', type = 'all' } = request.query as any;
+    const { range = '7', type = 'all', startDays: sd = '0' } = request.query as any;
     const days = Math.min(90, Math.max(1, parseInt(range, 10) || 7));
-    return getSchedule(userId(request), days, type);
+    const startDays = Math.min(365, Math.max(0, parseInt(sd, 10) || 0));
+    return getSchedule(userId(request), days, type, startDays);
   });
 
   app.get('/dashboard/recent', auth, async (request: FastifyRequest) => {

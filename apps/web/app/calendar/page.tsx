@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { ScheduleItem } from "@trakt/types";
@@ -41,17 +42,37 @@ export default function CalendarPage() {
   const [entries, setEntries] = useState<ScheduleItem[]>([]);
   const [filter, setFilter] = useState<ContentType>("all");
   const [range, setRange] = useState(14);
+  const [startDays, setStartDays] = useState(0);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoading || !token) return;
     setFetching(true);
-    api.getSchedule(token, range, filter)
+    api.getSchedule(token, range, filter, startDays)
       .then(setEntries)
       .catch(() => setError("Failed to load schedule."))
       .finally(() => setFetching(false));
-  }, [token, isLoading, filter, range]);
+  }, [token, isLoading, filter, range, startDays]);
+
+  useEffect(() => {
+    if (!fetching && startDays > 0) {
+      setTimeout(() => {
+        contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [fetching, startDays]);
+
+  const handleFilterChange = (f: ContentType) => {
+    setStartDays(0);
+    setFilter(f);
+  };
+
+  const handleRangeChange = (r: number) => {
+    setStartDays(0);
+    setRange(r);
+  };
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
@@ -60,7 +81,7 @@ export default function CalendarPage() {
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
-      <div>
+      <div ref={contentRef}>
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <span className="text-accent text-[10px] font-black uppercase tracking-[0.3em] block mb-2">Premium Tracking</span>
@@ -71,7 +92,7 @@ export default function CalendarPage() {
               {(["all", "tv", "movie"] as ContentType[]).map((f) => (
                 <button
                   key={f}
-                  onClick={() => setFilter(f)}
+                  onClick={() => handleFilterChange(f)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
                     filter === f ? "bg-accent text-white" : "text-white/40 hover:text-white"
                   }`}
@@ -82,7 +103,7 @@ export default function CalendarPage() {
             </div>
             <select
               value={range}
-              onChange={(e) => setRange(Number(e.target.value))}
+              onChange={(e) => handleRangeChange(Number(e.target.value))}
               className="bg-[#181818] border border-white/10 rounded-lg px-3 py-2 text-xs text-white/60 focus:outline-none focus:border-accent transition-colors"
             >
               <option value={7}>Next 7 days</option>
@@ -102,57 +123,129 @@ export default function CalendarPage() {
           </div>
         )}
 
-        <div className="space-y-12">
+        <div>
           {groups.map(([dateStr, dayEntries]) => {
             const { label, sub } = formatDateHeader(dateStr);
             return (
-              <section key={dateStr}>
-                <div className="flex items-center gap-4 mb-6">
-                  <h2 className="text-h2 font-bold text-white">{label}</h2>
-                  <span className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
-                  <span className="text-white/40 text-label-sm uppercase tracking-widest">{sub}</span>
+              <div key={dateStr} className="grid grid-cols-[8rem_1fr] gap-x-8 gap-y-0 mb-10">
+                <div className="pt-1">
+                  <span className="font-sans uppercase tracking-widest text-sm font-bold text-white block">{label}</span>
+                  <span className="font-sans uppercase tracking-widest text-xs text-white/30 block mt-1">{sub}</span>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {dayEntries.map((entry, i) => (
-                    <CalendarCard key={`${entry.showTmdbId}-${entry.seasonNumber}-${entry.episodeNumber}-${i}`} entry={entry} />
+                    <CalendarCard
+                      key={entry.mediaType === "movie" ? `movie-${entry.movieTmdbId}-${i}` : `ep-${entry.showTmdbId}-${entry.seasonNumber}-${entry.episodeNumber}`}
+                      entry={entry}
+                    />
                   ))}
                 </div>
-              </section>
+              </div>
             );
           })}
+
+          {!fetching && (
+            <div className="mt-12 flex justify-center gap-4">
+              {startDays > 0 && (
+                <button
+                  onClick={() => setStartDays(0)}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#181818] border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">home</span>
+                  Back to Today
+                </button>
+              )}
+              <button
+                onClick={() => setStartDays(startDays + range)}
+                className="flex items-center gap-2 px-6 py-3 bg-[#181818] border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-white/60 hover:text-white hover:border-white/20 transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">arrow_forward</span>
+                View Next {range} Days
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+function formatAirTime(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  if (isNaN(h)) return "";
+  const period = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}${m ? `:${String(m).padStart(2, "0")}` : ""} ${period}`;
+}
+
 function CalendarCard({ entry }: { entry: ScheduleItem }) {
-  const time = entry.date.includes("T")
-    ? new Date(entry.date).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-    : null;
+  const backdropUrl = entry.backdropPath ? `${TMDB_IMG}w780${entry.backdropPath}` : null;
+  const href = entry.mediaType === "movie" ? `/movies/${entry.movieTmdbId}` : `/shows/${entry.showTmdbId}`;
 
   return (
-    <Link href={`/shows/${entry.showTmdbId}`} className="group relative overflow-hidden rounded-2xl glass-panel block">
-      <div className="p-5">
-        <p className="text-accent text-[10px] font-black uppercase tracking-widest mb-1">
-          {entry.showTitle} · S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
-        </p>
-        <h3 className="text-white font-bold text-lg leading-tight mb-3 group-hover:text-accent transition-colors line-clamp-2">
-          {entry.episodeTitle ?? `Episode ${entry.episodeNumber}`}
-        </h3>
-        <div className="flex items-center justify-between">
-          {time && (
-            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white">{time}</span>
-            </div>
-          )}
-          {entry.network && (
-            <span className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{entry.network}</span>
-          )}
-        </div>
+    <Link href={href} className="group relative overflow-hidden block aspect-video">
+      {backdropUrl ? (
+        <Image
+          src={backdropUrl}
+          alt={entry.mediaType === "movie" ? (entry.movieTitle ?? "") : (entry.showTitle ?? "")}
+          fill
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-[#1a1a1a]" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 via-40% to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 p-4">
+        {entry.mediaType === "episode" ? (
+          <EpisodeCardContent entry={entry} />
+        ) : (
+          <MovieCardContent entry={entry} />
+        )}
       </div>
     </Link>
+  );
+}
+
+function EpisodeCardContent({ entry }: { entry: ScheduleItem }) {
+  return (
+    <>
+      <p className="font-sans uppercase tracking-widest text-sm font-bold text-accent mb-1">
+        {entry.showTitle}
+      </p>
+      <h3 className="text-white font-bold text-base leading-tight mb-2 line-clamp-1">
+        S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
+        {entry.episodeTitle ? ` · ${entry.episodeTitle}` : ""}
+      </h3>
+      <div className="flex items-center gap-3">
+        {entry.airTime && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">
+            {formatAirTime(entry.airTime)}
+          </span>
+        )}
+        {entry.network && (
+          <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">
+            {entry.network}
+          </span>
+        )}
+      </div>
+    </>
+  );
+}
+
+function MovieCardContent({ entry }: { entry: ScheduleItem }) {
+  return (
+    <>
+      <p className="font-sans uppercase tracking-widest text-sm font-bold text-accent mb-1">
+        Movie
+      </p>
+      <h3 className="text-white font-bold text-base leading-tight mb-1 line-clamp-1">
+        {entry.movieTitle}
+      </h3>
+      {entry.movieTagline && (
+        <p className="text-white/50 text-xs line-clamp-1">{entry.movieTagline}</p>
+      )}
+    </>
   );
 }
 

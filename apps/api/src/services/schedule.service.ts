@@ -10,6 +10,7 @@ export interface ScheduleEntry {
   movieTitle?: string;
   movieTagline?: string | null;
   posterPath: string | null;
+  backdropPath: string | null;
   network: string | null;
   seasonNumber?: number;
   episodeNumber?: number;
@@ -35,6 +36,7 @@ export async function getSchedule(
   userId: number,
   range = 7,
   type = 'all',
+  startDays = 0,
 ): Promise<ScheduleEntry[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
@@ -46,6 +48,7 @@ export async function getSchedule(
        NULL            AS movieTitle,
        NULL            AS movieTagline,
        s.poster_path   AS posterPath,
+       s.backdrop_path AS backdropPath,
        s.network,
        seas.season_number AS seasonNumber,
        e.episode_number   AS episodeNumber,
@@ -57,7 +60,7 @@ export async function getSchedule(
      JOIN ${TRACKED_SHOWS} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id
      JOIN episodes e   ON e.season_id  = seas.id
-     WHERE e.air_date >= CURDATE() AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
+     WHERE e.air_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
      UNION ALL
      SELECT
        'movie'          AS mediaType,
@@ -67,6 +70,7 @@ export async function getSchedule(
        m.title          AS movieTitle,
        m.tagline        AS movieTagline,
        m.poster_path    AS posterPath,
+       m.backdrop_path  AS backdropPath,
        NULL             AS network,
        NULL             AS seasonNumber,
        NULL             AS episodeNumber,
@@ -76,10 +80,10 @@ export async function getSchedule(
        NULL             AS airTime
      FROM movies m
      JOIN ${TRACKED_MOVIES} tracked_movies ON tracked_movies.media_id = m.id
-     WHERE m.release_date >= CURDATE() AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
+     WHERE m.release_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
      ORDER BY date, showTitle, movieTitle
      LIMIT 100`,
-    [userId, userId, range, userId, userId, range],
+    [userId, userId, startDays, startDays + range, userId, userId, startDays, startDays + range],
   );
 
   const overridePairs = (rows as ScheduleEntry[]).map(r => ({
@@ -92,6 +96,6 @@ export async function getSchedule(
     const mt = r.mediaType === 'episode' ? 'show' : 'movie';
     const id = r.mediaType === 'episode' ? r.showTmdbId! : r.movieTmdbId!;
     const ovr = overrides.get(`${mt}:${id}`) ?? {};
-    return { ...r, posterPath: ovr.posterPath ?? r.posterPath };
+    return { ...r, posterPath: ovr.posterPath ?? r.posterPath, backdropPath: ovr.backdropPath ?? r.backdropPath };
   });
 }
