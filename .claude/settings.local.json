@@ -10,7 +10,13 @@
       "Bash(pnpm install *)",
       "Bash(pnpm approve-builds *)",
       "Bash(pnpm --filter api migrate)",
-      "Bash(findstr 3306)"
+      "Bash(findstr 3306)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch --exit-status)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run list --branch main --limit 1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch 25754869574 --exit-status)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run list --limit 1 --json databaseId)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch 25755570846 --exit-status)",
+      "Bash(findstr \":3000\")"
     ]
   }
 }

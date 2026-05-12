@@ -135,7 +135,7 @@ export function WatchDatePicker({
             handleMarkToday();
           }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-tl-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
+          className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold ${isOpen ? 'rounded-tl-md' : 'rounded-l-md'}`}
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
           Mark Watched
@@ -151,7 +151,7 @@ export function WatchDatePicker({
             e.preventDefault();
             e.stopPropagation();
           }}
-          className="px-2 py-2 rounded-tr-md bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs"
+          className={`px-2 py-2 bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs ${isOpen ? 'rounded-tr-md' : 'rounded-r-md'}`}
         >
           ▾
         </button>
