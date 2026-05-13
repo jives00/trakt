@@ -66,7 +66,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        FROM tv_shows s
        JOIN ${TRACKED_SHOWS} tracked ON tracked.media_id = s.id
        JOIN seasons seas ON seas.show_id = s.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
-       JOIN episodes e   ON e.season_id  = seas.id
+       JOIN episodes e   ON e.season_id  = seas.id AND e.air_date <= CURDATE()
        LEFT JOIN (
          SELECT li.media_id AS show_id, li.added_at AS rewatch_start
          FROM list_items li

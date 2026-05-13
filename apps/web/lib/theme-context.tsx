@@ -18,10 +18,8 @@ const ThemeContext = createContext<ThemeState | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeId>("red-dark");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const saved = localStorage.getItem("theme") as ThemeId | null;
     if (saved && (saved === "red-dark" || saved === "blue-dark")) {
       setThemeState(saved);
@@ -34,8 +32,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("theme", id);
     document.documentElement.setAttribute("data-theme", id);
   }
-
-  if (!mounted) return children;
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>

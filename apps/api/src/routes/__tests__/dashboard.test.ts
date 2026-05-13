@@ -37,11 +37,11 @@ async function seedShowData() {
   );
   const [ep2] = await pool.query<any>(
     `INSERT INTO episodes (show_id, season_id, episode_number, title, air_date)
-     VALUES (?, ?, 2, 'Episode 2', DATE_ADD(CURDATE(), INTERVAL 1 DAY))`, [showId, seasonId],
+     VALUES (?, ?, 2, 'Episode 2', CURDATE())`, [showId, seasonId],
   );
   await pool.query<any>(
     `INSERT INTO episodes (show_id, season_id, episode_number, title, air_date)
-     VALUES (?, ?, 3, 'Episode 3', DATE_ADD(CURDATE(), INTERVAL 3 DAY))`, [showId, seasonId],
+     VALUES (?, ?, 3, 'Episode 3', DATE_ADD(CURDATE(), INTERVAL 1 DAY))`, [showId, seasonId],
   );
 
   // list_id=1 is the system watchlist (seeded in test-seed.sql)
@@ -151,12 +151,17 @@ describe('GET /api/dashboard/schedule', () => {
   it('respects ?range= param', async () => {
     await seedShowData();
     const token = await getToken();
-    // range=1 should return only today's episode
-    const res = await supertest(app.server)
+    // range=1 should return only today's episodes
+    const res1 = await supertest(app.server)
       .get('/api/dashboard/schedule?range=1')
       .set('Authorization', `Bearer ${token}`);
-    expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1);
+    // range=2 should return today's and tomorrow's episodes
+    const res2 = await supertest(app.server)
+      .get('/api/dashboard/schedule?range=2')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res1.status).toBe(200);
+    expect(res2.status).toBe(200);
+    expect(res2.body.length).toBeGreaterThan(res1.body.length);
   });
 });
 

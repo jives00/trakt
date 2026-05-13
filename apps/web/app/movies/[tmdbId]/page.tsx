@@ -9,6 +9,7 @@ import { api, type MovieDetail, type MovieStatus, type MovieCastMember, type Cre
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
 import { WatchDatePicker } from "@/components/watch-date-picker";
+import { AddToListDropdown } from "@/components/add-to-list-dropdown";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -351,6 +352,13 @@ export default function MovieDetailPage() {
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
                     {status.inWatchlist ? "Watchlisted" : "Watchlist"}
                   </button>
+                  {movie && token && (
+                    <AddToListDropdown
+                      token={token}
+                      mediaType="movie"
+                      mediaId={movie.id}
+                    />
+                  )}
                   <div className="col-span-2">
                     <WatchDatePicker
                       watched={status.watched}

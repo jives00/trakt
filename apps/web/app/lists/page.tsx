@@ -107,7 +107,7 @@ export default function ListsPage() {
           <div className="mb-10">
             <h2 className="text-h2 font-black tracking-tight text-white mb-4">
               <span className="block w-8 h-1 bg-accent rounded mb-2" />
-              My Lists
+              System Lists
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {systemLists.map((list) => (
@@ -177,11 +177,11 @@ function SystemListCard({ list }: { list: UserList }) {
           <span className="font-black text-white tracking-tight">{list.name}</span>
         </div>
       </div>
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-3 flex flex-col gap-1 flex-1">
         <span className="text-sm text-white/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 flex items-center gap-1">
-          View <span className="material-symbols-outlined text-sm">arrow_forward</span>
-        </span>
+        {list.description && (
+          <p className="text-xs text-white/40 line-clamp-2">{list.description}</p>
+        )}
       </div>
     </Link>
   );

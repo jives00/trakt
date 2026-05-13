@@ -9,6 +9,7 @@ import { api, type ShowDetail, type ShowStatus, type CastMember, type ShowEpisod
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
 import { WatchDatePicker } from "@/components/watch-date-picker";
+import { AddToListDropdown } from "@/components/add-to-list-dropdown";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -486,6 +487,13 @@ export default function ShowDetailPage() {
                     <span className="material-symbols-outlined text-sm">replay</span>
                     {status.inRewatch ? "Rewatching" : "Rewatch"}
                   </button>
+                  {show && token && (
+                    <AddToListDropdown
+                      token={token}
+                      mediaType="show"
+                      mediaId={show.id}
+                    />
+                  )}
                   <div className="col-span-2">
                     <WatchDatePicker
                       watched={watchedEpisodeCount === totalEpisodeCount && totalEpisodeCount > 0}

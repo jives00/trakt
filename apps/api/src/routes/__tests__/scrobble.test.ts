@@ -125,7 +125,7 @@ describe('POST /api/scrobble/emby', () => {
       expect((rows as any[]).length).toBe(0);
     });
 
-    it('creates row for movie at exactly 80% threshold', async () => {
+    it('creates row for movie at exactly 90% threshold', async () => {
       const moviePayload: EmbyWebhookPayload = {
         Event: 'PlaybackStopped',
         Item: {
@@ -134,7 +134,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 80000000000,
+          PlaybackPositionTicks: 90000000000,
         },
       };
 
@@ -283,7 +283,7 @@ describe('POST /api/scrobble/emby', () => {
       expect((rows as any[]).length).toBe(0);
     });
 
-    it('creates row for episode at exactly 70% threshold', async () => {
+    it('creates row for episode at exactly 90% threshold', async () => {
       const episodePayload: EmbyWebhookPayload = {
         Event: 'PlaybackStopped',
         Item: {
@@ -294,7 +294,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 70000000000,
+          PlaybackPositionTicks: 90000000000,
         },
       };
 
@@ -403,7 +403,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 85000000000, // 85%
+          PlaybackPositionTicks: 90000000000, // 90%
         },
       };
 
@@ -417,8 +417,8 @@ describe('POST /api/scrobble/emby', () => {
       const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
 
       const row = (rows as any[])[0];
-      expect(row.progress_pct).toBe(85);
-      expect(row.completion_progress).toBe(85);
+      expect(row.progress_pct).toBe(90);
+      expect(row.completion_progress).toBe(90);
       expect(row.playback_stopped_at).toBeNull();
     });
 
@@ -432,7 +432,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 85000000000, // 85%
+          PlaybackPositionTicks: 90000000000, // 90%
         },
       };
 
@@ -446,8 +446,8 @@ describe('POST /api/scrobble/emby', () => {
       const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
 
       const row = (rows as any[])[0];
-      expect(row.progress_pct).toBe(85);
-      expect(row.completion_progress).toBe(85);
+      expect(row.progress_pct).toBe(90);
+      expect(row.completion_progress).toBe(90);
       expect(row.playback_stopped_at).not.toBeNull();
     });
 
@@ -487,10 +487,10 @@ describe('POST /api/scrobble/emby', () => {
         Item: {
           Type: 'Movie',
           ProviderIds: { Tmdb: '550' },
-          RunTimeTicks: 72000000000,
+          RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 57600000000, // 80%
+          PlaybackPositionTicks: 90000000000, // 90%
         },
       };
 
@@ -505,7 +505,7 @@ describe('POST /api/scrobble/emby', () => {
 
       const [rows1] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows1 as any[]).length).toBe(1);
-      expect((rows1 as any[])[0].progress_pct).toBe(80);
+      expect((rows1 as any[])[0].progress_pct).toBe(90);
 
       // Now send PlaybackProgress with higher progress
       const moviePayload2: EmbyWebhookPayload = {
@@ -513,10 +513,10 @@ describe('POST /api/scrobble/emby', () => {
         Item: {
           Type: 'Movie',
           ProviderIds: { Tmdb: '550' },
-          RunTimeTicks: 72000000000,
+          RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000, // 90%
+          PlaybackPositionTicks: 95000000000, // 95%
         },
       };
 
@@ -527,7 +527,7 @@ describe('POST /api/scrobble/emby', () => {
 
       const [rows2] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
       expect((rows2 as any[]).length).toBe(1);
-      expect((rows2 as any[])[0].progress_pct).toBe(90);
+      expect((rows2 as any[])[0].progress_pct).toBe(95);
     });
 
     it('does not create duplicate rows on multiple PlaybackProgress events same day', async () => {
@@ -537,10 +537,10 @@ describe('POST /api/scrobble/emby', () => {
         Item: {
           Type: 'Movie',
           ProviderIds: { Tmdb: '550' },
-          RunTimeTicks: 72000000000,
+          RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 57600000000, // 80%
+          PlaybackPositionTicks: 90000000000, // 90%
         },
       };
 
@@ -657,7 +657,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 83333333333, // 83.333...% → rounds to 83%
+          PlaybackPositionTicks: 92333333333, // 92.333...% → rounds to 92%
         },
       };
 
@@ -669,7 +669,7 @@ describe('POST /api/scrobble/emby', () => {
       const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
       const movieId = movies.length > 0 ? movies[0].id : null;
       const [rows] = await pool.query('SELECT * FROM watch_history WHERE media_id = ?', [movieId]);
-      expect((rows as any[])[0].progress_pct).toBe(83);
+      expect((rows as any[])[0].progress_pct).toBe(92);
     });
   });
 });
