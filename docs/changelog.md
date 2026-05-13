@@ -13,6 +13,7 @@
 - Simplify web page headers and move calendar filters: removed "Premium Tracking" subtitle from calendar; converted "Upcoming Schedule" from all-caps to title case; moved calendar filter pills and range selector below header for consistency with history page; removed "Discover" subtitles from movies and shows pages; removed cinematic journey tagline from history page `b411306`
 
 ### API
+- Fix empty date values from TMDB: TMDB returns empty strings for air_date/release_date when media hasn't aired yet; added dateOrNull() helper to convert empty strings to null before database insertion, allowing unreleased shows/movies to load without 500 errors `3feb314`
 - Increase watch completion threshold: raised minimum progress from 80% to 90% to reduce accidental marks on near-complete but interrupted viewings `7361605`
 - TMDB discover API: added authenticated GET /api/discover/movies and /api/discover/shows endpoints with category validation and top-rated period filters; fixed API test setup to recreate worker databases from the migrated template so schema changes are reflected reliably `48855a5`
 - Schedule API pagination: added `startDays` parameter to GET /api/dashboard/schedule to support date window navigation; schedule service now returns `backdropPath` for both episodes and movies, enabling backdrop images on calendar cards; applied hero image overrides to backdropPath in addition to posterPath `2dac9a0`

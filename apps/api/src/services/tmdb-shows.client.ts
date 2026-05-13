@@ -1,13 +1,18 @@
 import { TvShow, Season, Episode, CastMember } from '@trakt/types';
 import { get } from './tmdb.client';
 
+function dateOrNull(value: any): string | null {
+  return value && String(value).trim() ? String(value) : null;
+}
+
 export function transformShow(raw: Record<string, any>): TvShow {
   const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
+  const firstAirDate = dateOrNull(raw['first_air_date']);
   return {
     id: 0,
     tmdbId: raw['id'],
     title: raw['name'] ?? '',
-    year: raw['first_air_date'] ? Number(String(raw['first_air_date']).slice(0, 4)) : 0,
+    year: firstAirDate ? Number(firstAirDate.slice(0, 4)) : 0,
     overview: raw['overview'] ?? '',
     posterPath: raw['poster_path'] ?? null,
     backdropPath: raw['backdrop_path'] ?? null,
@@ -27,7 +32,7 @@ function transformEpisode(ep: Record<string, any>, showId = 0, seasonId = 0): Ep
     title: ep['name'] ?? '',
     overview: ep['overview'] ?? null,
     stillPath: ep['still_path'] ?? null,
-    airDate: ep['air_date'] ?? null,
+    airDate: dateOrNull(ep['air_date']),
     airTime: ep['air_time'] ?? null,
     runtimeMin: ep['runtime'] ?? null,
     episodeType: ep['episode_type'] ?? 'standard',
@@ -48,7 +53,7 @@ export async function fetchShowWithSeasonCount(tmdbId: number): Promise<ShowFetc
   return {
     show: {
       ...transformShow(raw),
-      firstAirDate: raw['first_air_date'] ?? null,
+      firstAirDate: dateOrNull(raw['first_air_date']),
       originCountry: raw['origin_country']?.[0] ?? null,
       originalLanguage: raw['original_language'] ?? null,
       runtimeMin: raw['episode_run_time']?.[0] ?? null,
@@ -80,7 +85,7 @@ export async function fetchSeason(tmdbId: number, seasonNumber: number): Promise
     episodeCount: raw['episodes']?.length ?? 0,
     overview: raw['overview'] ?? null,
     posterPath: raw['poster_path'] ?? null,
-    airDate: raw['air_date'] ?? null,
+    airDate: dateOrNull(raw['air_date']),
     seasonType: raw['type'] ?? 'regular',
     episodes: (raw['episodes'] ?? []).map((ep: Record<string, any>) =>
       transformEpisode(ep),

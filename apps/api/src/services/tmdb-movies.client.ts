@@ -1,6 +1,10 @@
 import { Movie, MovieDetail, MovieCastMember, CrewMember } from '@trakt/types';
 import { get } from './tmdb.client';
 
+function dateOrNull(value: any): string | null {
+  return value && String(value).trim() ? String(value) : null;
+}
+
 export function transformMovie(raw: Record<string, any>): MovieDetail {
   // Prefer US theatrical release date (type 3) over the default release_date field
   const usTheatrical = (raw['release_dates']?.results as Record<string, any>[] | undefined)
@@ -8,7 +12,7 @@ export function transformMovie(raw: Record<string, any>): MovieDetail {
     ?.release_dates?.find((d: Record<string, any>) => d['type'] === 3)
     ?.release_date?.slice(0, 10) ?? null;
 
-  const releaseDate = usTheatrical ?? raw['release_date'] ?? null;
+  const releaseDate = dateOrNull(usTheatrical) ?? dateOrNull(raw['release_date']);
   const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
 
   return {
