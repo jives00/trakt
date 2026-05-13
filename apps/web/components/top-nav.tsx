@@ -18,7 +18,6 @@ const topNavLinks = [
 
 const avatarDropdownLinks = [
   { href: "/progress", label: "Progress" },
-  { href: "/collection", label: "Collection" },
   { href: "/lists", label: "Lists" },
   { href: "/stats", label: "Stats" },
   { href: "/integrations", label: "Integrations" },

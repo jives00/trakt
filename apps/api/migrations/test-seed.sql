@@ -4,6 +4,12 @@
 INSERT INTO users (id, username, email, password_hash, created_at) VALUES
   (1, 'testuser', 'test@example.com', '$2a$10$w8.nw2ZYSXKqq1/i2UIJgOzYs71gDi4FaGWe5KZ2XgAC5orfKduNC', NOW());
 
+-- System lists for testuser (known IDs: 1=watchlist, 2=dropped, 3=rewatch)
+INSERT INTO lists (id, user_id, name, list_type, is_system, slug, created_at) VALUES
+  (1, 1, 'Watchlist', 'watchlist', TRUE, 'watchlist', NOW()),
+  (2, 1, 'Dropped',   'dropped',   TRUE, 'dropped',   NOW()),
+  (3, 1, 'Rewatch',   'rewatch',   TRUE, 'rewatch',   NOW());
+
 -- Use fictional tmdb_ids (90xxx/91xxx) to avoid clashing with test mocks (550, 1396, 9999, etc.)
 INSERT INTO movies (id, tmdb_id, title, year, poster_path, runtime_min, genres) VALUES
   (1, 90001, 'Test Movie Alpha', 2020, '/alpha.jpg', 120, '["Action","Adventure"]'),

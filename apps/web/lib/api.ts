@@ -3,8 +3,7 @@ import type {
   ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary,
   MovieDetail, MovieCastMember, CrewMember,
   HistoryItem, ProgressItem,
-  CollectionItem, WatchlistItem,
-  UserList, ListDetail,
+  UserList, ListDetail, ListType, UpdateListBody,
   RatingItem,
   StatsAllTime, StatsYear, StatsMonth, DashboardStats, RecentItem, RecommendationItem,
   MovieStatus, ShowStatus, UpNextItem, ScheduleItem,
@@ -128,10 +127,6 @@ export const api = {
     request<{ inWatchlist: boolean }>(`/api/movies/${tmdbId}/watchlist`, {
       method: inWatchlist ? "DELETE" : "POST", token,
     }),
-  toggleMovieCollection: (tmdbId: number, inCollection: boolean, token: string) =>
-    request<{ inCollection: boolean }>(`/api/movies/${tmdbId}/collection`, {
-      method: inCollection ? "DELETE" : "POST", token,
-    }),
 
   // Shows
   getShow: (tmdbId: number, token: string) =>
@@ -167,10 +162,10 @@ export const api = {
     request<{ inWatchlist: boolean }>(`/api/shows/${tmdbId}/watchlist`, {
       method: inWatchlist ? "DELETE" : "POST", token,
     }),
-  toggleShowCollection: (tmdbId: number, inCollection: boolean, token: string) =>
-    request<{ inCollection: boolean }>(`/api/shows/${tmdbId}/collection`, {
-      method: inCollection ? "DELETE" : "POST", token,
-    }),
+  toggleShowDropped: (tmdbId: number, token: string) =>
+    request<{ inDropped: boolean }>(`/api/shows/${tmdbId}/dropped`, { method: "POST", token }),
+  toggleShowRewatch: (tmdbId: number, token: string) =>
+    request<{ inRewatch: boolean }>(`/api/shows/${tmdbId}/rewatch`, { method: "POST", token }),
   getShowSeasons: (tmdbId: number, token: string) =>
     request<{ seasons: SeasonSummary[] }>(`/api/shows/${tmdbId}/seasons`, { token }),
   getShowCast: (tmdbId: number, token: string) =>
@@ -245,23 +240,23 @@ export const api = {
   getProgress: (token: string, status = "all") =>
     request<ProgressItem[]>(`/api/progress?status=${status}`, { token }),
 
-  // Collection
-  getCollection: (token: string, type = "all") =>
-    request<CollectionItem[]>(`/api/collection?type=${type}`, { token }),
-
-  // Watchlist
-  getWatchlist: (token: string, type = "all") =>
-    request<WatchlistItem[]>(`/api/watchlist?type=${type}`, { token }),
-
   // Lists
   getLists: (token: string) =>
     request<UserList[]>("/api/lists", { token }),
   getList: (id: number, token: string) =>
     request<ListDetail>(`/api/lists/${id}`, { token }),
+  getListByType: (type: ListType, token: string) =>
+    request<ListDetail>(`/api/lists/by-type/${type}`, { token }),
   createList: (name: string, description: string, token: string) =>
     request<UserList>("/api/lists", {
       method: "POST",
       body: JSON.stringify({ name, description }),
+      token,
+    }),
+  updateList: (id: number, body: UpdateListBody, token: string) =>
+    request<UserList>(`/api/lists/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
       token,
     }),
   deleteList: (id: number, token: string) =>

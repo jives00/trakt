@@ -16,10 +16,16 @@ export interface UpNextItem {
   totalAired: number;
 }
 
-export const TRACKED_SHOWS = `(
-  SELECT media_id FROM watchlist WHERE user_id = ? AND media_type = 'show'
-  UNION
-  SELECT media_id FROM collection WHERE user_id = ? AND media_type = 'show'
+// Shows in watchlist or rewatch, excluding dropped
+const TRACKED_SHOWS = `(
+  SELECT li.media_id FROM list_items li
+  JOIN lists l ON l.id = li.list_id
+  WHERE l.user_id = ? AND l.list_type IN ('watchlist', 'rewatch') AND li.media_type = 'show'
+  AND li.media_id NOT IN (
+    SELECT li2.media_id FROM list_items li2
+    JOIN lists l2 ON l2.id = li2.list_id
+    WHERE l2.user_id = ? AND l2.list_type = 'dropped' AND li2.media_type = 'show'
+  )
 )`;
 
 export async function getUpNext(userId: number): Promise<UpNextItem[]> {
@@ -61,9 +67,18 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        JOIN ${TRACKED_SHOWS} tracked ON tracked.media_id = s.id
        JOIN seasons seas ON seas.show_id = s.id AND seas.season_number > 0 AND (seas.season_type IS NULL OR seas.season_type != 'special')
        JOIN episodes e   ON e.season_id  = seas.id
+       LEFT JOIN (
+         SELECT li.media_id AS show_id, li.added_at AS rewatch_start
+         FROM list_items li
+         JOIN lists l ON l.id = li.list_id
+         WHERE l.user_id = ? AND l.list_type = 'rewatch' AND li.media_type = 'show'
+       ) rw_info ON rw_info.show_id = s.id
+       -- Only join watch history entries that count for this context:
+       -- rewatch shows: only entries after rewatch_start; non-rewatch shows: all entries.
        LEFT JOIN watch_history wh
          ON wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
-       JOIN (
+         AND (rw_info.rewatch_start IS NULL OR wh.watched_at > rw_info.rewatch_start)
+       LEFT JOIN (
          SELECT seas2.show_id,
                 seas2.season_number,
                 e2.episode_number,
@@ -71,14 +86,22 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
          FROM watch_history wh2
          JOIN episodes e2   ON e2.id = wh2.media_id
          JOIN seasons seas2 ON seas2.id = e2.season_id AND seas2.season_number > 0 AND (seas2.season_type IS NULL OR seas2.season_type != 'special')
+         LEFT JOIN (
+           SELECT li.media_id AS show_id, li.added_at AS rewatch_start
+           FROM list_items li
+           JOIN lists l ON l.id = li.list_id
+           WHERE l.user_id = ? AND l.list_type = 'rewatch' AND li.media_type = 'show'
+         ) rw ON rw.show_id = seas2.show_id
          WHERE wh2.media_type = 'episode' AND wh2.user_id = ?
+         AND (rw.rewatch_start IS NULL OR wh2.watched_at > rw.rewatch_start)
        ) last_watched ON last_watched.show_id = s.id AND last_watched.rn2 = 1
        WHERE wh.id IS NULL
+       AND (last_watched.show_id IS NOT NULL OR rw_info.show_id IS NOT NULL)
      ) sub
      WHERE rn = 1
      ORDER BY showTitle
      LIMIT 20`,
-    [userId, userId, userId, userId],
+    [userId, userId, userId, userId, userId, userId],
   );
 
   const showIds = rows.map(r => (r as any).show_id);

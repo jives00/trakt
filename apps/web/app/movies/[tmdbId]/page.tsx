@@ -94,11 +94,6 @@ export default function MovieDetailPage() {
     setStatus((s) => s && { ...s, inWatchlist: res.inWatchlist });
   }
 
-  async function handleCollection() {
-    const res = await api.toggleMovieCollection(Number(tmdbId), status!.inCollection, token!);
-    setStatus((s) => s && { ...s, inCollection: res.inCollection });
-  }
-
   async function handleMarkWatched(watchedAt: string) {
     const res = await api.toggleMovieWatched(Number(tmdbId), false, token!, watchedAt);
     setStatus((s) => s && { ...s, watched: res.watched });
@@ -355,15 +350,6 @@ export default function MovieDetailPage() {
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
                     {status.inWatchlist ? "Watchlisted" : "Watchlist"}
-                  </button>
-                  <button
-                    onClick={handleCollection}
-                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inCollection ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">library_add</span>
-                    {status.inCollection ? "Collected" : "Collect"}
                   </button>
                   <div className="col-span-2">
                     <WatchDatePicker

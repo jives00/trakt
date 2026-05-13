@@ -10,8 +10,6 @@ const mockGetMovieCrew = vi.fn();
 const mockGetMovieHistory = vi.fn();
 const mockToggleWatched = vi.fn();
 const mockToggleWatchlist = vi.fn();
-const mockToggleCollection = vi.fn();
-
 vi.mock("@/lib/auth-context", () => ({
   useAuth: () => ({ token: "test-token", isLoading: false }),
 }));
@@ -28,7 +26,6 @@ vi.mock("@/lib/api", () => ({
     getMovieHistory: (...args: unknown[]) => mockGetMovieHistory(...args),
     toggleMovieWatched: (...args: unknown[]) => mockToggleWatched(...args),
     toggleMovieWatchlist: (...args: unknown[]) => mockToggleWatchlist(...args),
-    toggleMovieCollection: (...args: unknown[]) => mockToggleCollection(...args),
   },
 }));
 
@@ -51,7 +48,7 @@ const movie: Movie & { id: number } = {
   genres: ["Drama", "Thriller"],
 };
 
-const status = { inWatchlist: false, inCollection: false, watched: false };
+const status = { inWatchlist: false, watched: false };
 
 describe("MovieDetailPage", () => {
   beforeEach(() => {

@@ -32,13 +32,13 @@ export interface ContinueWatchingItem {
 
 export interface MovieStatus {
   inWatchlist: boolean;
-  inCollection: boolean;
   watched: boolean;
 }
 
 export interface ShowStatus {
   inWatchlist: boolean;
-  inCollection: boolean;
+  inDropped: boolean;
+  inRewatch: boolean;
   watched: boolean;
 }
 

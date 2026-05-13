@@ -17,7 +17,8 @@ vi.mock("@/lib/api", () => ({
     getShow: (...args: unknown[]) => mockGetShow(...args),
     getSeason: vi.fn(),
     toggleShowWatchlist: vi.fn().mockResolvedValue({ inWatchlist: true }),
-    toggleShowCollection: vi.fn().mockResolvedValue({ inCollection: true }),
+    toggleShowDropped: vi.fn().mockResolvedValue({ inDropped: false }),
+    toggleShowRewatch: vi.fn().mockResolvedValue({ inRewatch: false }),
     toggleEpisodeWatched: vi.fn().mockResolvedValue({ watched: true }),
     getShowUpNext: vi.fn().mockResolvedValue({ episode: null }),
     getShowRecentEpisodes: vi.fn().mockResolvedValue({ episodes: [] }),
@@ -48,7 +49,7 @@ const show = {
   seasonCount: 5,
 };
 
-const status = { inWatchlist: false, inCollection: false };
+const status = { inWatchlist: false, inDropped: false, inRewatch: false, watched: false };
 
 describe("ShowDetailPage", () => {
   beforeEach(() => {

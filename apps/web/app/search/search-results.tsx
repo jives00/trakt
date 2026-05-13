@@ -196,16 +196,6 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
     }
   }
 
-  async function handleCollect(e: React.MouseEvent) {
-    e.preventDefault();
-    if (!token) return;
-    if (item.mediaType === "movie") {
-      await api.toggleMovieCollection(item.tmdbId, false, token).catch(() => {});
-    } else {
-      await api.toggleShowCollection(item.tmdbId, false, token).catch(() => {});
-    }
-  }
-
   return (
     <div className="flex flex-col gap-3 group">
       <Link href={href} className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/5 bg-[#181818] block transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20">
@@ -233,12 +223,6 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
             className="w-full bg-accent text-white py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
           >
             <span className="material-symbols-outlined text-sm">bookmark</span> Watchlist
-          </button>
-          <button
-            onClick={handleCollect}
-            className="w-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
-          >
-            <span className="material-symbols-outlined text-sm">library_add</span> Collect
           </button>
         </div>
       </Link>

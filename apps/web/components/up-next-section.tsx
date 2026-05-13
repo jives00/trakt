@@ -187,10 +187,7 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
     onRemovalStart(item.episodeId);
     setIsRemoving(true);
     try {
-      await Promise.all([
-        api.toggleShowWatchlist(item.showTmdbId, true, token),
-        api.toggleShowCollection(item.showTmdbId, true, token),
-      ]);
+      await api.toggleShowWatchlist(item.showTmdbId, true, token);
       await onWatched(item.episodeId);
     } catch (error) {
       console.error("Failed to dismiss show:", error);

@@ -44,8 +44,9 @@ async function seedShowData() {
      VALUES (?, ?, 3, 'Episode 3', DATE_ADD(CURDATE(), INTERVAL 3 DAY))`, [showId, seasonId],
   );
 
+  // list_id=1 is the system watchlist (seeded in test-seed.sql)
   await pool.query(
-    `INSERT INTO watchlist (user_id, media_type, media_id) VALUES (1, 'show', ?)`, [showId],
+    `INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, 'show', ?)`, [showId],
   );
 
   await pool.query(
@@ -114,8 +115,9 @@ describe('GET /api/dashboard/up-next', () => {
     );
 
     // Add to watchlist but don't watch any episodes
+    // list_id=1 is the system watchlist (seeded in test-seed.sql)
     await pool.query(
-      `INSERT INTO watchlist (user_id, media_type, media_id) VALUES (1, 'show', ?)`, [showId],
+      `INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, 'show', ?)`, [showId],
     );
 
     const token = await getToken();

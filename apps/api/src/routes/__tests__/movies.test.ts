@@ -67,7 +67,7 @@ describe('GET /api/movies/:tmdbId', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.movie).toMatchObject({ tmdbId: 550, title: 'Fight Club', year: 1999 });
-    expect(res.body.status).toMatchObject({ inWatchlist: false, inCollection: false, watched: false });
+    expect(res.body.status).toMatchObject({ inWatchlist: false, watched: false });
   });
 
   it('returns cached movie on second call without hitting TMDB again', async () => {

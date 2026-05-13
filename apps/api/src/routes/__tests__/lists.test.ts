@@ -22,13 +22,14 @@ describe('GET /api/lists', () => {
     expect(res.status).toBe(401);
   });
 
-  it('returns empty array initially', async () => {
+  it('returns only system lists initially', async () => {
     const token = await getToken();
     const res = await supertest(app.server)
       .get('/api/lists')
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual([]);
+    expect(res.body).toHaveLength(3);
+    expect(res.body.every((l: any) => l.isSystem)).toBe(true);
   });
 });
 
@@ -131,6 +132,8 @@ describe('DELETE /api/lists/:id', () => {
     const listsRes = await supertest(app.server)
       .get('/api/lists')
       .set('Authorization', `Bearer ${token}`);
-    expect(listsRes.body).toHaveLength(0);
+    // Only the 3 system lists remain after deleting the custom list
+    expect(listsRes.body).toHaveLength(3);
+    expect(listsRes.body.every((l: any) => l.isSystem)).toBe(true);
   });
 });

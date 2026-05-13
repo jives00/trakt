@@ -15,8 +15,6 @@ vi.mock("@/lib/api", () => ({
     search: (...args: unknown[]) => mockSearch(...args),
     toggleMovieWatchlist: vi.fn(),
     toggleShowWatchlist: vi.fn(),
-    toggleMovieCollection: vi.fn(),
-    toggleShowCollection: vi.fn(),
   },
   ApiError: class ApiError extends Error {},
 }));

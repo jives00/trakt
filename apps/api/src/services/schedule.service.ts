@@ -21,15 +21,20 @@ export interface ScheduleEntry {
 }
 
 const TRACKED_SHOWS = `(
-  SELECT media_id FROM watchlist WHERE user_id = ? AND media_type = 'show'
-  UNION
-  SELECT media_id FROM collection WHERE user_id = ? AND media_type = 'show'
+  SELECT li.media_id FROM list_items li
+  JOIN lists l ON l.id = li.list_id
+  WHERE l.user_id = ? AND l.list_type IN ('watchlist', 'rewatch') AND li.media_type = 'show'
+  AND li.media_id NOT IN (
+    SELECT li2.media_id FROM list_items li2
+    JOIN lists l2 ON l2.id = li2.list_id
+    WHERE l2.user_id = ? AND l2.list_type = 'dropped' AND li2.media_type = 'show'
+  )
 )`;
 
 const TRACKED_MOVIES = `(
-  SELECT media_id FROM watchlist WHERE user_id = ? AND media_type = 'movie'
-  UNION
-  SELECT media_id FROM collection WHERE user_id = ? AND media_type = 'movie'
+  SELECT li.media_id FROM list_items li
+  JOIN lists l ON l.id = li.list_id
+  WHERE l.user_id = ? AND l.list_type = 'watchlist' AND li.media_type = 'movie'
 )`;
 
 export async function getSchedule(
@@ -83,7 +88,7 @@ export async function getSchedule(
      WHERE m.release_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
      ORDER BY date, showTitle, movieTitle
      LIMIT 100`,
-    [userId, userId, startDays, startDays + range, userId, userId, startDays, startDays + range],
+    [userId, userId, startDays, startDays + range, userId, startDays, startDays + range],
   );
 
   const overridePairs = (rows as ScheduleEntry[]).map(r => ({

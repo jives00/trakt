@@ -1,14 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import {
-  getLists, createList, getListDetail, deleteList, addListItem, removeListItem,
+  getLists, createList, getListDetail, getListByType, deleteList,
+  addListItem, removeListItem, updateList,
 } from '../services/lists.service';
+import { ListType, ListSort } from '@trakt/types';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
 }
 
 const VALID_MEDIA_TYPES = ['movie', 'show', 'episode'];
+const VALID_LIST_TYPES: ListType[] = ['watchlist', 'dropped', 'rewatch', 'custom'];
+const VALID_SORTS: ListSort[] = ['added_date', 'alpha', 'last_updated', 'random'];
 
 export async function listsRoutes(app: FastifyInstance) {
   const auth = { preHandler: [authenticate] };
@@ -17,12 +21,37 @@ export async function listsRoutes(app: FastifyInstance) {
     return getLists(userId(request));
   });
 
+  app.get('/lists/by-type/:type', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const { type } = request.params as any;
+    if (!VALID_LIST_TYPES.includes(type)) return reply.status(400).send({ error: 'Invalid list type' });
+    const list = await getListByType(userId(request), type as ListType);
+    if (!list) return reply.status(404).send({ error: 'List not found' });
+    return list;
+  });
+
   app.post('/lists', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const { name, description } = request.body as any;
     if (!name || typeof name !== 'string' || !name.trim()) {
       return reply.status(400).send({ error: 'name is required' });
     }
     return createList(userId(request), name.trim(), description ?? null);
+  });
+
+  app.patch('/lists/:id', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const listId = Number((request.params as any).id);
+    if (!Number.isInteger(listId) || listId <= 0) return reply.status(400).send({ error: 'Invalid id' });
+    const { name, description, defaultSort, isPublic } = request.body as any;
+    if (defaultSort !== undefined && !VALID_SORTS.includes(defaultSort)) {
+      return reply.status(400).send({ error: 'Invalid defaultSort' });
+    }
+    try {
+      const updated = await updateList(userId(request), listId, { name, description, defaultSort, isPublic });
+      if (!updated) return reply.status(404).send({ error: 'List not found' });
+      return updated;
+    } catch (err: any) {
+      if (err.code === 'SYSTEM_LIST') return reply.status(403).send({ error: err.message });
+      throw err;
+    }
   });
 
   app.get('/lists/:id', auth, async (request: FastifyRequest, reply: FastifyReply) => {
@@ -36,9 +65,14 @@ export async function listsRoutes(app: FastifyInstance) {
   app.delete('/lists/:id', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const listId = Number((request.params as any).id);
     if (!Number.isInteger(listId) || listId <= 0) return reply.status(400).send({ error: 'Invalid id' });
-    const deleted = await deleteList(userId(request), listId);
-    if (!deleted) return reply.status(404).send({ error: 'List not found' });
-    return { deleted: true };
+    try {
+      const deleted = await deleteList(userId(request), listId);
+      if (!deleted) return reply.status(404).send({ error: 'List not found' });
+      return { deleted: true };
+    } catch (err: any) {
+      if (err.code === 'SYSTEM_LIST') return reply.status(403).send({ error: err.message });
+      throw err;
+    }
   });
 
   app.post('/lists/:id/items', auth, async (request: FastifyRequest, reply: FastifyReply) => {

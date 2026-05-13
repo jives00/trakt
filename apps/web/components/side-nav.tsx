@@ -8,7 +8,6 @@ const navLinks = [
   { href: "/history", label: "History", icon: "history" },
   { href: "/calendar", label: "Calendar", icon: "calendar_today" },
   { href: "/progress", label: "Progress", icon: "trending_up" },
-  { href: "/collection", label: "Collection", icon: "video_library" },
   { href: "/lists", label: "Lists", icon: "format_list_bulleted" },
   { href: "/ratings", label: "Ratings", icon: "star" },
   { href: "/stats", label: "Stats", icon: "bar_chart" },

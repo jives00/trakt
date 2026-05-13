@@ -18,7 +18,12 @@
       "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch 25755570846 --exit-status)",
       "Bash(findstr \":3000\")",
       "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run list --limit 1)",
-      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch 25769195773 --exit-status)"
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch 25769195773 --exit-status)",
+      "PowerShell($runId = \\(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run list --limit 1 --json databaseId --jq '.[0].databaseId'\\) | Out-String | % { $_.Trim\\(\\) }; Write-Output \"Run ID: $runId\"; & \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" run watch $runId --exit-status)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\" -Directory)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\\\\apps\\\\api\\\\src\\\\routes\\\\__tests__\\\\watchlist.test.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\\\\apps\\\\api\\\\src\\\\routes\\\\__tests__\\\\collection.test.ts\" -Force)",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }

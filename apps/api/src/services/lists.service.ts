@@ -1,19 +1,86 @@
 import { RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import { getPool } from '../db';
-import { UserList, ListDetail, ListItemEntry } from '@trakt/types';
+import { UserList, ListDetail, ListItemEntry, ListType, ListSort, UpdateListBody } from '@trakt/types';
+
+const LIST_FIELDS = `
+  l.id, l.name, l.list_type AS listType, l.is_system AS isSystem,
+  l.slug, l.is_public AS isPublic, l.default_sort AS defaultSort,
+  l.description, l.created_at AS createdAt,
+  COUNT(li.id) AS itemCount`;
+
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function uniqueSlug(userId: number, base: string, excludeId?: number): Promise<string> {
+  const pool = getPool();
+  let slug = base;
+  let i = 1;
+  while (true) {
+    const excludeClause = excludeId ? ' AND id != ?' : '';
+    const params = excludeId ? [userId, slug, excludeId] : [userId, slug];
+    const [[row]] = await pool.query<RowDataPacket[]>(
+      `SELECT id FROM lists WHERE user_id=? AND slug=?${excludeClause}`,
+      params,
+    );
+    if (!row) return slug;
+    slug = `${base}-${i++}`;
+  }
+}
 
 export async function getLists(userId: number): Promise<UserList[]> {
   const [rows] = await getPool().query<RowDataPacket[]>(
-    `SELECT l.id, l.name, l.description, l.privacy, l.created_at AS createdAt,
-       COUNT(li.id) AS itemCount
+    `SELECT ${LIST_FIELDS},
+       (SELECT JSON_ARRAYAGG(p) FROM (
+         SELECT COALESCE(m2.poster_path, ts2.poster_path) AS p
+         FROM list_items li2
+         LEFT JOIN movies m2 ON li2.media_type='movie' AND m2.id=li2.media_id
+         LEFT JOIN tv_shows ts2 ON li2.media_type='show' AND ts2.id=li2.media_id
+         WHERE li2.list_id=l.id AND COALESCE(m2.poster_path, ts2.poster_path) IS NOT NULL
+         ORDER BY li2.added_at LIMIT 4
+       ) sub) AS previewPosters
      FROM lists l
      LEFT JOIN list_items li ON li.list_id = l.id
      WHERE l.user_id=?
      GROUP BY l.id
-     ORDER BY l.created_at DESC`,
+     ORDER BY l.is_system DESC, l.created_at ASC`,
     [userId],
   );
-  return rows as UserList[];
+  return rows.map((r) => ({
+    ...r,
+    previewPosters: Array.isArray(r.previewPosters) ? r.previewPosters : (r.previewPosters ? JSON.parse(r.previewPosters as string) : []),
+  })) as UserList[];
+}
+
+export async function getListByType(userId: number, listType: ListType): Promise<ListDetail | null> {
+  const pool = getPool();
+  const [[list]] = await pool.query<RowDataPacket[]>(
+    `SELECT ${LIST_FIELDS}
+     FROM lists l
+     LEFT JOIN list_items li ON li.list_id = l.id
+     WHERE l.user_id=? AND l.list_type=?
+     GROUP BY l.id`,
+    [userId, listType],
+  );
+  if (!list) return null;
+
+  const [items] = await pool.query<RowDataPacket[]>(
+    `SELECT li.id, li.media_type AS mediaType, li.media_id AS mediaId,
+       li.added_at AS addedAt, li.sort_order AS sortOrder,
+       COALESCE(m.tmdb_id, ts.tmdb_id) AS tmdbId,
+       COALESCE(m.title, ts.title, e.title) AS title,
+       COALESCE(m.poster_path, ts.poster_path) AS posterPath,
+       COALESCE(m.year, ts.year) AS year
+     FROM list_items li
+     LEFT JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
+     LEFT JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
+     LEFT JOIN episodes e ON li.media_type='episode' AND e.id=li.media_id
+     WHERE li.list_id=?
+     ORDER BY li.sort_order, li.added_at`,
+    [list.id],
+  );
+
+  return { ...(list as UserList), items: items as ListItemEntry[] };
 }
 
 export async function createList(
@@ -22,14 +89,58 @@ export async function createList(
   description: string | null,
 ): Promise<UserList> {
   const pool = getPool();
+  const slug = await uniqueSlug(userId, slugify(name));
   const [result] = await pool.query<ResultSetHeader>(
-    'INSERT INTO lists (user_id, name, description) VALUES (?, ?, ?)',
-    [userId, name, description ?? null],
+    'INSERT INTO lists (user_id, name, description, slug, list_type, is_system) VALUES (?, ?, ?, ?, "custom", FALSE)',
+    [userId, name, description ?? null, slug],
   );
   const [[row]] = await pool.query<RowDataPacket[]>(
-    `SELECT id, name, description, privacy, created_at AS createdAt, 0 AS itemCount
-     FROM lists WHERE id=?`,
+    `SELECT ${LIST_FIELDS}
+     FROM lists l
+     LEFT JOIN list_items li ON li.list_id = l.id
+     WHERE l.id=?
+     GROUP BY l.id`,
     [result.insertId],
+  );
+  return row as UserList;
+}
+
+export async function updateList(
+  userId: number,
+  listId: number,
+  body: UpdateListBody,
+): Promise<UserList | null> {
+  const pool = getPool();
+  const [[existing]] = await pool.query<RowDataPacket[]>(
+    'SELECT id, is_system FROM lists WHERE id=? AND user_id=?',
+    [listId, userId],
+  );
+  if (!existing) return null;
+
+  const updates: string[] = [];
+  const params: unknown[] = [];
+
+  if (body.name !== undefined) {
+    if (existing.is_system) throw Object.assign(new Error('Cannot rename system lists'), { code: 'SYSTEM_LIST' });
+    const slug = await uniqueSlug(userId, slugify(body.name), listId);
+    updates.push('name=?', 'slug=?');
+    params.push(body.name, slug);
+  }
+  if (body.description !== undefined) { updates.push('description=?'); params.push(body.description); }
+  if (body.defaultSort !== undefined) { updates.push('default_sort=?'); params.push(body.defaultSort); }
+  if (body.isPublic !== undefined) { updates.push('is_public=?'); params.push(body.isPublic); }
+
+  if (updates.length === 0) return getListDetail(userId, listId) as Promise<UserList | null>;
+
+  await pool.query(`UPDATE lists SET ${updates.join(', ')} WHERE id=?`, [...params, listId]);
+
+  const [[row]] = await pool.query<RowDataPacket[]>(
+    `SELECT ${LIST_FIELDS}
+     FROM lists l
+     LEFT JOIN list_items li ON li.list_id = l.id
+     WHERE l.id=?
+     GROUP BY l.id`,
+    [listId],
   );
   return row as UserList;
 }
@@ -37,8 +148,7 @@ export async function createList(
 export async function getListDetail(userId: number, listId: number): Promise<ListDetail | null> {
   const pool = getPool();
   const [[list]] = await pool.query<RowDataPacket[]>(
-    `SELECT l.id, l.name, l.description, l.privacy, l.created_at AS createdAt,
-       COUNT(li.id) AS itemCount
+    `SELECT ${LIST_FIELDS}
      FROM lists l
      LEFT JOIN list_items li ON li.list_id = l.id
      WHERE l.id=? AND l.user_id=?
@@ -67,7 +177,14 @@ export async function getListDetail(userId: number, listId: number): Promise<Lis
 }
 
 export async function deleteList(userId: number, listId: number): Promise<boolean> {
-  const [result] = await getPool().query<ResultSetHeader>(
+  const pool = getPool();
+  const [[existing]] = await pool.query<RowDataPacket[]>(
+    'SELECT is_system FROM lists WHERE id=? AND user_id=?',
+    [listId, userId],
+  );
+  if (!existing) return false;
+  if (existing.is_system) throw Object.assign(new Error('Cannot delete system lists'), { code: 'SYSTEM_LIST' });
+  const [result] = await pool.query<ResultSetHeader>(
     'DELETE FROM lists WHERE id=? AND user_id=?',
     [listId, userId],
   );

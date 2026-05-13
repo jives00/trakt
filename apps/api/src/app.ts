@@ -10,8 +10,6 @@ import { showsRoutes } from './routes/shows.routes';
 import { dashboardRoutes } from './routes/dashboard.routes';
 import { historyRoutes } from './routes/history.routes';
 import { progressRoutes } from './routes/progress.routes';
-import { collectionRoutes } from './routes/collection.routes';
-import { watchlistRoutes } from './routes/watchlist.routes';
 import { listsRoutes } from './routes/lists.routes';
 import { ratingsRoutes } from './routes/ratings.routes';
 import { statsRoutes } from './routes/stats.routes';
@@ -52,8 +50,6 @@ export function buildApp(): FastifyInstance {
   void app.register(dashboardRoutes, { prefix: '/api' });
   void app.register(historyRoutes, { prefix: '/api' });
   void app.register(progressRoutes, { prefix: '/api' });
-  void app.register(collectionRoutes, { prefix: '/api' });
-  void app.register(watchlistRoutes, { prefix: '/api' });
   void app.register(listsRoutes, { prefix: '/api' });
   void app.register(ratingsRoutes, { prefix: '/api' });
   void app.register(statsRoutes, { prefix: '/api' });

@@ -3,9 +3,9 @@ import { RowDataPacket } from 'mysql2/promise';
 import { authenticate } from '../middleware/auth';
 import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons, getOrFetchCast, forceRefreshShowCast, forceRefreshShowMetadata, forceRefreshShowSeasons, forceRefreshEpisode, getShowUpNext, getShowRecentEpisodes, getShowSeasonList, getEpisodeDetail, getEpisodeCast } from '../services/shows.service';
 import {
-  getShowStatus, toggleWatchlist, toggleCollection, removeFromWatchlist, removeFromCollection,
+  getShowStatus, toggleWatchlist, removeFromWatchlist, toggleDropped, toggleRewatch,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
-  markShowWatched, unmarkShowWatched,
+  markShowWatched, unmarkShowWatched, checkRewatchCompletion,
 } from '../services/user-media.service';
 import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
 import { getPool } from '../db';
@@ -63,8 +63,11 @@ export async function showsRoutes(app: FastifyInstance) {
   app.post('/shows/:tmdbId/seasons/:season/episodes/:ep/watched', auth, async (request: FastifyRequest) => {
     const { tmdbId, season, ep } = params(request);
     const { watchedAt } = (request.body as any) ?? {};
+    const show = await getOrFetchShow(Number(tmdbId));
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
-    await markEpisodeWatched(userId(request), episodeId, watchedAt);
+    const uid = userId(request);
+    await markEpisodeWatched(uid, episodeId, watchedAt);
+    void checkRewatchCompletion(uid, show.id).catch(() => {});
     return { watched: true, episodeId };
   });
 
@@ -148,18 +151,16 @@ export async function showsRoutes(app: FastifyInstance) {
     return { inWatchlist: false };
   });
 
-  app.post('/shows/:tmdbId/collection', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number(params(request).tmdbId);
-    const show = await getOrFetchShow(tmdbId);
-    const added = await toggleCollection(userId(request), 'show', show.id);
-    return { inCollection: added };
+  app.post('/shows/:tmdbId/dropped', auth, async (request: FastifyRequest) => {
+    const show = await getOrFetchShow(Number(params(request).tmdbId));
+    const dropped = await toggleDropped(userId(request), show.id);
+    return { inDropped: dropped };
   });
 
-  app.delete('/shows/:tmdbId/collection', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number(params(request).tmdbId);
-    const show = await getOrFetchShow(tmdbId);
-    await removeFromCollection(userId(request), 'show', show.id);
-    return { inCollection: false };
+  app.post('/shows/:tmdbId/rewatch', auth, async (request: FastifyRequest) => {
+    const show = await getOrFetchShow(Number(params(request).tmdbId));
+    const rewatching = await toggleRewatch(userId(request), show.id);
+    return { inRewatch: rewatching };
   });
 
   app.get('/shows/:tmdbId/cast', auth, async (request: FastifyRequest) => {

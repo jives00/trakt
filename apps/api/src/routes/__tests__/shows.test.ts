@@ -83,7 +83,7 @@ describe('GET /api/shows/:tmdbId', () => {
       tmdbId: 1396, title: 'Breaking Bad', seasonCount: 5,
       firstAirDate: '2008-01-20', originCountry: 'US', originalLanguage: 'en', runtimeMin: 47,
     });
-    expect(res.body.status).toMatchObject({ inWatchlist: false, inCollection: false });
+    expect(res.body.status).toMatchObject({ inWatchlist: false, inDropped: false, inRewatch: false, watched: false });
   });
 });
 
@@ -138,36 +138,26 @@ describe('POST/DELETE /api/shows/:tmdbId/watchlist', () => {
   });
 });
 
-describe('POST/DELETE /api/shows/:tmdbId/collection', () => {
-  it('toggles show collection on and off', async () => {
+describe('POST /api/shows/:tmdbId/dropped', () => {
+  it('toggles dropped and reflects in status', async () => {
     const token = await getToken();
     await supertest(app.server).get('/api/shows/1396').set('Authorization', `Bearer ${token}`);
 
-    const addRes = await supertest(app.server)
-      .post('/api/shows/1396/collection')
+    const dropRes = await supertest(app.server)
+      .post('/api/shows/1396/dropped')
       .set('Authorization', `Bearer ${token}`);
-    expect(addRes.status).toBe(200);
-    expect(addRes.body.inCollection).toBe(true);
-
-    const removeRes = await supertest(app.server)
-      .delete('/api/shows/1396/collection')
-      .set('Authorization', `Bearer ${token}`);
-    expect(removeRes.status).toBe(200);
-    expect(removeRes.body.inCollection).toBe(false);
-  });
-
-  it('reflects collection status in show detail', async () => {
-    const token = await getToken();
-    await supertest(app.server).get('/api/shows/1396').set('Authorization', `Bearer ${token}`);
-
-    await supertest(app.server)
-      .post('/api/shows/1396/collection')
-      .set('Authorization', `Bearer ${token}`);
+    expect(dropRes.status).toBe(200);
+    expect(dropRes.body.inDropped).toBe(true);
 
     const detailRes = await supertest(app.server)
       .get('/api/shows/1396')
       .set('Authorization', `Bearer ${token}`);
-    expect(detailRes.body.status.inCollection).toBe(true);
+    expect(detailRes.body.status.inDropped).toBe(true);
+
+    const undropRes = await supertest(app.server)
+      .post('/api/shows/1396/dropped')
+      .set('Authorization', `Bearer ${token}`);
+    expect(undropRes.body.inDropped).toBe(false);
   });
 });
 

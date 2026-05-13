@@ -115,9 +115,14 @@ export default function AllSeasonsPage() {
     setStatus((s) => s && { ...s, inWatchlist: res.inWatchlist });
   }
 
-  async function handleCollection() {
-    const res = await api.toggleShowCollection(Number(tmdbId), status!.inCollection, token!);
-    setStatus((s) => s && { ...s, inCollection: res.inCollection });
+  async function handleDropped() {
+    const res = await api.toggleShowDropped(Number(tmdbId), token!);
+    setStatus((s) => s && { ...s, inDropped: res.inDropped });
+  }
+
+  async function handleRewatch() {
+    const res = await api.toggleShowRewatch(Number(tmdbId), token!);
+    setStatus((s) => s && { ...s, inRewatch: res.inRewatch });
   }
 
   async function handleMarkWatched(watchedAt: string) {
@@ -313,13 +318,22 @@ export default function AllSeasonsPage() {
                     {status.inWatchlist ? "Watchlisted" : "Watchlist"}
                   </button>
                   <button
-                    onClick={handleCollection}
+                    onClick={handleDropped}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inCollection ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inDropped ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-sm">library_add</span>
-                    {status.inCollection ? "Collected" : "Collect"}
+                    <span className="material-symbols-outlined text-sm">block</span>
+                    {status.inDropped ? "Dropped" : "Drop"}
+                  </button>
+                  <button
+                    onClick={handleRewatch}
+                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                      status.inRewatch ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm">replay</span>
+                    {status.inRewatch ? "Rewatching" : "Rewatch"}
                   </button>
                   <div className="col-span-2">
                     <WatchDatePicker

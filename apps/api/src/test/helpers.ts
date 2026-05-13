@@ -25,8 +25,7 @@ export function getPool(): mysql.Pool {
 
 const TABLES = [
   'credits', 'people', 'external_ids', 'scrobble_exclusions',
-  'notes', 'ratings', 'list_items', 'lists',
-  'watchlist', 'collection', 'watch_history',
+  'notes', 'ratings', 'list_items', 'lists', 'watch_history',
   'episodes', 'seasons', 'tv_shows', 'movies',
   'refresh_tokens', 'users', 'trakt_tokens',
 ];

@@ -1,5 +1,30 @@
 # Changelog
 
+## May 13, 2026
+
+### API
+- Unified lists system: consolidated watchlist, collection, and custom lists into single lists table with system lists (watchlist, dropped, rewatch) and is_system flag; migrated existing watchlist/collection data to list_items; removed separate watchlist and collection tables `c70e788`
+- Rewatch list tracking: rewatch list items track added_at; Up Next filters watch_history post-start date so rewatched episodes are treated as unwatched; rewatch auto-completes when all aired episodes watched post-start `c70e788`
+- Show status expanded: MovieStatus now has {inWatchlist, watched}; ShowStatus now has {inWatchlist, inDropped, inRewatch, watched}; removed inCollection from both `c70e788`
+- New show endpoints: POST /shows/:tmdbId/dropped and POST /shows/:tmdbId/rewatch toggle endpoints for dropped and rewatch lists `c70e788`
+- Lists endpoint additions: GET /lists/by-type/:type convenience endpoint; PATCH /lists/:id to update name, description, defaultSort, isPublic; list slug field auto-generated and unique per user for future exports `c70e788`
+- List preview thumbnails: getLists endpoint now returns previewPosters array (up to 4 poster paths for visual list previews) `c70e788`
+- Up Next filtering fix: corrected rewatch date filter on watch_history JOIN to prevent pre-rewatch entries from appearing as candidates; added requirement that shows must have watched history or be in rewatch list to prevent unwatched watchlist shows from appearing `c70e788`
+- Dropped list behavior: removing show from watchlist now auto-adds to dropped list via INSERT IGNORE; un-dropping adds back to watchlist; dropped shows excluded from Up Next and schedule `c70e788`
+
+### Web
+- Lists page redesign: system lists (Watchlist, Dropped, Rewatch) pinned at top with poster collage thumbnails and distinct styling; custom lists below with delete and edit options; sort and public visibility toggles per list (future exports) `c70e788`
+- Show detail pages: replaced Collection button with Dropped + Rewatch toggle buttons; dropped shows auto-readded when toggled back off; rewatch starts from current or user-set position `c70e788`
+- Movie detail pages: removed Collection button entirely `c70e788`
+- Up Next improvements: "Remove" button now only calls toggleShowWatchlist (service auto-drops); removed duplicate toggleShowCollection call `c70e788`
+- Search results: removed Collect button; simplified to Watchlist toggle only `c70e788`
+- Navigation cleanup: removed /collection link from top nav and side nav `c70e788`
+
+### Types
+- ListType union: 'watchlist' | 'dropped' | 'rewatch' | 'custom' `c70e788`
+- UserList type: added listType, isSystem, slug, isPublic, defaultSort, previewPosters fields `c70e788`
+- MovieStatus/ShowStatus: removed inCollection; ShowStatus now includes inDropped and inRewatch `c70e788`
+
 ## May 12, 2026
 
 ### Web
