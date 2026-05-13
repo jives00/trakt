@@ -336,7 +336,7 @@ export default function MovieDetailPage() {
 
           {/* Right: Sidebar */}
           <div className="lg:col-span-4">
-            <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
+            <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
@@ -423,31 +423,44 @@ export default function MovieDetailPage() {
               </div>
 
               <div className="border-t border-white/10 pt-4">
+                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Link
+                    href={`https://www.themoviedb.org/movie/${tmdbId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                  >
+                    TMDB
+                  </Link>
+                  {movie.imdbId && (
+                    <Link
+                      href={`https://www.imdb.com/title/${movie.imdbId}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    >
+                      IMDb
+                    </Link>
+                  )}
+                  <Link
+                    href={`https://trakt.tv/search?q=${encodeURIComponent(movie.title)}&type=movie`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                  >
+                    Trakt
+                  </Link>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Metadata", onRefresh: handleRefreshMovieMetadata },
                   { label: "Cast", onRefresh: handleRefreshMovieCastOnly },
                 ]} />
               </div>
-
-              <Link
-                href={`https://www.themoviedb.org/movie/${tmdbId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-              >
-                View on TMDB
-              </Link>
-              {movie.imdbId && (
-                <Link
-                  href={`https://www.imdb.com/title/${movie.imdbId}/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-                >
-                  View on IMDb
-                </Link>
-              )}
             </div>
           </div>
         </div>

@@ -416,19 +416,21 @@ export default function ShowDetailPage() {
                     </>
                   ) : (
                     <>
-                      <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
-                        <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
-                          {show.posterPath ? (
-                            <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-white text-xs font-bold">All Seasons</p>
-                        <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
-                      </Link>
+                      {seasons.length > 1 && (
+                        <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                            {show.posterPath ? (
+                              <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-white text-xs font-bold">All Seasons</p>
+                          <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
+                        </Link>
+                      )}
                       {seasons.map((s) => (
                         <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
                           <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
@@ -453,7 +455,7 @@ export default function ShowDetailPage() {
 
           {/* Right: Sidebar */}
           <div className="lg:col-span-4">
-            <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
+            <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
                 <h3 className="text-white font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
@@ -533,6 +535,38 @@ export default function ShowDetailPage() {
               </div>
 
               <div className="border-t border-white/10 pt-4">
+                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Link
+                    href={`https://www.themoviedb.org/tv/${tmdbId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                  >
+                    TMDB
+                  </Link>
+                  {show.imdbId && (
+                    <Link
+                      href={`https://www.imdb.com/title/${show.imdbId}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    >
+                      IMDb
+                    </Link>
+                  )}
+                  <Link
+                    href={`https://trakt.tv/search?q=${encodeURIComponent(show.title)}&type=show`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                  >
+                    Trakt
+                  </Link>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Metadata", onRefresh: handleRefreshShowMetadata },
@@ -540,25 +574,6 @@ export default function ShowDetailPage() {
                   { label: "Seasons", onRefresh: handleRefreshSeasons },
                 ]} />
               </div>
-
-              <Link
-                href={`https://www.themoviedb.org/tv/${tmdbId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-              >
-                View on TMDB
-              </Link>
-              {show.imdbId && (
-                <Link
-                  href={`https://www.imdb.com/title/${show.imdbId}/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
-                >
-                  View on IMDb
-                </Link>
-              )}
             </div>
           </div>
         </div>

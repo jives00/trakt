@@ -65,17 +65,9 @@ export function WatchDatePicker({
 
   if (watched) {
     return (
-      <div ref={containerRef} className="relative" onMouseDown={(e) => e.stopPropagation()}>
+      <div ref={containerRef} className="relative">
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold"
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
@@ -91,24 +83,14 @@ export function WatchDatePicker({
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
                     className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
                   />
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       onMark(selectedDate);
                       setIsOpen(false);
                       setAddingWatch(false);
                       setSelectedDate(getTodayString());
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
                     }}
                     className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
                   >
@@ -119,15 +101,9 @@ export function WatchDatePicker({
             ) : (
               <>
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={() => {
                     onMark(getTodayString());
                     setIsOpen(false);
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                   }}
                   className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
                 >
@@ -136,14 +112,8 @@ export function WatchDatePicker({
 
                 {(releaseDate || useReleaseDate) && (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       handleMarkReleaseDate();
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
                     }}
                     className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
                   >
@@ -152,14 +122,8 @@ export function WatchDatePicker({
                 )}
 
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={() => {
                     setAddingWatch(true);
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
                   }}
                   className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
                 >
@@ -172,15 +136,9 @@ export function WatchDatePicker({
               <div className="border-t border-accent/60">
                 {onRemoveLatest && latestEntryId ? (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       onRemoveLatest(latestEntryId);
                       setIsOpen(false);
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
                     }}
                     className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
                   >
@@ -189,15 +147,9 @@ export function WatchDatePicker({
                 ) : null}
                 {onRemoveAll ? (
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    onClick={() => {
                       onRemoveAll();
                       setIsOpen(false);
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
                     }}
                     className={`w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors ${onRemoveLatest && latestEntryId ? 'border-t border-accent/60' : ''}`}
                   >
@@ -213,17 +165,10 @@ export function WatchDatePicker({
   }
 
   return (
-    <div ref={containerRef} className="relative" onMouseDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}>
+    <div ref={containerRef} className="relative">
       <div className="flex gap-0">
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleMarkToday();
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
+          onClick={handleMarkToday}
           className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-accent/30 border border-accent/60 text-white hover:bg-accent/40 transition-colors font-semibold ${isOpen ? 'rounded-tl-md' : 'rounded-l-md'}`}
         >
           <span className="material-symbols-outlined text-base">check_circle</span>
@@ -231,15 +176,7 @@ export function WatchDatePicker({
         </button>
 
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(!isOpen);
-          }}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
+          onClick={() => setIsOpen(!isOpen)}
           className={`px-2 py-2 bg-accent/30 border border-l-0 border-accent/60 text-white hover:bg-accent/40 transition-colors text-xs ${isOpen ? 'rounded-tr-md' : 'rounded-r-md'}`}
         >
           ▾
@@ -255,22 +192,10 @@ export function WatchDatePicker({
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
                   className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
                 />
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleConfirmDate();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
+                  onClick={handleConfirmDate}
                   className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
                 >
                   Confirm
@@ -280,15 +205,7 @@ export function WatchDatePicker({
           ) : (
             <>
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleMarkToday();
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
+                onClick={handleMarkToday}
                 className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors"
               >
                 Today
@@ -296,15 +213,7 @@ export function WatchDatePicker({
 
               {(releaseDate || useReleaseDate) && (
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleMarkReleaseDate();
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                  }}
+                  onClick={handleMarkReleaseDate}
                   className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
                 >
                   {releaseDateLabel}
@@ -312,15 +221,7 @@ export function WatchDatePicker({
               )}
 
               <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setShowDateInput(true);
-                }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
+                onClick={() => setShowDateInput(true)}
                 className="w-full text-left px-3 py-2 text-sm text-white hover:bg-accent/20 transition-colors border-t border-accent/60"
               >
                 Pick Date

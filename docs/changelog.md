@@ -14,6 +14,7 @@
 - Progress page improvements: only count aired episodes (filter by air_date IS NOT NULL AND air_date <= CURDATE()); exclude dropped shows even if in multiple lists; include rewatch shows counting only rewatch watches (after added_at date); fix next episode calculation for rewatches by finding last watched then next unwatched `26a4f19`
 
 ### Web
+- Detail page links redesign: reorganized external links above Refresh button into compact 3-column grid showing only site names (TMDB, IMDb, Trakt); hide "All Seasons" link for single-season shows; fixed WatchDatePicker dropdown visibility on Watched button by simplifying event handling `952fea1`
 - Lists page redesign: system lists (Watchlist, Dropped, Rewatch) pinned at top with poster collage thumbnails and distinct styling; custom lists below with delete and edit options; sort and public visibility toggles per list (future exports) `c70e788`
 - Show detail pages: replaced Collection button with Dropped + Rewatch toggle buttons; dropped shows auto-readded when toggled back off; rewatch starts from current or user-set position `c70e788`
 - Movie detail pages: removed Collection button entirely `c70e788`
