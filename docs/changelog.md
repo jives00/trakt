@@ -3,6 +3,7 @@
 ## May 12, 2026
 
 ### Web
+- Fix timezone issue when marking watched: getTodayString() now uses browser local date instead of UTC, preventing manually marked watches from appearing on the wrong date in history when in timezones west of UTC `2b3f7de`
 - Add date picker to watch tracking: allow users to add additional watches to already-watched episodes/movies with custom date selection `f2e11d9`
 - Change calendar card labels from blue to white: updated show title and movie label styling from text-accent to text-white `17981c4`
 - Mark Watched button corner radius: fixed button styling to display fully rounded corners when closed; only top corners remain rounded when dropdown is open to create visual connection with dropdown menu below `7357afe`
