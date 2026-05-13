@@ -11,6 +11,7 @@
 - List preview thumbnails: getLists endpoint now returns previewPosters array (up to 4 poster paths for visual list previews) `c70e788`
 - Up Next filtering fix: corrected rewatch date filter on watch_history JOIN to prevent pre-rewatch entries from appearing as candidates; added requirement that shows must have watched history or be in rewatch list to prevent unwatched watchlist shows from appearing `c70e788`
 - Dropped list behavior: removing show from watchlist now auto-adds to dropped list via INSERT IGNORE; un-dropping adds back to watchlist; dropped shows excluded from Up Next and schedule `c70e788`
+- Progress page improvements: only count aired episodes (filter by air_date IS NOT NULL AND air_date <= CURDATE()); exclude dropped shows even if in multiple lists; include rewatch shows counting only rewatch watches (after added_at date); fix next episode calculation for rewatches by finding last watched then next unwatched `26a4f19`
 
 ### Web
 - Lists page redesign: system lists (Watchlist, Dropped, Rewatch) pinned at top with poster collage thumbnails and distinct styling; custom lists below with delete and edit options; sort and public visibility toggles per list (future exports) `c70e788`

@@ -356,11 +356,19 @@ export async function getShowSeasonList(showTmdbId: number) {
   const [showRows] = await pool.query<ShowRow[]>('SELECT id FROM tv_shows WHERE tmdb_id = ?', [showTmdbId]);
   const show = showRows[0];
   if (!show) throw new Error(`Show ${showTmdbId} not in DB`);
-  const [rows] = await pool.query<SeasonRow[]>(
-    'SELECT season_number, episode_count, poster_path FROM seasons WHERE show_id = ? ORDER BY season_number',
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT
+       s.season_number,
+       s.poster_path,
+       COUNT(DISTINCT CASE WHEN e.air_date IS NOT NULL AND e.air_date <= CURDATE() THEN e.id END) AS episode_count
+     FROM seasons s
+     LEFT JOIN episodes e ON e.season_id = s.id
+     WHERE s.show_id = ?
+     GROUP BY s.id, s.season_number, s.poster_path
+     ORDER BY s.season_number`,
     [show.id],
   );
-  return rows.map((r) => ({ seasonNumber: r.season_number, episodeCount: r.episode_count, posterPath: r.poster_path }));
+  return rows.map((r: any) => ({ seasonNumber: r.season_number, episodeCount: Number(r.episode_count), posterPath: r.poster_path }));
 }
 
 export async function prefetchAllSeasons(showTmdbId: number): Promise<void> {

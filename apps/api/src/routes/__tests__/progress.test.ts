@@ -92,4 +92,20 @@ describe('GET /api/progress', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(res.status).toBe(400);
   });
+
+  it('excludes shows in the dropped list', async () => {
+    await seedInProgress();
+    const pool = getPool();
+    // Add Show Alpha to dropped list
+    await pool.query(
+      `INSERT INTO list_items (list_id, media_type, media_id, added_at)
+       SELECT id, 'show', 1, NOW() FROM lists WHERE user_id = 1 AND list_type = 'dropped'`,
+    );
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/progress')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(0);
+  });
 });

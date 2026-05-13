@@ -23,7 +23,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\" -Directory)",
       "Bash(Remove-Item \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\\\\apps\\\\api\\\\src\\\\routes\\\\__tests__\\\\watchlist.test.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\\\\apps\\\\api\\\\src\\\\routes\\\\__tests__\\\\collection.test.ts\" -Force)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "Bash(Find C:\\\\Users\\\\jbrom\\\\SynologyDrive\\\\Development\\\\Trakt\\\\apps\\\\api\\\\migrations -name \"*.sql\")"
     ]
   }
 }
