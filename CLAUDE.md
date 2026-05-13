@@ -91,7 +91,7 @@ See `.env.example` for template.
 
 **Kodi:** Sends `X-Api-Key: SCROBBLE_API_KEY` header to `POST /api/scrobble/kodi` with media type, ID, and progress.
 
-**Emby:** Webhook at `POST /api/scrobble/emby` triggered by `PlaybackProgress` and `PlaybackStopped` events. Upsert strategy: `(user_id, media_type, media_id, DATE(watched_at))` to collapse one viewing into one row. Completion threshold: 80% movies, 70% episodes.
+**Emby:** Webhook at `POST /api/scrobble/emby` triggered by `PlaybackProgress` and `PlaybackStopped` events. Upsert strategy: `(user_id, media_type, media_id, DATE(watched_at))` to collapse one viewing into one row. Completion threshold: 90% for both movies and episodes.
 
 **Stremio:** Addon mounted at `/stremio-addon` (manifests + stream handlers). Scrobbling is hybrid: Stremio subtitle open triggers the start (`startPollLoop`), then progress is tracked by polling Trakt's `GET /users/{username}/watching` every 60s until 204 (stopped). Progress % comes from `data.progress` in the Trakt response (already 0–100); falls back to computing from `started_at`/`expires_at` if not present. Uses `TRAKT_CLIENT_ID` + `TRAKT_CLIENT_SECRET` for OAuth token.
 

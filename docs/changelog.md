@@ -15,6 +15,7 @@
 ### API
 - Fix empty date values from TMDB: TMDB returns empty strings for air_date/release_date when media hasn't aired yet; added dateOrNull() helper to convert empty strings to null before database insertion, allowing unreleased shows/movies to load without 500 errors `3feb314`
 - Increase watch completion threshold: raised minimum progress from 80% to 90% to reduce accidental marks on near-complete but interrupted viewings `7361605`
+- Fix Recently Watched section threshold: changed getRecentItems query from requiring 100% completion to 90% to match actual completion threshold, allowing finished items to appear in dashboard recently watched list `ab3f92b`
 - TMDB discover API: added authenticated GET /api/discover/movies and /api/discover/shows endpoints with category validation and top-rated period filters; fixed API test setup to recreate worker databases from the migrated template so schema changes are reflected reliably `48855a5`
 - Schedule API pagination: added `startDays` parameter to GET /api/dashboard/schedule to support date window navigation; schedule service now returns `backdropPath` for both episodes and movies, enabling backdrop images on calendar cards; applied hero image overrides to backdropPath in addition to posterPath `2dac9a0`
 
