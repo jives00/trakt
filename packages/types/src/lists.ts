@@ -12,7 +12,7 @@ export interface UserList {
   description: string | null;
   createdAt: string;
   itemCount: number;
-  previewPosters: string[];
+  previewBackdrops: string[];
   stremioCatalog: boolean;
 }
 

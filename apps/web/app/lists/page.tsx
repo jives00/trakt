@@ -9,7 +9,7 @@ import type { UserList } from "@trakt/types";
 
 export const dynamic = "force-dynamic";
 
-const TMDB_IMG = "https://image.tmdb.org/t/p/w185";
+const TMDB_BACKDROP = "https://image.tmdb.org/t/p/w1280";
 
 const SYSTEM_META: Record<string, { icon: string; description: string }> = {
   watchlist: { icon: "bookmark", description: "Shows and movies you want to watch" },
@@ -140,26 +140,14 @@ export default function ListsPage() {
   );
 }
 
-function PosterCollage({ posters }: { posters: string[] }) {
-  const filled = [...posters.slice(0, 4)];
-  if (filled.length === 0) return (
+function ListArt({ backdrops }: { backdrops: string[] }) {
+  if (backdrops.length === 0) return (
     <div className="w-full h-full flex items-center justify-center bg-white/5">
       <span className="material-symbols-outlined text-3xl text-white/20">image</span>
     </div>
   );
-  if (filled.length === 1) return (
-    <Image src={`${TMDB_IMG}${filled[0]}`} alt="" fill className="object-cover" unoptimized />
-  );
-  const cells = Array.from({ length: 4 }, (_, i) => filled[i % filled.length]);
-  return (
-    <div className="grid grid-cols-2 grid-rows-2 w-full h-full">
-      {cells.map((p, i) => (
-        <div key={i} className="relative overflow-hidden">
-          <Image src={`${TMDB_IMG}${p}`} alt="" fill className="object-cover" unoptimized />
-        </div>
-      ))}
-    </div>
-  );
+  const pick = backdrops[Math.floor(Math.random() * backdrops.length)];
+  return <Image src={`${TMDB_BACKDROP}${pick}`} alt="" fill className="object-cover" unoptimized />;
 }
 
 function SystemListCard({ list }: { list: UserList }) {
@@ -167,10 +155,10 @@ function SystemListCard({ list }: { list: UserList }) {
   return (
     <Link
       href={`/lists/${list.id}`}
-      className="glass-panel rounded-xl overflow-hidden red-glow-hover transition-all duration-300 flex flex-col"
+      className="glass-panel overflow-hidden red-glow-hover transition-all duration-300 flex flex-col"
     >
       <div className="relative h-32 bg-white/5">
-        <PosterCollage posters={list.previewPosters} />
+        <ListArt backdrops={list.previewBackdrops} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="absolute bottom-3 left-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-white text-lg">{meta.icon}</span>
@@ -189,9 +177,9 @@ function SystemListCard({ list }: { list: UserList }) {
 
 function CustomListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) {
   return (
-    <div className="glass-panel rounded-xl overflow-hidden red-glow-hover transition-all duration-300 group flex flex-col">
+    <div className="glass-panel overflow-hidden red-glow-hover transition-all duration-300 group flex flex-col">
       <Link href={`/lists/${list.id}`} className="relative h-28 bg-white/5 block">
-        <PosterCollage posters={list.previewPosters} />
+        <ListArt backdrops={list.previewBackdrops} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
       </Link>
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">

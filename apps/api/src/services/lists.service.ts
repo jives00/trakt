@@ -32,13 +32,13 @@ export async function getLists(userId: number): Promise<UserList[]> {
   const [rows] = await getPool().query<RowDataPacket[]>(
     `SELECT ${LIST_FIELDS},
        (SELECT JSON_ARRAYAGG(p) FROM (
-         SELECT COALESCE(m2.poster_path, ts2.poster_path) AS p
+         SELECT COALESCE(m2.backdrop_path, ts2.backdrop_path) AS p
          FROM list_items li2
          LEFT JOIN movies m2 ON li2.media_type='movie' AND m2.id=li2.media_id
          LEFT JOIN tv_shows ts2 ON li2.media_type='show' AND ts2.id=li2.media_id
-         WHERE li2.list_id=l.id AND COALESCE(m2.poster_path, ts2.poster_path) IS NOT NULL
-         ORDER BY li2.added_at LIMIT 4
-       ) sub) AS previewPosters
+         WHERE li2.list_id=l.id AND COALESCE(m2.backdrop_path, ts2.backdrop_path) IS NOT NULL
+         ORDER BY li2.added_at LIMIT 10
+       ) sub) AS previewBackdrops
      FROM lists l
      LEFT JOIN list_items li ON li.list_id = l.id
      WHERE l.user_id=?
@@ -48,7 +48,7 @@ export async function getLists(userId: number): Promise<UserList[]> {
   );
   return rows.map((r) => ({
     ...r,
-    previewPosters: Array.isArray(r.previewPosters) ? r.previewPosters : (r.previewPosters ? JSON.parse(r.previewPosters as string) : []),
+    previewBackdrops: Array.isArray(r.previewBackdrops) ? r.previewBackdrops : (r.previewBackdrops ? JSON.parse(r.previewBackdrops as string) : []),
   })) as UserList[];
 }
 
