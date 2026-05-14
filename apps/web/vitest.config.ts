@@ -8,6 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    pool: "forks",
+    maxWorkers: 4,
+    minWorkers: 1,
   },
   resolve: {
     alias: {

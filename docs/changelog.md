@@ -2,6 +2,11 @@
 
 ## May 14, 2026
 
+### API
+- Expand test suite: added tests for user, settings, export-token, excel-export, and export-feeds routes (5 new test files, 26 new tests); added edge cases to auth, search, discover, and movies tests; tuned web vitest config with forks pool and 4 workers; updated /commit skill to run API/web tests in parallel and skip unaffected workspaces `5429acc`
+
+## May 14, 2026
+
 ### Web
 - Next.js standalone output: added `output: 'standalone'` to next.config.mjs and updated web Dockerfile to copy static assets and start with `node server.js`; significantly reduces web image size `12851a6`
 

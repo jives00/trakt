@@ -116,4 +116,43 @@ describe('Protected route rejection', () => {
 
     expect(res.status).toBe(401);
   });
+
+  it('returns 401 when Authorization header is missing the Bearer prefix', async () => {
+    const loginRes = await supertest(app.server)
+      .post('/api/auth/login')
+      .send({ username: 'testuser', password: 'correct_password' });
+    const rawToken = loginRes.body.accessToken as string;
+
+    const res = await supertest(app.server)
+      .get('/api/history')
+      .set('Authorization', rawToken); // No "Bearer " prefix
+
+    expect(res.status).toBe(401);
+  });
+});
+
+describe('POST /api/auth/login rate limit / input edge cases', () => {
+  it('returns 400 when body is empty JSON', async () => {
+    const res = await supertest(app.server)
+      .post('/api/auth/login')
+      .send({});
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when password field is missing', async () => {
+    const res = await supertest(app.server)
+      .post('/api/auth/login')
+      .send({ username: 'testuser' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 when username field is missing', async () => {
+    const res = await supertest(app.server)
+      .post('/api/auth/login')
+      .send({ password: 'correct_password' });
+
+    expect(res.status).toBe(400);
+  });
 });

@@ -133,3 +133,38 @@ describe('GET /api/discover/shows', () => {
     });
   });
 });
+
+describe('Discover edge cases', () => {
+  it('returns 400 for unknown movie category', async () => {
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/discover/movies?category=not_a_real_category')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 400 for unknown show category', async () => {
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/discover/shows?category=not_a_real_category')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+  });
+
+  it('defaults page to 1 when not provided', async () => {
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/discover/movies?category=trending')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.page).toBe(1);
+  });
+
+  it('returns 401 for shows without auth', async () => {
+    const res = await supertest(app.server).get('/api/discover/shows');
+    expect(res.status).toBe(401);
+  });
+});

@@ -145,3 +145,39 @@ describe('POST /api/movies/:tmdbId/cast/refresh', () => {
     expect(fincher).toMatchObject({ job: 'Director', department: 'Directing' });
   });
 });
+
+describe('Movies edge cases', () => {
+  it('returns an error when TMDB returns 404 for unknown movie', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ status_message: 'Not found' }),
+    } as Response);
+
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/movies/9999999')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBeGreaterThanOrEqual(400);
+  });
+
+  it('returns 400 for non-numeric tmdbId', async () => {
+    const token = await getToken();
+    const res = await supertest(app.server)
+      .get('/api/movies/not-a-number')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 401 for watched POST without auth', async () => {
+    const res = await supertest(app.server).post('/api/movies/550/watched');
+    expect(res.status).toBe(401);
+  });
+
+  it('returns 401 for watchlist POST without auth', async () => {
+    const res = await supertest(app.server).post('/api/movies/550/watchlist');
+    expect(res.status).toBe(401);
+  });
+});
