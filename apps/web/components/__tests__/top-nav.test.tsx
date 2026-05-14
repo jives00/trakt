@@ -60,7 +60,6 @@ describe("TopNav", () => {
     expect(screen.getByText("Progress")).toBeInTheDocument();
     expect(screen.getByText("Lists")).toBeInTheDocument();
     expect(screen.getByText("Stats")).toBeInTheDocument();
-    expect(screen.getByText("Integrations")).toBeInTheDocument();
     expect(screen.getByText("Settings")).toBeInTheDocument();
   });
 

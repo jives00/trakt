@@ -29,7 +29,7 @@
 - Navigation cleanup: removed /collection link from top nav and side nav `c70e788`
 - Integrations page refactor: removed unused Emby tab (only Trakt polling used); split into two tabs (Configuration with Trakt connection, API key, status indicators, and exclusions; Instructions with Stremio setup guide); fixed API key display bug (text wrapping, eye icon visibility); added watch history source indicators showing count breakdown by source `97ac67a`
 - Excluded titles search and add: implemented debounced TMDB search dropdown in ExclusionPanel with title/year/type results; Add button now functional, creates exclusions via POST /api/settings/exclusions with selected title `97ac67a`
-- Top nav improvements: added Integrations link to avatar dropdown menu for quick access to integration settings `97ac67a`
+- Top nav cleanup: removed Integrations link from navbar (accessible via Settings tab) `3bfb020`
 
 ### Types
 - ListType union: 'watchlist' | 'dropped' | 'rewatch' | 'custom' `c70e788`
