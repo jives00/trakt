@@ -147,7 +147,7 @@ function ListArt({ backdrops }: { backdrops: string[] }) {
     </div>
   );
   const pick = backdrops[Math.floor(Math.random() * backdrops.length)];
-  return <Image src={`${TMDB_BACKDROP}${pick}`} alt="" fill className="object-cover" unoptimized />;
+  return <Image src={`${TMDB_BACKDROP}${pick}`} alt="" fill className="object-cover transition-transform duration-500 group-hover:scale-105" unoptimized />;
 }
 
 function SystemListCard({ list }: { list: UserList }) {
@@ -155,11 +155,11 @@ function SystemListCard({ list }: { list: UserList }) {
   return (
     <Link
       href={`/lists/${list.id}`}
-      className="glass-panel overflow-hidden red-glow-hover transition-all duration-300 flex flex-col"
+      className="glass-panel overflow-hidden transition-all duration-300 flex flex-col group"
     >
-      <div className="relative h-32 bg-white/5">
+      <div className="relative aspect-video overflow-hidden bg-white/5">
         <ListArt backdrops={list.previewBackdrops} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute bottom-3 left-3 flex items-center gap-2">
           <span className="material-symbols-outlined text-white text-lg">{meta.icon}</span>
           <span className="font-black text-white tracking-tight">{list.name}</span>
@@ -177,10 +177,10 @@ function SystemListCard({ list }: { list: UserList }) {
 
 function CustomListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) {
   return (
-    <div className="glass-panel overflow-hidden red-glow-hover transition-all duration-300 group flex flex-col">
-      <Link href={`/lists/${list.id}`} className="relative h-28 bg-white/5 block">
+    <div className="glass-panel overflow-hidden transition-all duration-300 group flex flex-col">
+      <Link href={`/lists/${list.id}`} className="relative aspect-video overflow-hidden bg-white/5 block">
         <ListArt backdrops={list.previewBackdrops} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
       </Link>
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
         <div className="flex items-start justify-between gap-2">

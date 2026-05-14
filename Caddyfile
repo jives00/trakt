@@ -1,5 +1,0 @@
-{$DOMAIN} {
-  reverse_proxy /api/* api:3002
-  reverse_proxy /stremio-addon/* api:3002
-  reverse_proxy / web:3000
-}

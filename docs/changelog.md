@@ -11,6 +11,7 @@
 - Export settings tab: added Export tab to Settings with a Download Excel button that triggers the new /api/export/excel endpoint and saves the file client-side `fb3decf`
 - Integrations settings: added Export Token panel (generate/rotate/reveal), Stremio Catalogs toggle panel (per-list on/off), and Sonarr/Radarr/Stremio export instruction guides with list selector dropdowns and copyable URLs `1243f68`
 - List card art: replaced 4-poster collage with a single random backdrop image (hero art) per list card; re-randomizes on each page load; card corners now square `af67963`
+- List card polish: switched image area to aspect-video (16:9) to match backdrop ratio; added zoom-on-hover matching movie/show cards; removed red glow shadow; reduced vignette overlay `7eb96ae`
 
 ## May 13, 2026
 
