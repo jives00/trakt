@@ -23,6 +23,20 @@ export interface TraktWatchingResponse {
   };
 }
 
+export interface StremioCatalogEntry {
+  type: 'movie' | 'series';
+  id: string;
+  name: string;
+}
+
+export interface StremioMetaObject {
+  id: string;
+  type: 'movie' | 'series';
+  name: string;
+  poster?: string;
+  year?: number;
+}
+
 export interface StremioManifest {
   id: string;
   version: string;
@@ -30,6 +44,6 @@ export interface StremioManifest {
   description: string;
   resources: string[];
   types: string[];
-  catalogs: unknown[];
+  catalogs: StremioCatalogEntry[];
   idPrefixes: string[];
 }

@@ -5,7 +5,7 @@ import { UserList, ListDetail, ListItemEntry, ListType, ListSort, UpdateListBody
 const LIST_FIELDS = `
   l.id, l.name, l.list_type AS listType, l.is_system AS isSystem,
   l.slug, l.is_public AS isPublic, l.default_sort AS defaultSort,
-  l.description, l.created_at AS createdAt,
+  l.description, l.created_at AS createdAt, l.stremio_catalog AS stremioCatalog,
   COUNT(li.id) AS itemCount`;
 
 function slugify(name: string): string {
@@ -187,6 +187,18 @@ export async function deleteList(userId: number, listId: number): Promise<boolea
   const [result] = await pool.query<ResultSetHeader>(
     'DELETE FROM lists WHERE id=? AND user_id=?',
     [listId, userId],
+  );
+  return result.affectedRows > 0;
+}
+
+export async function setListStremioCatalog(
+  userId: number,
+  listId: number,
+  enabled: boolean,
+): Promise<boolean> {
+  const [result] = await getPool().query<ResultSetHeader>(
+    'UPDATE lists SET stremio_catalog=? WHERE id=? AND user_id=?',
+    [enabled, listId, userId],
   );
   return result.affectedRows > 0;
 }

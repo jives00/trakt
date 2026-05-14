@@ -1,0 +1,2 @@
+ALTER TABLE users
+  ADD COLUMN export_token VARCHAR(64) NULL UNIQUE AFTER theme;

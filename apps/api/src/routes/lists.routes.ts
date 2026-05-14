@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import {
   getLists, createList, getListDetail, getListByType, deleteList,
-  addListItem, removeListItem, updateList,
+  addListItem, removeListItem, updateList, setListStremioCatalog,
 } from '../services/lists.service';
 import { ListType, ListSort } from '@trakt/types';
 
@@ -73,6 +73,16 @@ export async function listsRoutes(app: FastifyInstance) {
       if (err.code === 'SYSTEM_LIST') return reply.status(403).send({ error: err.message });
       throw err;
     }
+  });
+
+  app.patch('/lists/:id/stremio-catalog', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const listId = Number((request.params as any).id);
+    if (!Number.isInteger(listId) || listId <= 0) return reply.status(400).send({ error: 'Invalid id' });
+    const { enabled } = request.body as any;
+    if (typeof enabled !== 'boolean') return reply.status(400).send({ error: 'enabled must be a boolean' });
+    const updated = await setListStremioCatalog(userId(request), listId, enabled);
+    if (!updated) return reply.status(404).send({ error: 'List not found' });
+    return { stremioCatalog: enabled };
   });
 
   app.post('/lists/:id/items', auth, async (request: FastifyRequest, reply: FastifyReply) => {

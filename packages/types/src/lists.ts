@@ -13,6 +13,7 @@ export interface UserList {
   createdAt: string;
   itemCount: number;
   previewPosters: string[];
+  stremioCatalog: boolean;
 }
 
 export interface ListItemEntry {

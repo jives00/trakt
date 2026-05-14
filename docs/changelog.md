@@ -1,5 +1,14 @@
 # Changelog
 
+## May 14, 2026
+
+### API
+- List export integrations: added export token (GET/POST /api/settings/export-token/rotate), RSS feed, StevenLu JSON (Radarr), and Sonarr custom list JSON endpoints at /api/export/lists/:slug/{rss,stevenlu,sonarr}; all gated by per-user export token `1243f68`
+- Stremio catalog support: extended existing /stremio-addon manifest to include catalog resource; lists with stremio_catalog=true appear as browsable catalogs in Stremio; new PATCH /api/lists/:id/stremio-catalog toggle endpoint `1243f68`
+
+### Web
+- Integrations settings: added Export Token panel (generate/rotate/reveal), Stremio Catalogs toggle panel (per-list on/off), and Sonarr/Radarr/Stremio export instruction guides with list selector dropdowns and copyable URLs `1243f68`
+
 ## May 13, 2026
 
 ### API

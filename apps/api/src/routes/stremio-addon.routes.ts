@@ -1,20 +1,28 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { startPollLoop, stopPollLoop, getTraktToken } from '../services/trakt-poll.service';
+import { startPollLoop, getTraktToken } from '../services/trakt-poll.service';
+import { getExportableLists, getExportableList } from '../services/export.service';
+import type { StremioCatalogEntry, StremioMetaObject } from '@trakt/types';
 
-const MANIFEST = {
-  id: 'community.trakt-personal',
-  version: '1.0.0',
-  name: 'Personal Trakt Tracker',
-  description: 'Tracks watch history to your personal Trakt clone',
-  resources: ['subtitles'],
-  types: ['movie', 'series'],
-  catalogs: [],
-  idPrefixes: ['tt'],
-};
+const SINGLE_USER_ID = 1;
 
 export async function stremioAddonRoutes(app: FastifyInstance) {
   app.get('/manifest.json', async (request: FastifyRequest, reply: FastifyReply) => {
-    return reply.send(MANIFEST);
+    const lists = await getExportableLists(SINGLE_USER_ID);
+    const catalogs: StremioCatalogEntry[] = [];
+    for (const list of lists) {
+      if (list.movieCount > 0) catalogs.push({ type: 'movie',  id: `personal-${list.slug}-movie`,  name: `Trakt App - ${list.name}` });
+      if (list.showCount  > 0) catalogs.push({ type: 'series', id: `personal-${list.slug}-series`, name: `Trakt App - ${list.name}` });
+    }
+    return reply.send({
+      id: 'community.trakt-personal',
+      version: '1.0.0',
+      name: 'Personal Trakt Tracker',
+      description: 'Tracks watch history and exposes personal lists as catalogs',
+      resources: ['subtitles', 'catalog'],
+      types: ['movie', 'series'],
+      catalogs,
+      idPrefixes: ['tt'],
+    });
   });
 
   app.get<{ Params: { type: string; id: string; extra: string } }>(
@@ -47,6 +55,36 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
       }
 
       return reply.send({ subtitles: [] });
+    }
+  );
+
+  app.get<{ Params: { type: string; id: string } }>(
+    '/catalog/:type/:id.json',
+    async (request: FastifyRequest<{ Params: { type: string; id: string } }>, reply: FastifyReply) => {
+      const { type, id } = request.params;
+      if (!id.startsWith('personal-')) return reply.send({ metas: [] });
+
+      const withoutPrefix = id.slice('personal-'.length);
+      const isMovie = type === 'movie';
+      const slug = isMovie ? withoutPrefix.replace(/-movie$/, '') : withoutPrefix.replace(/-series$/, '');
+
+      const result = await getExportableList(SINGLE_USER_ID, slug);
+      if (!result) return reply.send({ metas: [] });
+
+      const stremioType = isMovie ? 'movie' : 'series';
+      const mediaFilter = isMovie ? 'movie' : 'show';
+
+      const metas: StremioMetaObject[] = result.items
+        .filter((item) => item.mediaType === mediaFilter)
+        .map((item) => ({
+          id: item.imdbId ?? `tmdb:${item.tmdbId}`,
+          type: stremioType,
+          name: item.title ?? 'Unknown',
+          ...(item.posterPath ? { poster: `https://image.tmdb.org/t/p/w500${item.posterPath}` } : {}),
+          ...(item.year ? { year: item.year } : {}),
+        }));
+
+      return reply.send({ metas });
     }
   );
 }

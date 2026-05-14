@@ -46,6 +46,10 @@ export default function SettingsPage() {
   // Integrations tab state
   const [showKey, setShowKey] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [exportToken, setExportToken] = useState<string | null>(null);
+  const [showExportToken, setShowExportToken] = useState(false);
+  const [rotatingToken, setRotatingToken] = useState(false);
+  const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean }[]>([]);
   const [traktConnected, setTraktConnected] = useState(false);
   const [exclusions, setExclusions] = useState<Exclusion[]>([]);
   const [sourceStats, setSourceStats] = useState<{ trakt: number; manual: number; stremio: number } | null>(null);
@@ -82,6 +86,20 @@ export default function SettingsPage() {
         if (keyRes.ok) {
           const data = await keyRes.json();
           setApiKey(data.scrobbleApiKey);
+        }
+
+        const exportRes = await fetch("/api/settings/export-token", { credentials: "include", headers: authHeaders });
+        if (exportRes.ok) {
+          const data = await exportRes.json();
+          setExportToken(data.token);
+        }
+
+        const listsRes = await fetch("/api/lists", { credentials: "include", headers: authHeaders });
+        if (listsRes.ok) {
+          const data = await listsRes.json();
+          setExportableLists(
+            (data as { id: number; slug: string; name: string; stremioCatalog: boolean }[]).filter((l) => l.slug)
+          );
         }
 
         const authRes = await fetch("/api/settings/trakt-auth", { credentials: "include", headers: authHeaders });
@@ -173,6 +191,27 @@ export default function SettingsPage() {
       setUsernameSaving(false);
     }
   }
+
+  const handleRotateExportToken = async () => {
+    setRotatingToken(true);
+    try {
+      const res = await fetch("/api/settings/export-token/rotate", {
+        method: "POST",
+        credentials: "include",
+        headers: authHeaders,
+        body: JSON.stringify({}),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setExportToken(data.token);
+        setShowExportToken(true);
+      }
+    } catch (err) {
+      console.error("Failed to rotate export token:", err);
+    } finally {
+      setRotatingToken(false);
+    }
+  };
 
   const handleTraktConnect = async () => {
     try {
@@ -486,6 +525,74 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
+                  {/* Export Token */}
+                  <div className="glass-panel rounded-xl p-6">
+                    <h3 className="font-bold text-on-surface mb-1">Export Token</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Read-only token for Sonarr, Radarr, and RSS feed access.</p>
+                    <div className="flex items-center gap-2 bg-surface-container rounded-lg px-4 py-3 border border-white/10 mb-3">
+                      <code className="text-sm text-white/60 font-mono tracking-widest break-all flex-grow">
+                        {loading ? "Loading..." : showExportToken && exportToken ? exportToken : exportToken ? "••••••••••••••••••••••••" : "No token generated"}
+                      </code>
+                      {!loading && exportToken && (
+                        <button
+                          onClick={() => setShowExportToken((s) => !s)}
+                          className="flex-shrink-0 material-symbols-outlined text-white/40 hover:text-white transition-colors text-base"
+                        >
+                          {showExportToken ? "visibility_off" : "visibility"}
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleRotateExportToken}
+                      disabled={rotatingToken}
+                      className="px-4 py-2 rounded-lg bg-accent text-white font-bold text-sm uppercase tracking-widest hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {rotatingToken ? "Generating..." : exportToken ? "Rotate Token" : "Generate Token"}
+                    </button>
+                    {exportToken && (
+                      <p className="text-xs text-white/40 mt-2">Rotating generates a new token and immediately revokes the old one.</p>
+                    )}
+                  </div>
+
+                  {/* Stremio Catalogs */}
+                  <div className="glass-panel rounded-xl p-6">
+                    <h3 className="font-bold text-on-surface mb-1">Stremio Catalogs</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio.</p>
+                    <div className="space-y-2">
+                      {exportableLists.map((list) => (
+                        <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-white/10">
+                          <span className="text-sm text-on-surface">{list.name}</span>
+                          <button
+                            onClick={async () => {
+                              const enabled = !list.stremioCatalog;
+                              const res = await fetch(`/api/lists/${list.id}/stremio-catalog`, {
+                                method: "PATCH",
+                                credentials: "include",
+                                headers: authHeaders,
+                                body: JSON.stringify({ enabled }),
+                              });
+                              if (res.ok) {
+                                setExportableLists((prev) =>
+                                  prev.map((l) => l.id === list.id ? { ...l, stremioCatalog: enabled } : l)
+                                );
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
+                              list.stremioCatalog ? "bg-accent" : "bg-white/20"
+                            }`}
+                          >
+                            <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                              list.stremioCatalog ? "translate-x-6" : "translate-x-1"
+                            }`} />
+                          </button>
+                        </div>
+                      ))}
+                      {exportableLists.length === 0 && (
+                        <p className="text-sm text-white/40 py-2 text-center">No lists found</p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Excluded Titles */}
                   <ExclusionPanel
                     integration="stremio"
@@ -508,7 +615,10 @@ export default function SettingsPage() {
               )}
 
               {intTab === "instructions" && (
-                <StremioGuide traktConnected={traktConnected} />
+                <div className="space-y-6">
+                  <StremioGuide traktConnected={traktConnected} />
+                  <ExportGuide exportToken={exportToken} lists={exportableLists} />
+                </div>
               )}
 
               {/* Trakt OAuth Modal */}
@@ -778,6 +888,114 @@ function ExclusionPanel({
                 </button>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ListSelect({ lists, value, onChange }: { lists: { slug: string; name: string; stremioCatalog?: boolean }[]; value: string; onChange: (v: string) => void }) {
+  if (lists.length === 0) return null;
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-surface-container border border-white/10 rounded-lg px-3 py-2 text-on-surface text-sm focus:outline-none focus:border-accent"
+    >
+      {lists.map((l) => (
+        <option key={l.slug} value={l.slug}>{l.name}</option>
+      ))}
+    </select>
+  );
+}
+
+function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists: { id: number; slug: string; name: string; stremioCatalog: boolean }[] }) {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://berek.xyz';
+  const defaultSlug = lists.find((l) => l.slug === 'watchlist')?.slug ?? lists[0]?.slug ?? 'watchlist';
+  const [radarrSlug, setRadarrSlug] = useState(defaultSlug);
+  const [sonarrSlug, setSonarrSlug] = useState(defaultSlug);
+
+  // Keep defaults in sync once lists load
+  useEffect(() => {
+    const slug = lists.find((l) => l.slug === 'watchlist')?.slug ?? lists[0]?.slug;
+    if (slug) { setRadarrSlug(slug); setSonarrSlug(slug); }
+  }, [lists.length]);
+
+  const noToken = (
+    <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-white/60">
+      <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
+      Generate an export token in the <strong className="text-on-surface">Configuration</strong> tab to enable these integrations.
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Stremio Catalog */}
+      <div className="glass-panel rounded-xl p-6">
+        <h2 className="text-h3 font-bold text-on-surface mb-2">Stremio — Personal Catalogs</h2>
+        <p className="text-sm text-white/60 mb-6">Your lists are available as catalogs in the existing Stremio addon. Each list with movies appears under Movies, and each list with shows appears under Series in the Discover tab.</p>
+        <div className="flex flex-col gap-6">
+          <Step n={1} title="Copy the addon URL">
+            <CodeBlock>{`${origin}/stremio-addon/manifest.json`}</CodeBlock>
+          </Step>
+          <Step n={2} title="Install in Stremio">
+            <p>Click the <strong className="text-on-surface">puzzle piece icon</strong> in the top-right corner, paste the URL into the <strong className="text-on-surface">Add-on Repository URL</strong> field, and press Enter.</p>
+          </Step>
+          <Step n={3} title="Install or Update">
+            <p>Click <strong className="text-on-surface">Install</strong> (or <strong className="text-on-surface">Update</strong> if already installed). Your lists will appear as browsable sections.</p>
+          </Step>
+          <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
+            <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+            This is the same addon used for scrobbling — no separate install required.
+          </div>
+        </div>
+      </div>
+
+      {/* Radarr */}
+      <div className="glass-panel rounded-xl p-6">
+        <h2 className="text-h3 font-bold text-on-surface mb-2">Radarr — Movie Import List</h2>
+        <p className="text-sm text-white/60 mb-6">Import a movie list into Radarr. Radarr will periodically sync the list and can automatically add or monitor new entries.</p>
+        {!exportToken ? noToken : (
+          <div className="flex flex-col gap-6">
+            <Step n={1} title="Select a list and copy the URL">
+              <ListSelect lists={lists} value={radarrSlug} onChange={setRadarrSlug} />
+              <CodeBlock>{`${origin}/api/export/lists/${radarrSlug}/stevenlu?token=${exportToken}`}</CodeBlock>
+            </Step>
+            <Step n={2} title="Add to Radarr">
+              <p>In Radarr: <strong className="text-on-surface">Settings → Lists → click +</strong>, then select <strong className="text-on-surface">StevenLu Custom</strong>.</p>
+            </Step>
+            <Step n={3} title="Configure and save">
+              <p>Paste the URL into the <strong className="text-on-surface">URL</strong> field. Set your <strong className="text-on-surface">Quality Profile</strong> and <strong className="text-on-surface">Root Folder</strong>, click <strong className="text-on-surface">Test</strong>, then <strong className="text-on-surface">Save</strong>.</p>
+            </Step>
+            <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
+              <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+              Only movie items are included. Rotating your export token will break the list — update the URL in Radarr afterward.
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sonarr */}
+      <div className="glass-panel rounded-xl p-6">
+        <h2 className="text-h3 font-bold text-on-surface mb-2">Sonarr — TV Show Import List</h2>
+        <p className="text-sm text-white/60 mb-6">Import a TV show list into Sonarr. Sonarr will periodically fetch the list and can automatically add or monitor new entries.</p>
+        {!exportToken ? noToken : (
+          <div className="flex flex-col gap-6">
+            <Step n={1} title="Select a list and copy the URL">
+              <ListSelect lists={lists} value={sonarrSlug} onChange={setSonarrSlug} />
+              <CodeBlock>{`${origin}/api/export/lists/${sonarrSlug}/sonarr?token=${exportToken}`}</CodeBlock>
+            </Step>
+            <Step n={2} title="Add to Sonarr">
+              <p>In Sonarr: <strong className="text-on-surface">Settings → Import Lists → click +</strong>, then select <strong className="text-on-surface">Custom Lists</strong>.</p>
+            </Step>
+            <Step n={3} title="Configure and save">
+              <p>Paste the URL into the <strong className="text-on-surface">URL</strong> field. Set your <strong className="text-on-surface">Quality Profile</strong>, <strong className="text-on-surface">Root Folder</strong>, and <strong className="text-on-surface">Series Type</strong>, click <strong className="text-on-surface">Test</strong>, then <strong className="text-on-surface">Save</strong>.</p>
+            </Step>
+            <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
+              <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+              Only TV show items are included. Shows without a TVDB ID are excluded (rare, for very new titles). Rotating your export token will break the list — update the URL in Sonarr afterward.
+            </div>
           </div>
         )}
       </div>
