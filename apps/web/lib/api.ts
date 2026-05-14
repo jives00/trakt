@@ -91,6 +91,18 @@ export const api = {
       body: JSON.stringify({ displayName }),
       token,
     }),
+  changePassword: (currentPassword: string, newPassword: string, token: string) =>
+    request<{ ok: boolean }>("/api/user/password", {
+      method: "PATCH",
+      body: JSON.stringify({ currentPassword, newPassword }),
+      token,
+    }),
+  changeUsername: (newUsername: string, token: string) =>
+    request<UserProfile>("/api/user/username", {
+      method: "PATCH",
+      body: JSON.stringify({ newUsername }),
+      token,
+    }),
 
   // Search
   search: (query: string, token: string) =>

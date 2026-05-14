@@ -3,6 +3,8 @@
 ## May 13, 2026
 
 ### API
+- User password change: added PATCH /api/user/password endpoint requiring current password verification before updating password_hash via bcryptjs; enables users to change their login password `13316a5`
+- User username change: added PATCH /api/user/username endpoint allowing users to change their login username (the unique identifier used for login, distinct from display name) `13316a5`
 - Unified lists system: consolidated watchlist, collection, and custom lists into single lists table with system lists (watchlist, dropped, rewatch) and is_system flag; migrated existing watchlist/collection data to list_items; removed separate watchlist and collection tables `c70e788`
 - Rewatch list tracking: rewatch list items track added_at; Up Next filters watch_history post-start date so rewatched episodes are treated as unwatched; rewatch auto-completes when all aired episodes watched post-start `c70e788`
 - Show status expanded: MovieStatus now has {inWatchlist, watched}; ShowStatus now has {inWatchlist, inDropped, inRewatch, watched}; removed inCollection from both `c70e788`
@@ -14,6 +16,9 @@
 - Progress page improvements: only count aired episodes (filter by air_date IS NOT NULL AND air_date <= CURDATE()); exclude dropped shows even if in multiple lists; include rewatch shows counting only rewatch watches (after added_at date); fix next episode calculation for rewatches by finding last watched then next unwatched `26a4f19`
 
 ### Web
+- Consolidate integrations into settings: merged separate /integrations page into settings with tabbed interface (Account, Appearance, Integrations); removed /integrations from top-nav avatar dropdown; implemented sidebar navigation pattern matching movies/shows pages (vertical on lg+, horizontal scrolling on mobile) `13316a5`
+- Settings Account tab: added ability to change login username and password; username section shows current username with save button; password section requires current password verification before setting new password `13316a5`
+- Design token standardization: applied surface token colors to settings page (bg-surface-container, bg-surface-container-lowest, text-on-surface-variant) replacing hard-coded hex values `13316a5`
 - Detail page links redesign: reorganized external links above Refresh button into compact 3-column grid showing only site names (TMDB, IMDb, Trakt); hide "All Seasons" link for single-season shows; fixed WatchDatePicker dropdown visibility on Watched button by simplifying event handling `952fea1`
 - Lists page redesign: system lists (Watchlist, Dropped, Rewatch) pinned at top with poster collage thumbnails and distinct styling; custom lists below with delete and edit options; sort and public visibility toggles per list (future exports) `c70e788`
 - Show detail pages: replaced Collection button with Dropped + Rewatch toggle buttons; dropped shows auto-readded when toggled back off; rewatch starts from current or user-set position `c70e788`
