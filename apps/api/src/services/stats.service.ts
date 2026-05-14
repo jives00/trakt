@@ -3,7 +3,7 @@ import { getPool } from '../db';
 import { StatsAllTime, StatsYear, StatsMonth, DailyActivity } from '@trakt/types';
 import {
   RUNTIME_EXPR, MEDIA_JOINS,
-  dateClause, longestStreak, queryTopShows, queryTopGenres, queryTotalMinutes,
+  dateClause, longestStreak, queryTopShows, queryTopGenres, queryTotalMinutes, queryShowsCompleted,
 } from './stats-helpers';
 
 export async function getStatsAllTime(userId: number): Promise<StatsAllTime> {
@@ -68,6 +68,7 @@ export async function getStatsYear(userId: number, year: number): Promise<StatsY
     genres,
     [monthlyRows],
     [[{ newShowsStarted }]],
+    showsCompleted,
   ] = await Promise.all([
     pool.query<RowDataPacket[]>(
       `SELECT
@@ -98,6 +99,7 @@ export async function getStatsYear(userId: number, year: number): Promise<StatsY
          )`,
       [userId, year, userId, year],
     ),
+    queryShowsCompleted(pool, userId, year),
   ]);
 
   return {
@@ -106,7 +108,7 @@ export async function getStatsYear(userId: number, year: number): Promise<StatsY
     totalMovies: Number(counts.totalMovies),
     totalEpisodes: Number(counts.totalEpisodes),
     newShowsStarted: Number(newShowsStarted),
-    showsCompleted: 0,
+    showsCompleted,
     monthlyBreakdown: (monthlyRows as RowDataPacket[]).map((r) => ({
       month: Number(r.month),
       hours: Number(r.hours),

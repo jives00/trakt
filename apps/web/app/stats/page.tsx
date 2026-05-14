@@ -5,12 +5,24 @@ import Link from "next/link";
 import Image from "next/image";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "@/lib/theme-context";
 import { api } from "@/lib/api";
 import type { StatsAllTime } from "@trakt/types";
 
 export const dynamic = "force-dynamic";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
+
+function GenreTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+        <p className="text-sm text-accent">{(payload[0].value as number).toLocaleString()}</p>
+      </div>
+    );
+  }
+  return null;
+}
 
 function fmtMinutes(minutes: number): string {
   const days = Math.floor(minutes / 1440);
@@ -21,6 +33,7 @@ function fmtMinutes(minutes: number): string {
 
 export default function StatsPage() {
   const { token, isLoading } = useAuth();
+  const { theme } = useTheme();
   const [stats, setStats] = useState<StatsAllTime | null>(null);
   const [error, setError] = useState("");
 
@@ -42,12 +55,12 @@ export default function StatsPage() {
       <div>
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-h1 font-black tracking-tight text-white mb-1">Stats</h1>
-            <p className="text-white/40">All-time watch statistics.</p>
+            <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">Stats</h1>
+            <p className="text-on-surface-variant/70">All-time watch statistics.</p>
           </div>
           <Link
             href={`/stats/year/${currentYear}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest transition-colors"
           >
             {currentYear} Review
             <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -64,8 +77,8 @@ export default function StatsPage() {
           ].map((s) => (
             <div key={s.label} className="glass-panel rounded-xl p-5">
               <span className="material-symbols-outlined text-accent text-2xl mb-2 block">{s.icon}</span>
-              <p className="text-2xl font-black text-white">{s.value}</p>
-              <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-1">{s.label}</p>
+              <p className="text-2xl font-black text-on-surface">{s.value}</p>
+              <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold mt-1">{s.label}</p>
             </div>
           ))}
         </div>
@@ -75,8 +88,8 @@ export default function StatsPage() {
           <div className="glass-panel rounded-xl p-5 mb-8 flex items-center gap-4">
             <span className="material-symbols-outlined text-accent text-3xl">local_fire_department</span>
             <div>
-              <p className="text-2xl font-black text-white">{stats.longestStreak} days</p>
-              <p className="text-xs text-white/40 uppercase tracking-widest font-bold">Longest Watch Streak</p>
+              <p className="text-2xl font-black text-on-surface">{stats.longestStreak} days</p>
+              <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold">Longest Watch Streak</p>
             </div>
           </div>
         )}
@@ -84,18 +97,14 @@ export default function StatsPage() {
         {/* Top genres */}
         {stats.topGenres.length > 0 && (
           <div className="glass-panel rounded-xl p-5 mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Top Genres</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Top Genres</h2>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats.topGenres.slice(0, 8)} layout="vertical" margin={{ left: 8, right: 8 }}>
+                <BarChart data={stats.topGenres.slice(0, 8)} layout="vertical" margin={{ left: 150, right: 16 }}>
                   <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="genre" tick={{ fill: "#e2e2e2", fontSize: 12 }} width={100} />
-                  <Tooltip
-                    contentStyle={{ background: "#181818", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                    labelStyle={{ color: "#e2e2e2" }}
-                    itemStyle={{ color: "rgb(var(--accent-rgb))" }}
-                  />
-                  <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  <YAxis type="category" dataKey="genre" tick={{ fill: "#cccccc", fontSize: 12 }} width={145} />
+                  <Tooltip content={<GenreTooltip />} cursor={false} wrapperStyle={{ outline: "none" }} />
+                  <Bar dataKey="count" radius={[0, 4, 4, 0]} shape={<CustomBarShape />} activeBar={false}>
                     {stats.topGenres.slice(0, 8).map((_entry, i) => (
                       <Cell key={i} fill={i === 0 ? "rgb(var(--accent-rgb))" : "rgb(var(--accent-rgb) / 0.4)"} />
                     ))}
@@ -109,7 +118,7 @@ export default function StatsPage() {
         {/* Top shows */}
         {stats.topShows.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Most Watched Shows</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Most Watched Shows</h2>
             <div className="flex flex-col gap-2">
               {stats.topShows.slice(0, 5).map((show: { tmdbId: number; title: string; posterPath: string | null; episodeCount: number }, i: number) => {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w92${show.posterPath}` : null;
@@ -135,20 +144,20 @@ export default function StatsPage() {
         {/* Heatmap */}
         {stats.heatmap.length > 0 && (
           <div className="glass-panel rounded-xl p-5">
-            <h2 className="text-h3 font-bold text-white mb-4">Watch Activity</h2>
-            <HeatMap data={stats.heatmap} />
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Watch Activity</h2>
+            <HeatMap data={stats.heatmap} theme={theme} />
           </div>
         )}
 
         {/* Year nav */}
         <div className="mt-8">
-          <h2 className="text-h3 font-bold text-white mb-4">Year in Review</h2>
+          <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Year in Review</h2>
           <div className="flex flex-wrap gap-2">
             {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
               <Link
                 key={y}
                 href={`/stats/year/${y}`}
-                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-accent/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {y}
               </Link>
@@ -160,9 +169,22 @@ export default function StatsPage() {
   );
 }
 
-function HeatMap({ data }: { data: { date: string; count: number }[] }) {
+function CustomBarShape(props: any) {
+  const { fill, x, y, width, height } = props;
+  return (
+    <rect x={x} y={y} width={width} height={height} fill={fill} rx={4} ry={4} />
+  );
+}
+
+function HeatMap({ data, theme }: { data: { date: string; count: number }[]; theme: string }) {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
   const byDate = new Map(data.map((d) => [d.date, d.count]));
+
+  const themeColors: { [key: string]: { r: number; g: number; b: number } } = {
+    "red-dark": { r: 232, g: 0, b: 45 },
+    "blue-dark": { r: 0, g: 102, b: 255 },
+  };
+  const color = themeColors[theme as keyof typeof themeColors] || themeColors["red-dark"];
 
   const now = new Date();
   const start = new Date(now);
@@ -181,28 +203,57 @@ function HeatMap({ data }: { data: { date: string; count: number }[] }) {
     weeks.push(week);
   }
 
+  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const monthLabels: { [key: number]: string } = {
+    0: "Jan", 1: "Feb", 2: "Mar", 3: "Apr", 4: "May", 5: "Jun",
+    6: "Jul", 7: "Aug", 8: "Sep", 9: "Oct", 10: "Nov", 11: "Dec"
+  };
+
   return (
-    <div className="overflow-x-auto">
-      <div className="flex gap-1 min-w-max">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-1">
-            {week.map((day) => {
-              const intensity = day.count > 0 ? Math.max(0.15, day.count / maxCount) : 0;
+    <div className="w-full">
+      <div className="flex gap-2">
+        <div className="w-12 flex flex-col">
+          <div className="h-6 mb-1 flex-shrink-0" />
+          <div className="flex flex-col gap-1">
+            {dayLabels.map((day) => (
+              <div key={day} className="h-5 flex items-center justify-end pr-1 text-[10px] text-white/40 flex-shrink-0">
+                {day}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex-1">
+          <div className="flex gap-1">
+            {weeks.map((week, wi) => {
+              const firstDate = new Date(week[0].date);
+              const label = wi % 4 === 0 ? monthLabels[firstDate.getMonth()] : "";
               return (
-                <div
-                  key={day.date}
-                  title={`${day.date}: ${day.count} watch${day.count !== 1 ? "es" : ""}`}
-                  className="w-3 h-3 rounded-sm"
-                  style={{
-                    background: day.count > 0
-                      ? `rgba(232, 0, 45, ${intensity})`
-                      : "rgba(255,255,255,0.05)"
-                  }}
-                />
+                <div key={wi} className="flex flex-col flex-1">
+                  <div className="h-6 flex items-end justify-center text-[10px] text-white/40 mb-1 flex-shrink-0">
+                    {label}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {week.map((day) => {
+                      const intensity = day.count > 0 ? Math.max(0.15, day.count / maxCount) : 0;
+                      return (
+                        <div
+                          key={day.date}
+                          title={`${day.date}: ${day.count} watch${day.count !== 1 ? "es" : ""}`}
+                          className="w-full h-5 rounded-sm flex-shrink-0"
+                          style={{
+                            background: day.count > 0
+                              ? `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`
+                              : "rgba(255,255,255,0.05)"
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 ## May 13, 2026
 
 ### API
+- Stats year calculation fix: implemented showsCompleted calculation for GET /api/stats/year/:year endpoint (was hardcoded to 0); counts shows where all episodes have been watched `1d5a93c`
 - User password change: added PATCH /api/user/password endpoint requiring current password verification before updating password_hash via bcryptjs; enables users to change their login password `13316a5`
 - User username change: added PATCH /api/user/username endpoint allowing users to change their login username (the unique identifier used for login, distinct from display name) `13316a5`
 - Unified lists system: consolidated watchlist, collection, and custom lists into single lists table with system lists (watchlist, dropped, rewatch) and is_system flag; migrated existing watchlist/collection data to list_items; removed separate watchlist and collection tables `c70e788`
@@ -17,6 +18,8 @@
 - Excluded titles behavior fix: exclusions now only block watch history logging; excluded titles still update Now Playing on dashboard so playback is visible but not recorded in history; refactored exclusion checks in scrobble.service and trakt-poll.service to apply only to upsertWatchHistory calls, not updateNowPlaying `97ac67a`
 
 ### Web
+- Stats pages UI improvements: fixed Top Genres spacing to fit long genre names; removed grey hover background on bar charts; improved tooltips with proper styling and removed label prefixes; made Watch Activity heatmap full width with responsive squares; added day-of-week and month labels to heatmap; fixed heatmap color to use user's selected theme instead of hardcoded grey; improved left axis alignment with heatmap squares `1d5a93c`
+- Stats pages design system alignment: replaced hard-coded colors with Tailwind tokens (surface-container, on-surface, on-surface-variant); updated section headings from h3 to h2; standardized button styling and text colors throughout `1d5a93c`
 - Consolidate integrations into settings: merged separate /integrations page into settings with tabbed interface (Account, Appearance, Integrations); removed /integrations from top-nav avatar dropdown; implemented sidebar navigation pattern matching movies/shows pages (vertical on lg+, horizontal scrolling on mobile) `13316a5`
 - Settings Account tab: added ability to change login username and password; username section shows current username with save button; password section requires current password verification before setting new password `13316a5`
 - Design token standardization: applied surface token colors to settings page (bg-surface-container, bg-surface-container-lowest, text-on-surface-variant) replacing hard-coded hex values `13316a5`

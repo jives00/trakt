@@ -9,6 +9,24 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { StatsYear } from "@trakt/types";
 
+function CustomBarShape(props: any) {
+  const { fill, x, y, width, height } = props;
+  return (
+    <rect x={x} y={y} width={width} height={height} fill={fill} rx={4} ry={4} />
+  );
+}
+
+function HoursTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+        <p className="text-sm text-accent">{payload[0].value}h</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -45,18 +63,18 @@ export default function StatsYearPage() {
       <div>
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <Link href="/stats" className="flex items-center gap-1 text-xs text-white/40 hover:text-white mb-3 transition-colors">
+            <Link href="/stats" className="flex items-center gap-1 text-xs text-on-surface-variant/70 hover:text-on-surface mb-3 transition-colors">
               <span className="material-symbols-outlined text-base">arrow_back</span>
               All Stats
             </Link>
-            <h1 className="text-h1 font-black tracking-tight text-white mb-1">{year} in Review</h1>
-            <p className="text-white/40">Your year in watching.</p>
+            <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">{year} in Review</h1>
+            <p className="text-on-surface-variant/70">Your year in watching.</p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/stats/year/${year - 1}`} className="p-2 rounded-lg bg-[#181818] border border-white/10 text-white/40 hover:text-white transition-colors">
+            <Link href={`/stats/year/${year - 1}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_left</span>
             </Link>
-            <Link href={`/stats/year/${year + 1}`} className="p-2 rounded-lg bg-[#181818] border border-white/10 text-white/40 hover:text-white transition-colors">
+            <Link href={`/stats/year/${year + 1}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_right</span>
             </Link>
           </div>
@@ -72,8 +90,8 @@ export default function StatsYearPage() {
             { label: "Completed", value: stats.showsCompleted.toLocaleString() },
           ].map((s) => (
             <div key={s.label} className="glass-panel rounded-xl p-4 text-center">
-              <p className="text-2xl font-black text-white">{s.value}</p>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">{s.label}</p>
+              <p className="text-2xl font-black text-on-surface">{s.value}</p>
+              <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold mt-1">{s.label}</p>
             </div>
           ))}
         </div>
@@ -81,18 +99,14 @@ export default function StatsYearPage() {
         {/* Monthly bar chart */}
         {chartData.length > 0 && (
           <div className="glass-panel rounded-xl p-5 mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Hours per Month</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Hours per Month</h2>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ left: 0, right: 8, bottom: 0 }}>
-                  <XAxis dataKey="month" tick={{ fill: "#e2e2e2", fontSize: 11 }} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{ background: "#181818", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                    labelStyle={{ color: "#e2e2e2" }}
-                    formatter={(v) => [`${typeof v === "number" ? v : 0}h`, "Hours"]}
-                  />
-                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="month" tick={{ fill: "#cccccc", fontSize: 11 }} />
+                  <YAxis tick={{ fill: "#999999", fontSize: 11 }} />
+                  <Tooltip content={<HoursTooltip />} cursor={false} />
+                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} shape={<CustomBarShape />} activeBar={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -102,7 +116,7 @@ export default function StatsYearPage() {
         {/* Top shows */}
         {stats.topShows.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Top Shows</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Top Shows</h2>
             <div className="flex flex-col gap-2">
               {stats.topShows.slice(0, 5).map((show, i) => {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w92${show.posterPath}` : null;
@@ -128,7 +142,7 @@ export default function StatsYearPage() {
         {/* Top genres */}
         {stats.topGenres.length > 0 && (
           <div>
-            <h2 className="text-h3 font-bold text-white mb-4">Top Genres</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Top Genres</h2>
             <div className="flex flex-wrap gap-2">
               {stats.topGenres.slice(0, 8).map((g) => (
                 <div key={g.genre} className="glass-panel rounded-full px-4 py-2 flex items-center gap-2">
@@ -142,13 +156,13 @@ export default function StatsYearPage() {
 
         {/* Month nav */}
         <div className="mt-8">
-          <h2 className="text-h3 font-bold text-white mb-4">Month by Month</h2>
+          <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Month by Month</h2>
           <div className="flex flex-wrap gap-2">
             {MONTHS.map((m, i) => (
               <Link
                 key={m}
                 href={`/stats/month/${year}/${i + 1}`}
-                className="px-4 py-2 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-accent/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {m}
               </Link>

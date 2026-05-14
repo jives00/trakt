@@ -102,3 +102,27 @@ export async function queryTotalMinutes(
   );
   return Number(row.total ?? 0);
 }
+
+export async function queryShowsCompleted(
+  pool: ReturnType<typeof getPool>,
+  userId: number,
+  year: number,
+): Promise<number> {
+  const [[row]] = await pool.query<RowDataPacket[]>(
+    `SELECT COUNT(DISTINCT show_id) AS count FROM (
+       SELECT e.show_id,
+         (SELECT COUNT(*) FROM episodes WHERE show_id = e.show_id) AS total_episodes,
+         (SELECT COUNT(*) FROM watch_history wh2
+          WHERE wh2.user_id = ? AND wh2.media_type='episode'
+            AND wh2.media_id IN (SELECT id FROM episodes WHERE show_id = e.show_id)
+         ) AS watched_episodes
+       FROM watch_history wh
+       JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
+       WHERE wh.user_id=? AND YEAR(wh.watched_at)=?
+       GROUP BY e.show_id
+     ) shows_in_year
+     WHERE total_episodes = watched_episodes`,
+    [userId, userId, year],
+  );
+  return Number(row.count ?? 0);
+}

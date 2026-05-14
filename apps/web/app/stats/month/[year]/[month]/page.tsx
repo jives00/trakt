@@ -9,6 +9,24 @@ import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { StatsMonth } from "@trakt/types";
 
+function CustomBarShape(props: any) {
+  const { fill, x, y, width, height } = props;
+  return (
+    <rect x={x} y={y} width={width} height={height} fill={fill} rx={4} ry={4} />
+  );
+}
+
+function HoursTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+        <p className="text-sm text-accent">{payload[0].value}h</p>
+      </div>
+    );
+  }
+  return null;
+}
+
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -44,20 +62,20 @@ export default function StatsMonthPage() {
       <div>
         <header className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <Link href={`/stats/year/${year}`} className="flex items-center gap-1 text-xs text-white/40 hover:text-white mb-3 transition-colors">
+            <Link href={`/stats/year/${year}`} className="flex items-center gap-1 text-xs text-on-surface-variant/70 hover:text-on-surface mb-3 transition-colors">
               <span className="material-symbols-outlined text-base">arrow_back</span>
               {year} in Review
             </Link>
-            <h1 className="text-h1 font-black tracking-tight text-white mb-1">
+            <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">
               {MONTH_NAMES[month - 1]} {year}
             </h1>
-            <p className="text-white/40">Monthly watch breakdown.</p>
+            <p className="text-on-surface-variant/70">Monthly watch breakdown.</p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/stats/month/${prevMonth.y}/${prevMonth.m}`} className="p-2 rounded-lg bg-[#181818] border border-white/10 text-white/40 hover:text-white transition-colors">
+            <Link href={`/stats/month/${prevMonth.y}/${prevMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_left</span>
             </Link>
-            <Link href={`/stats/month/${nextMonth.y}/${nextMonth.m}`} className="p-2 rounded-lg bg-[#181818] border border-white/10 text-white/40 hover:text-white transition-colors">
+            <Link href={`/stats/month/${nextMonth.y}/${nextMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_right</span>
             </Link>
           </div>
@@ -71,8 +89,8 @@ export default function StatsMonthPage() {
             { label: "Movies", value: stats.totalMovies.toLocaleString() },
           ].map((s) => (
             <div key={s.label} className="glass-panel rounded-xl p-5 text-center">
-              <p className="text-3xl font-black text-white">{s.value}</p>
-              <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold mt-1">{s.label}</p>
+              <p className="text-3xl font-black text-on-surface">{s.value}</p>
+              <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold mt-1">{s.label}</p>
             </div>
           ))}
         </div>
@@ -80,18 +98,14 @@ export default function StatsMonthPage() {
         {/* Daily bar chart */}
         {chartData.length > 0 && (
           <div className="glass-panel rounded-xl p-5 mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Hours per Day</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Hours per Day</h2>
             <div className="h-52">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ left: 0, right: 8 }}>
-                  <XAxis dataKey="day" tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.4)", fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{ background: "#181818", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
-                    labelStyle={{ color: "#e2e2e2" }}
-                    formatter={(v) => [`${typeof v === "number" ? v : 0}h`, "Hours"]}
-                  />
-                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} />
+                  <XAxis dataKey="day" tick={{ fill: "#999999", fontSize: 11 }} />
+                  <YAxis tick={{ fill: "#999999", fontSize: 11 }} />
+                  <Tooltip content={<HoursTooltip />} cursor={false} />
+                  <Bar dataKey="hours" fill="rgb(var(--accent-rgb))" radius={[4, 4, 0, 0]} shape={<CustomBarShape />} activeBar={false} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -101,7 +115,7 @@ export default function StatsMonthPage() {
         {/* Shows watched */}
         {stats.shows.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-h3 font-bold text-white mb-4">Shows Watched</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Shows Watched</h2>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {stats.shows.map((show) => {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w185${show.posterPath}` : null;
@@ -122,7 +136,7 @@ export default function StatsMonthPage() {
         {/* Movies watched */}
         {stats.movies.length > 0 && (
           <div>
-            <h2 className="text-h3 font-bold text-white mb-4">Movies Watched</h2>
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">Movies Watched</h2>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
               {stats.movies.map((movie) => {
                 const posterUrl = movie.posterPath ? `${TMDB_IMG}w185${movie.posterPath}` : null;
