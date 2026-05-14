@@ -21,6 +21,7 @@ import { settingsRoutes } from './routes/settings.routes';
 import { discoverRoutes } from './routes/discover.routes';
 import { exportTokenRoutes } from './routes/export-token.routes';
 import { exportFeedsRoutes } from './routes/export-feeds.routes';
+import { excelExportRoutes } from './routes/excel-export.routes';
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({ logger: false, trustProxy: true });
@@ -62,6 +63,7 @@ export function buildApp(): FastifyInstance {
   void app.register(discoverRoutes, { prefix: '/api' });
   void app.register(exportTokenRoutes, { prefix: '/api' });
   void app.register(exportFeedsRoutes, { prefix: '/api' });
+  void app.register(excelExportRoutes, { prefix: '/api' });
   void app.register(stremioAddonRoutes, { prefix: '/stremio-addon' });
 
   return app;

@@ -21,6 +21,7 @@
     "@trakt/types": "workspace:*",
     "bcryptjs": "^2",
     "dotenv": "^16",
+    "exceljs": "^4.4.0",
     "fastify": "^4",
     "jsonwebtoken": "^9",
     "mysql2": "^3",

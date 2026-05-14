@@ -3,10 +3,12 @@
 ## May 14, 2026
 
 ### API
+- Excel data export: added GET /api/export/excel (auth-protected) that generates a multi-sheet .xlsx file (Watch History, Ratings, Lists) using exceljs; header row uses white text on dark background `fb3decf`
 - List export integrations: added export token (GET/POST /api/settings/export-token/rotate), RSS feed, StevenLu JSON (Radarr), and Sonarr custom list JSON endpoints at /api/export/lists/:slug/{rss,stevenlu,sonarr}; all gated by per-user export token `1243f68`
 - Stremio catalog support: extended existing /stremio-addon manifest to include catalog resource; lists with stremio_catalog=true appear as browsable catalogs in Stremio; new PATCH /api/lists/:id/stremio-catalog toggle endpoint `1243f68`
 
 ### Web
+- Export settings tab: added Export tab to Settings with a Download Excel button that triggers the new /api/export/excel endpoint and saves the file client-side `fb3decf`
 - Integrations settings: added Export Token panel (generate/rotate/reveal), Stremio Catalogs toggle panel (per-list on/off), and Sonarr/Radarr/Stremio export instruction guides with list selector dropdowns and copyable URLs `1243f68`
 
 ## May 13, 2026

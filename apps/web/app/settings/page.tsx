@@ -8,7 +8,7 @@ import type { UserProfile } from "@trakt/types";
 
 export const dynamic = "force-dynamic";
 
-type MainTab = "account" | "appearance" | "integrations";
+type MainTab = "account" | "appearance" | "integrations" | "export";
 type IntegrationTab = "config" | "instructions";
 type Integration = "emby" | "stremio" | "kodi";
 
@@ -277,6 +277,7 @@ export default function SettingsPage() {
     { id: "account", label: "Account", description: "Manage your profile and security" },
     { id: "appearance", label: "Appearance", description: "Customize your visual experience" },
     { id: "integrations", label: "Integrations", description: "Connect media players and services" },
+    { id: "export", label: "Export", description: "Download your data" },
   ];
 
   return (
@@ -626,6 +627,10 @@ export default function SettingsPage() {
                 <TraktOAuthModal userCode={oauthUserCode} onClose={() => setTraktOAuthOpen(false)} />
               )}
             </div>
+          )}
+
+          {mainTab === "export" && (
+            <ExportTab authHeaders={authHeaders} />
           )}
         </main>
       </div>
@@ -998,6 +1003,79 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ExportTab({ authHeaders }: { authHeaders: Record<string, string> }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  const handleExcelExport = async () => {
+    setExporting(true);
+    setExportError("");
+    try {
+      const res = await fetch("/api/export/excel", { credentials: "include", headers: authHeaders });
+      if (!res.ok) throw new Error(`Export failed (${res.status})`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `trakt-export-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-xl flex flex-col gap-6">
+      <div className="mb-5">
+        <h2 className="text-h2 font-black tracking-tight text-on-surface">Export</h2>
+        <p className="text-sm text-on-surface-variant/70 mt-1">Download your data</p>
+      </div>
+
+      <div className="glass-panel rounded-xl p-5">
+        <h3 className="font-bold text-on-surface mb-1">Excel Export</h3>
+        <p className="text-xs text-on-surface-variant mb-4">
+          Downloads an <code className="text-accent">.xlsx</code> file with three sheets: Watch History, Ratings, and Lists.
+        </p>
+        <div className="space-y-3 text-sm text-on-surface-variant mb-5">
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-accent text-base mt-0.5">history</span>
+            <div>
+              <p className="text-on-surface font-medium">Watch History</p>
+              <p className="text-xs text-white/40">All movies and episodes you&apos;ve watched, with dates, progress, and source.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-accent text-base mt-0.5">star</span>
+            <div>
+              <p className="text-on-surface font-medium">Ratings</p>
+              <p className="text-xs text-white/40">Every rating you&apos;ve given to movies, shows, and episodes.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <span className="material-symbols-outlined text-accent text-base mt-0.5">list</span>
+            <div>
+              <p className="text-on-surface font-medium">Lists</p>
+              <p className="text-xs text-white/40">All items across your watchlist and custom lists.</p>
+            </div>
+          </div>
+        </div>
+        {exportError && <p className="text-xs text-accent mb-3">{exportError}</p>}
+        <button
+          onClick={handleExcelExport}
+          disabled={exporting}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white font-bold text-sm uppercase tracking-widest hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <span className="material-symbols-outlined text-base">{exporting ? "hourglass_empty" : "download"}</span>
+          {exporting ? "Exporting..." : "Download Excel"}
+        </button>
       </div>
     </div>
   );
