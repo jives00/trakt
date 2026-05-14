@@ -14,6 +14,7 @@
 - Up Next filtering fix: corrected rewatch date filter on watch_history JOIN to prevent pre-rewatch entries from appearing as candidates; added requirement that shows must have watched history or be in rewatch list to prevent unwatched watchlist shows from appearing `c70e788`
 - Dropped list behavior: removing show from watchlist now auto-adds to dropped list via INSERT IGNORE; un-dropping adds back to watchlist; dropped shows excluded from Up Next and schedule `c70e788`
 - Progress page improvements: only count aired episodes (filter by air_date IS NOT NULL AND air_date <= CURDATE()); exclude dropped shows even if in multiple lists; include rewatch shows counting only rewatch watches (after added_at date); fix next episode calculation for rewatches by finding last watched then next unwatched `26a4f19`
+- Excluded titles behavior fix: exclusions now only block watch history logging; excluded titles still update Now Playing on dashboard so playback is visible but not recorded in history; refactored exclusion checks in scrobble.service and trakt-poll.service to apply only to upsertWatchHistory calls, not updateNowPlaying `97ac67a`
 
 ### Web
 - Consolidate integrations into settings: merged separate /integrations page into settings with tabbed interface (Account, Appearance, Integrations); removed /integrations from top-nav avatar dropdown; implemented sidebar navigation pattern matching movies/shows pages (vertical on lg+, horizontal scrolling on mobile) `13316a5`
@@ -26,6 +27,9 @@
 - Up Next improvements: "Remove" button now only calls toggleShowWatchlist (service auto-drops); removed duplicate toggleShowCollection call `c70e788`
 - Search results: removed Collect button; simplified to Watchlist toggle only `c70e788`
 - Navigation cleanup: removed /collection link from top nav and side nav `c70e788`
+- Integrations page refactor: removed unused Emby tab (only Trakt polling used); split into two tabs (Configuration with Trakt connection, API key, status indicators, and exclusions; Instructions with Stremio setup guide); fixed API key display bug (text wrapping, eye icon visibility); added watch history source indicators showing count breakdown by source `97ac67a`
+- Excluded titles search and add: implemented debounced TMDB search dropdown in ExclusionPanel with title/year/type results; Add button now functional, creates exclusions via POST /api/settings/exclusions with selected title `97ac67a`
+- Top nav improvements: added Integrations link to avatar dropdown menu for quick access to integration settings `97ac67a`
 
 ### Types
 - ListType union: 'watchlist' | 'dropped' | 'rewatch' | 'custom' `c70e788`

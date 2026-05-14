@@ -315,19 +315,19 @@ async function pollNow(): Promise<void> {
 
   if (data.type === 'movie' && data.movie) {
     const tmdbId = data.movie.ids.tmdb;
-    if (await isScrobbleExcluded(tmdbId, 'movie', 'stremio')) return;
     const movie = await getOrFetchMovie(tmdbId);
     await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
-    if (progressPct >= WATCH_THRESHOLD.movie) {
+    const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
+    if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
       await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
     }
   } else if (data.type === 'episode' && data.show && data.episode) {
     const showTmdbId = data.show.ids.tmdb;
-    if (await isScrobbleExcluded(showTmdbId, 'episode', 'stremio')) return;
     await getOrFetchShow(showTmdbId);
     const episode = await getOrFetchEpisode(showTmdbId, data.episode.season, data.episode.number);
     await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
-    if (progressPct >= WATCH_THRESHOLD.episode) {
+    const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
+    if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
       await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
     }
   }
@@ -470,26 +470,22 @@ export async function startPollLoop(
 
       if (data.type === 'movie' && data.movie) {
         const tmdbId = data.movie.ids.tmdb;
+        const movie = await getOrFetchMovie(tmdbId);
+        await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
         const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
-        if (!isExcluded) {
-          const movie = await getOrFetchMovie(tmdbId);
-          await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
-          if (progressPct >= WATCH_THRESHOLD.movie) {
-            await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
-          }
+        if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
+          await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
         }
       } else if (data.type === 'episode' && data.show && data.episode) {
         const showTmdbId = data.show.ids.tmdb;
         const seasonNumber = data.episode.season;
         const episodeNumber = data.episode.number;
+        await getOrFetchShow(showTmdbId);
+        const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
+        await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
         const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
-        if (!isExcluded) {
-          await getOrFetchShow(showTmdbId);
-          const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
-          await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
-          if (progressPct >= WATCH_THRESHOLD.episode) {
-            await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
-          }
+        if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
+          await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
         }
       }
 

@@ -20,6 +20,7 @@ const avatarDropdownLinks = [
   { href: "/progress", label: "Progress" },
   { href: "/lists", label: "Lists" },
   { href: "/stats", label: "Stats" },
+  { href: "/settings?tab=integrations", label: "Integrations" },
   { href: "/settings", label: "Settings" },
 ];
 

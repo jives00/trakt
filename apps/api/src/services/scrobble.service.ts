@@ -52,11 +52,6 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       return;
     }
 
-    const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
-    if (isExcluded) {
-      return;
-    }
-
     let mediaIdDb: number;
     if (mediaType === 'movie') {
       const movie = await getOrFetchMovie(tmdbId);
@@ -67,14 +62,16 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       mediaIdDb = episode.episodeId;
     }
 
+    const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
+
     if (event === 'PlaybackProgress') {
       await updateNowPlaying('emby', mediaType, mediaIdDb, progressPct);
-      if (progressPct >= WATCH_THRESHOLD[mediaType]) {
+      if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
         await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, false);
       }
     } else if (event === 'PlaybackStopped') {
       await clearNowPlaying();
-      if (progressPct >= WATCH_THRESHOLD[mediaType]) {
+      if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
         await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, true);
       }
     }
