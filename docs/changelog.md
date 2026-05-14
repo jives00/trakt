@@ -2,6 +2,16 @@
 
 ## May 14, 2026
 
+### Web
+- Next.js standalone output: added `output: 'standalone'` to next.config.mjs and updated web Dockerfile to copy static assets and start with `node server.js`; significantly reduces web image size `12851a6`
+
+### Infra
+- Add .dockerignore to exclude docs, tests, scripts, and build artifacts from Docker build context `12851a6`
+- Rewrite CLAUDE.md: remove stale content, fix migration note, add EC2Documentation reference; move security details to docs/SECURITY.md `12851a6`
+- Extend .gitignore: full .claude/ dir, apps/web/.env.local, apps/api/trakt-preview.json `12851a6`
+
+## May 14, 2026
+
 ### API
 - Excel data export: added GET /api/export/excel (auth-protected) that generates a multi-sheet .xlsx file (Watch History, Ratings, Lists) using exceljs; header row uses white text on dark background `fb3decf`
 - List export integrations: added export token (GET/POST /api/settings/export-token/rotate), RSS feed, StevenLu JSON (Radarr), and Sonarr custom list JSON endpoints at /api/export/lists/:slug/{rss,stevenlu,sonarr}; all gated by per-user export token `1243f68`

@@ -2,24 +2,22 @@
 
 ## Project Summary
 
-Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Exposes a scrobbling API so Emby, Kodi, and Stremio can push watch events automatically. Single-user only — no community or social features. Metadata sourced from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2.
-
-**Current Status:** Phase 5 in progress. Phase 4 (Trakt.tv import) complete with Season 0 (specials) support. Production environment live on EC2 with automated GitHub deployment. Security hardening (helmet + rate limiting) implemented.
+Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, and Stremio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2. Production live with automated GitHub deployment.
 
 ---
 
 ## Directory Map
 
 ```
-apps/api/             Fastify API server (Node 24, TypeScript)           
-  - src/routes/       Route handlers (includes stremio-addon mounted at /stremio-addon)
-  - src/services/    Business logic
-apps/web/             Next.js 14 web app (App Router, Tailwind, shadcn/ui)
-apps/mobile/          React Native + Expo (SDK 51)
-apps/kodi-addon/      Kodi Python addon — sideloaded, not a Docker service
-packages/types/       Shared TypeScript types and Zod schemas (single source of truth for DTOs and DB models)
-plans/                Architecture and implementation plan
-docs/                 Documentation, screenshots, and design guidelines
+apps/api/             Fastify API server (Node 24, TypeScript)
+  - src/routes/       Route handlers (stremio-addon mounted at /stremio-addon)
+  - src/services/     Business logic
+  - migrations/       SQL migration files
+  - scripts/          migrate.ts — CLI migration runner
+apps/web/             Next.js 14 (App Router, Tailwind, shadcn/ui)
+apps/mobile/          React Native + Expo — future initiative, not yet implemented
+packages/types/       Shared TypeScript types and Zod schemas
+docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 ```
 
 ---
@@ -30,42 +28,24 @@ docs/                 Documentation, screenshots, and design guidelines
 |---|---|
 | Backend API | Node.js 24 + Fastify + TypeScript |
 | Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
-| Mobile | React Native + Expo SDK 51 + TypeScript |
-| Database | MySQL 8 — installed directly on EC2, not a Docker service |
+| Mobile | React Native + Expo SDK 51 — future initiative |
+| Database | MySQL 8 on EC2 (not Docker) |
 | Monorepo | pnpm workspaces |
-| Infra | Docker Compose on EC2 (api, web); API on `network_mode: host` |
-| TLS | Handled upstream (not Caddy) |
-| CI/CD | GitHub Actions → SSH deploy to EC2 on push to main |
-
----
-
-## Security Hardening (Phase 5)
-
-**API Security:**
-- **@fastify/helmet** (`apps/api/src/app.ts:27-36`): Sets security headers on all responses including `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `HSTS`, and `Content-Security-Policy` (self-only by default, allows unsafe-inline for styles and external images/data URIs).
-- **@fastify/rate-limit** (`apps/api/src/routes/auth.routes.ts:16-19`): Rate limiting on `POST /api/auth/login` — max 10 attempts per 15 minutes per IP to prevent brute-force attacks.
-
-**Web Security:**
-- **Abort Controllers** (`apps/web/lib/api.ts`, `apps/web/lib/use-api-controller.ts`): All fetch calls support AbortSignal to cancel in-flight requests. Utilities:
-  - `createApiController()`: Creates an AbortController and registers it for cleanup.
-  - `cancelAllRequests()`: Cancels all active requests (called on route change).
-  - `useApiController()`: React hook that creates and cleans up an AbortController on component mount/unmount.
-  - `useApiCleanup()`: Route-level cleanup hook to cancel all pending requests on navigation.
-- Prevents memory leaks, race conditions, and unnecessary network traffic when components unmount or users navigate away.
+| Infra | Docker Compose on EC2; API on `network_mode: host` |
+| TLS | nginx (not the containers) |
+| CI/CD | GitHub Actions → SSH deploy on push to main |
 
 ---
 
 ## Environment Variables (`.env` at repo root — never commit)
 
-**Metadata APIs:** `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY`, `FANART_API_KEY` — fetched in parallel on cache miss.
-
-**Database:** `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` — MySQL on EC2 (not Docker).
-
-**Auth:** `JWT_SECRET` (access token, 15 min TTL), `ADMIN_USERNAME`, `ADMIN_PASSWORD` (seeded at startup, single user).
-
-**Integrations:** `SCROBBLE_API_KEY` (X-Api-Key header for Kodi/Emby/Stremio), `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` (Stremio polling).
-
-**Web:** `NEXT_PUBLIC_API_URL` (leave unset in dev — next.config.mjs proxies `/api/*`).
+| Group | Variables |
+|---|---|
+| Metadata APIs | `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY`, `FANART_API_KEY` |
+| Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
+| Auth | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
+| Integrations | `SCROBBLE_API_KEY`, `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` |
+| Web | `NEXT_PUBLIC_API_URL` — leave unset in dev (next.config.mjs proxies `/api/*`) |
 
 See `.env.example` for template.
 
@@ -73,151 +53,100 @@ See `.env.example` for template.
 
 ## Code Patterns
 
-### API routes (`apps/api/src/routes/`)
+### API routes
 
-- One file per route group: `movies.routes.ts`, `shows.routes.ts`, `auth.routes.ts`, etc.
-- Route handlers: validate input → call service → return result. No business logic in handlers.
-- Services: `apps/api/src/services/` — one file per domain.
-- DB: raw SQL via `mysql2` (no ORM). Migrations in `apps/api/migrations/` as `.sql` files.
+One file per route group in `src/routes/`. Handlers validate input → call service → return. No business logic in handlers. Raw SQL via `mysql2` (no ORM).
 
 ### Auth
 
-- Login: `POST /api/auth/login` → access token (response) + refresh token (HttpOnly `refreshToken` cookie).
-- Protected routes: `Authorization: Bearer <accessToken>` required.
-- Token storage: Web (memory), Mobile (Expo SecureStore).
-- Middleware: `apps/web/middleware.ts` enforces refresh token cookie; redirects to `/login` if missing. Next.js proxies `/api/*` in dev (requires `NEXT_PUBLIC_API_URL` unset).
+`POST /api/auth/login` → access token (response body) + refresh token (HttpOnly cookie). Protected routes require `Authorization: Bearer <accessToken>`. `apps/web/middleware.ts` enforces the cookie and redirects to `/login` if missing.
 
-### Scrobbling Integrations
+### Scrobbling
 
-**Kodi:** Sends `X-Api-Key: SCROBBLE_API_KEY` header to `POST /api/scrobble/kodi` with media type, ID, and progress.
+**Kodi:** `POST /api/scrobble/kodi` with `X-Api-Key: SCROBBLE_API_KEY`.
 
-**Emby:** Webhook at `POST /api/scrobble/emby` triggered by `PlaybackProgress` and `PlaybackStopped` events. Upsert strategy: `(user_id, media_type, media_id, DATE(watched_at))` to collapse one viewing into one row. Completion threshold: 90% for both movies and episodes.
+**Emby:** `POST /api/scrobble/emby` webhook on `PlaybackProgress`/`PlaybackStopped`. Upsert on `(user_id, media_type, media_id, DATE(watched_at))` — one row per viewing day. 90% completion threshold.
 
-**Stremio:** Addon mounted at `/stremio-addon` (manifests + stream handlers). Scrobbling is hybrid: Stremio subtitle open triggers the start (`startPollLoop`), then progress is tracked by polling Trakt's `GET /users/{username}/watching` every 60s until 204 (stopped). Progress % comes from `data.progress` in the Trakt response (already 0–100); falls back to computing from `started_at`/`expires_at` if not present. Uses `TRAKT_CLIENT_ID` + `TRAKT_CLIENT_SECRET` for OAuth token.
+**Stremio:** Hybrid approach — subtitle open triggers `startPollLoop`, then polls Trakt's `GET /users/{username}/watching` every 60s until 204. Progress from `data.progress` (0–100); falls back to computing from `started_at`/`expires_at`.
 
 ### Now Playing
 
-All scrobble sources (Emby, Stremio, Kodi) update a `now_playing` table via `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` whenever progress is detected, regardless of completion threshold. This feeds the dashboard hero, which polls `GET /api/scrobble/now-playing` every 30s.
+All scrobble sources call `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` regardless of completion threshold. Dashboard hero polls `GET /api/scrobble/now-playing` every 30s.
 
-**Database:** `now_playing` table stores `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE constraint on `user_id` (single active session). `updated_at` auto-updates, enabling a 5-minute staleness guard to clean up ghost sessions if a player crashes.
-
-**Frontend:** Dashboard hero shows current playback with backdrop image (show backdrop for episodes, movie backdrop for movies), title (linked to detail page), episode number/name or tagline (episode link to episode page), and a progress bar with time watched/% /time remaining. Computes time from `progressPct × runtimeMin` (both sources support this calculation).
+`now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. 5-minute staleness guard clears ghost sessions if a player crashes.
 
 ### Metadata sourcing
 
-- TMDB is the canonical source and primary ID. Its `/external_ids` endpoint returns IMDB and TVDB IDs.
-- Discover pages for `/movies` and `/shows` are TMDB-first. API routes live at `GET /api/discover/movies` and `GET /api/discover/shows`; supported categories are defined in `apps/api/src/services/discover.service.ts`. Top-rated supports period filters (`all_time`, `past_year`, `past_6_months`, `past_3_months`, `past_month`); rolling periods use TMDB `/discover/movie` and `/discover/tv` with vote-average sorting and date windows.
-- `external_ids` table maps `(media_type, media_id)` to IDs from each source.
-- `metadata_fetched_at` is a JSON column tracking per-source fetch timestamps for TTL enforcement.
-- On cache miss or TTL expiry, all relevant sources are fetched in parallel then merged.
+TMDB is the canonical ID. On cache miss or TTL expiry, all sources fetch in parallel and merge. `external_ids` table maps `(media_type, media_id)` to IMDB/TVDB/etc. `metadata_fetched_at` is a JSON column with per-source timestamps.
+
+### List Exports
+
+Token-authenticated feeds (no session cookie — safe for external apps). `GET /export/lists/:slugOrId/rss?token=<exportToken>` returns RSS with IMDB/TVDB/TMDB GUIDs (Stremio-compatible). Sonarr/Radarr export endpoints consume the same list data. Tokens generated via `POST /api/settings/export-token`.
+
+### Exclusions
+
+Per-integration title exclusions (`emby`, `stremio`, `kodi`) prevent scrobbling specific titles. `GET/POST/DELETE /api/settings/exclusions`.
 
 ### Shared types
 
-- All DTOs and DB model types live in `packages/types/`. Read one file there to understand any data shape.
-- No barrel re-exports unless necessary.
+All DTOs and DB model types in `packages/types/`. No barrel re-exports unless necessary.
 
-### Season 0 (Specials) Support
-
-The `seasons` table includes a `season_type` column (`'regular'` or `'special'`) to distinguish special episodes. TMDB returns this in the season detail response. The UI correctly filters and displays Season 0 specials alongside regular seasons on show detail pages.
-
-### Trakt.tv Data Import
-
-One-time import script at `apps/api/scripts/import-trakt.ts` imports existing watch history, ratings, watchlist, collection, and lists from a Trakt data export.
-
-**Usage:**
-1. Export data from https://trakt.tv/settings/data-export
-2. Extract zip to `docs/trakt-export/`
-3. Run: `pnpm --filter api run import:trakt`
-
-**What it does:**
-- Pre-fetches all seasons from TMDB to populate `episodes.tmdb_id` (performance optimization to bound API calls)
-- Imports watch history, ratings, watchlist, collection, and lists
-- Deduplicates on re-run (safe to retry after failures)
-- Logs summary: rows inserted per table, skipped (duplicates), missing TMDB IDs
-
-**Schema expectations:**
-- `watch_history.source` includes `'trakt.tv'` enum value
-- `episodes.tmdb_id` column populated with TMDB episode IDs
-- `watchlist.sort_order` column for Trakt ranking
-- `lists.sort_by` and `sort_how` columns for list sorting preferences
+---
 
 ## Deployment
 
-**Production:** EC2 instance running Docker Compose with API and web services, fronted by nginx reverse proxy.
-
 ### Docker Services
-- **API:** Runs with `network_mode: host` on port 3002, connects directly to local MySQL.
-- **Web:** Runs on bridge network, bound to `127.0.0.1:3001`.
-- **Migrations:** Run automatically on container startup (handled in `apps/api/Dockerfile`).
+- **API:** `network_mode: host`, port 3002, connects directly to local MySQL.
+- **Web:** Bridge network, `127.0.0.1:3001`. Runs Next.js standalone output (`node server.js`).
+- **Migrations:** Manual — `pnpm --filter api run migrate`. Test DBs reset automatically via `resetDb()` in `beforeEach`.
 
-### Nginx Reverse Proxy
-Nginx routes public traffic to the Docker services. Config location: `/etc/nginx/sites-available/trakt` (symlinked to `/etc/nginx/sites-enabled/trakt`).
+### Nginx
+Config at `/etc/nginx/sites-available/trakt`. See `EC2Documentation.md` for full config.
 
-**Routing:**
-- `/` → proxies to web container (port 3001)
-- `/api/` → proxies to API container (port 3002)
-- `/stremio-addon/` → proxies to API container (port 3002)
-- `/phpmyadmin` → local phpmyadmin with auth
+- `/` → web (3001)
+- `/api/` → API (3002)
+- `/stremio-addon/` → API (3002)
 
-TLS is handled by nginx (not by the containers). All requests are `http://18.223.201.191/` (HTTP on EC2; TLS termination happens upstream if needed).
+### GitHub Actions
+Push to `main` → SSH to EC2 → `git pull` → `docker compose up --build -d`.
 
-### GitHub Actions Auto-Deploy
-Push to `main` triggers workflow (`deploy.yml`), which:
-1. SSHes into EC2
-2. Pulls latest code
-3. Loads `.env` file
-4. Runs `docker compose up --build -d` to rebuild and restart containers
-
-## Design Guidelines
-
-Refer to [docs/DESIGN.md](docs/DESIGN.md) for the project's visual identity, color palette, and UI/UX principles. All web and mobile development should adhere to these standards.
-
-**Key principles:**
-- Use Tailwind design tokens (`text-on-surface`, `text-on-surface-variant`, `bg-surface-container-low`, etc.) instead of hard-coded hex values.
-- Page H1 headings: `text-h1 font-black tracking-tight text-on-surface`.
-- Section headings (with accent rule bar): `text-h2 font-black tracking-tight text-on-surface`.
-- All filter pills: `rounded-full px-3 py-2 text-sm` with proper active/inactive states (see DESIGN.md section 8).
-- Avoid `text-xs` as default; prefer `text-sm` or `text-[13px]` for smaller text.
-- Avoid hard-coded colors like `#181818`, `#0f0f0f`; use surface tokens instead.
+---
 
 ## Development Workflow
 
-Common `pnpm` commands:
-- `pnpm dev:api` — Start Fastify API server
-- `pnpm dev:web` — Start Next.js web app
-- `pnpm test` — Run all tests
+```
+pnpm dev:api                      # Fastify API
+pnpm dev:web                      # Next.js web
+pnpm test                         # All tests
+pnpm --filter api run migrate     # Run DB migrations
+```
 
 ---
 
 ## Testing
 
-**Test-first rule:** Write tests for feature code before implementing. Tests define the contract.
-
 | Layer | Tool |
 |---|---|
-| API | Vitest + Supertest (hit real `trakt_test` DB, never mock) |
+| API | Vitest + Supertest — hits real `trakt_test` DB, never mock |
 | Web | Vitest + React Testing Library + Playwright (E2E) |
-| Mobile | Jest + React Native Testing Library |
-| Kodi addon | pytest |
+| Mobile | Jest + React Native Testing Library (future) |
 
-Tests co-located: `src/routes/__tests__/`, `src/services/__tests__/`, etc. API tests: call `resetDb()` in `beforeEach` to truncate and reapply seed (exported from `apps/api/src/test/helpers.ts`).
+Tests co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`. `resetDb()` in `beforeEach` truncates and reseeds the test DB.
 
 ---
 
 ## Coding Standards
 
-### 1. Think Before Coding
+1. **Think before coding** — state assumptions, ask when uncertain, name ambiguity before proceeding.
+2. **Simplicity first** — minimum code for the problem. No extra abstractions, no impossible-scenario error handling.
+3. **Goal-driven** — for multi-step tasks, state a verifiable plan before starting.
+4. **Code style** — no docstrings or large comment blocks. Files ~150 lines max; split if larger.
 
-State assumptions explicitly. If uncertain, ask. Present multiple interpretations — don't pick silently. If something is unclear, stop and name it.
+---
 
-### 2. Simplicity First
+## Reference Docs
 
-Minimum code that solves the problem. No features beyond what was asked. No abstractions for single-use code. No error handling for impossible scenarios.
-
-### 3. Goal-Driven Execution
-
-For multi-step tasks, state a plan with verifiable steps before starting.
-
-### 4. Code Style
-
-No large comments or docstrings — good names already carry the meaning. Short files (~150 lines max; if larger, split). One comment per file is the norm, not the exception.
+- **[docs/DESIGN.md](docs/DESIGN.md)** — color tokens, typography, component patterns, filter pills
+- **[docs/SECURITY.md](docs/SECURITY.md)** — helmet config, rate limiting, abort controller pattern
+- **[docs/changelog.md](docs/changelog.md)** — feature history
+- **[../EC2Documentation.md](../EC2Documentation.md)** — EC2 nginx config, .env files, PM2 setup, server reference

@@ -1,0 +1,37 @@
+# Version control / CI
+.git
+.github
+.gitignore
+
+# Claude Code
+.claude
+
+# Documentation / local-only files
+docs
+*.md
+CLAUDE.md
+
+# Environment files (injected at runtime via docker-compose)
+.env
+.env.local
+.env.example
+apps/web/.env.local
+
+# Local build artifacts (rebuilt inside Docker)
+node_modules
+apps/api/dist
+apps/web/.next
+packages/types/dist
+
+# Scripts are CLI-only utilities, not called at container runtime
+apps/api/scripts
+
+# Test files (not needed at runtime)
+apps/api/src/**/__tests__
+apps/web/**/__tests__
+**/vitest.config.*
+**/vitest.setup.*
+
+# Misc
+*.log
+docker-compose.yml

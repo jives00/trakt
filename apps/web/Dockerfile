@@ -15,6 +15,12 @@ RUN pnpm install --ignore-scripts
 RUN pnpm --filter @trakt/types build
 RUN NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL pnpm --filter web build
 
+# Copy public assets and static files into the standalone bundle
+RUN cp -r apps/web/public apps/web/.next/standalone/apps/web/public && \
+    cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+
 EXPOSE 3000
 
-CMD ["pnpm", "--filter", "web", "start"]
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "apps/web/.next/standalone/apps/web/server.js"]
