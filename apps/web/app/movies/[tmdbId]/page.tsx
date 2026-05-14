@@ -159,13 +159,13 @@ export default function MovieDetailPage() {
         {castLoading && (cast.length === 0 && crew.length === 0) ? (
           <div className="max-w-page mx-auto px-margin-page mt-12 pb-16">
             <section>
-              <div className="flex gap-6 border-b border-white/5 mb-6">
-                <span className="text-white/40 text-sm">Loading cast…</span>
+              <div className="flex gap-6 border-b border-outline-variant/30 mb-6">
+                <span className="text-on-surface/40 text-sm">Loading cast…</span>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="text-center">
-                    <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                    <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 animate-pulse" />
                     <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
                     <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                   </div>
@@ -236,32 +236,32 @@ export default function MovieDetailPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
               {movie.releaseDate && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
-                  <p className="text-white text-base">{formatDate(movie.releaseDate)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
+                  <p className="text-on-surface text-base">{formatDate(movie.releaseDate)}</p>
                 </div>
               )}
               {movie.runtimeMin && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
-                  <p className="text-white text-base">{movie.runtimeMin} min</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
+                  <p className="text-on-surface text-base">{movie.runtimeMin} min</p>
                 </div>
               )}
               {movie.originCountry && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
-                  <p className="text-white text-base">{formatCountry(movie.originCountry)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
+                  <p className="text-on-surface text-base">{formatCountry(movie.originCountry)}</p>
                 </div>
               )}
               {movie.originalLanguage && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
-                  <p className="text-white text-base">{formatLanguage(movie.originalLanguage)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
+                  <p className="text-on-surface text-base">{formatLanguage(movie.originalLanguage)}</p>
                 </div>
               )}
               {movie.productionCompany && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Studio</p>
-                  <p className="text-white text-base">{movie.productionCompany}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Studio</p>
+                  <p className="text-on-surface text-base">{movie.productionCompany}</p>
                 </div>
               )}
             </section>
@@ -269,7 +269,7 @@ export default function MovieDetailPage() {
             {/* Cast/Crew Tabs */}
             {(cast.length > 0 || crew.length > 0 || castLoading) && (
               <section>
-                <div className="flex gap-6 border-b border-white/5 mb-6 justify-between items-center">
+                <div className="flex gap-6 border-b border-outline-variant/30 mb-6 justify-between items-center">
                   <div className="flex gap-6">
                     {cast.length > 0 || crew.length > 0 ? (
                       (["cast", "crew"] as const).map((t) => (
@@ -277,14 +277,14 @@ export default function MovieDetailPage() {
                           key={t}
                           onClick={() => setTab(t)}
                           className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                            tab === t ? "text-white border-accent" : "text-white/40 border-transparent hover:text-white"
+                            tab === t ? "text-on-surface border-accent" : "text-on-surface/40 border-transparent hover:text-on-surface"
                           }`}
                         >
                           {t === "cast" ? `Cast (${cast.length})` : `Crew (${crew.length})`}
                         </button>
                       ))
                     ) : (
-                      <span className="text-white/40 text-sm">Loading cast…</span>
+                      <span className="text-on-surface/40 text-sm">Loading cast…</span>
                     )}
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default function MovieDetailPage() {
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div key={i} className="text-center">
-                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 animate-pulse" />
                         <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
                         <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                       </div>
@@ -308,22 +308,22 @@ export default function MovieDetailPage() {
                         rel="noopener noreferrer"
                         className="text-center group cursor-pointer"
                       >
-                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 group-hover:border-outline-variant transition-colors">
                           {m.profilePath ? (
                             <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="material-symbols-outlined text-2xl text-white/20">person</span>
+                              <span className="material-symbols-outlined text-2xl text-on-surface/20">person</span>
                             </div>
                           )}
                         </div>
-                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
+                        <p className="text-on-surface text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
                         {tab === "cast" ? (
-                          <p className="text-white/40 text-sm line-clamp-1">{(m as MovieCastMember).character}</p>
+                          <p className="text-on-surface/40 text-sm line-clamp-1">{(m as MovieCastMember).character}</p>
                         ) : (
                           <>
-                            <p className="text-white/40 text-xs line-clamp-1">{(m as CrewMember).job}</p>
-                            <p className="text-white/30 text-xs">{(m as CrewMember).department}</p>
+                            <p className="text-on-surface/40 text-xs line-clamp-1">{(m as CrewMember).job}</p>
+                            <p className="text-on-surface/30 text-xs">{(m as CrewMember).department}</p>
                           </>
                         )}
                       </a>
@@ -338,7 +338,7 @@ export default function MovieDetailPage() {
           <div className="lg:col-span-4">
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-on-surface font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
@@ -346,7 +346,7 @@ export default function MovieDetailPage() {
                   <button
                     onClick={handleWatchlist}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inWatchlist ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
@@ -373,20 +373,20 @@ export default function MovieDetailPage() {
               </div>
 
               {history.length > 0 && (
-                <div className="border-t border-white/10 pt-4">
-                  <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
+                <div className="border-t border-outline-variant/40 pt-4">
+                  <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
                   <div className="space-y-2">
                     {history.map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-on-surface/5 hover:bg-on-surface/10 transition-colors">
                         <div className="flex-1">
-                          <p className="text-white text-sm">
+                          <p className="text-on-surface text-sm">
                             {new Date(entry.watchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
-                          <p className="text-white/50 text-xs capitalize">{entry.source}</p>
+                          <p className="text-on-surface/50 text-xs capitalize">{entry.source}</p>
                         </div>
                         <button
                           onClick={() => handleRemoveLatest(entry.id)}
-                          className="text-white/40 hover:text-accent transition-colors ml-2"
+                          className="text-on-surface/40 hover:text-accent transition-colors ml-2"
                         >
                           <span className="material-symbols-outlined text-base">close</span>
                         </button>
@@ -396,12 +396,12 @@ export default function MovieDetailPage() {
                 </div>
               )}
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
                 <div className="flex gap-1 justify-between">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
                     <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-on-surface/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
                 </div>
@@ -410,26 +410,26 @@ export default function MovieDetailPage() {
               <div className="space-y-2">
                 {movie.rtCriticScore != null && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/40 font-bold">IMDb</span>
-                    <span className="text-white">{(movie.rtCriticScore / 10).toFixed(1)}/10</span>
+                    <span className="text-on-surface/40 font-bold">IMDb</span>
+                    <span className="text-on-surface">{(movie.rtCriticScore / 10).toFixed(1)}/10</span>
                   </div>
                 )}
                 {movie.tmdbRating != null && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/40 font-bold">TMDB</span>
-                    <span className="text-white">{(movie.tmdbRating / 10).toFixed(1)}/10</span>
+                    <span className="text-on-surface/40 font-bold">TMDB</span>
+                    <span className="text-on-surface">{(movie.tmdbRating / 10).toFixed(1)}/10</span>
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
                 <div className="grid grid-cols-3 gap-2">
                   <Link
                     href={`https://www.themoviedb.org/movie/${tmdbId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     TMDB
                   </Link>
@@ -438,7 +438,7 @@ export default function MovieDetailPage() {
                       href={`https://www.imdb.com/title/${movie.imdbId}/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                      className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                     >
                       IMDb
                     </Link>
@@ -447,14 +447,14 @@ export default function MovieDetailPage() {
                     href={`https://trakt.tv/search?q=${encodeURIComponent(movie.title)}&type=movie`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     Trakt
                   </Link>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
+              <div className="border-t border-outline-variant/40 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Metadata", onRefresh: handleRefreshMovieMetadata },

@@ -91,10 +91,10 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
             filter: 'blur(3px) brightness(0.8)',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest/70 via-surface-container-lowest/50 to-transparent z-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-0" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
-            <h1 className="text-h1 font-black tracking-tight text-on-surface mb-4 capitalize">Hello, {username}</h1>
+            <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
             {alltime && (
               <div className="flex gap-8 md:gap-12">
                 <Stat label="Movies Watched" value={alltime.totalMovies.toLocaleString()} />
@@ -113,7 +113,7 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] text-on-surface-variant/70 uppercase tracking-widest font-bold mb-1">{label}</p>
+      <p className="text-[10px] text-white/50 uppercase tracking-widest font-bold mb-1">{label}</p>
       <p className="text-h2 font-black text-white">{value}</p>
     </div>
   );
@@ -143,7 +143,7 @@ function RecentCard({ item }: { item: RecentItem }) {
   const title = isEpisode ? (item.showTitle ?? item.title) : item.title;
 
   return (
-    <Link href={href} className="group relative aspect-video overflow-hidden border border-white/5 cursor-pointer block">
+    <Link href={href} className="group relative aspect-video overflow-hidden border border-outline-variant/30 cursor-pointer block">
       {posterUrl ? (
         <Image src={posterUrl} alt={title ?? ""} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-center transition-transform duration-500 group-hover:scale-110" />
       ) : (
@@ -270,7 +270,7 @@ function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardD
         <div className="h-48 mb-5">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ left: 0, right: 0, bottom: 0 }}>
-              <XAxis dataKey="date" tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 9 }} interval={0} />
+              <XAxis dataKey="date" tick={{ fill: "rgb(var(--on-surface-rgb) / 0.3)", fontSize: 9 }} interval={0} />
               <Tooltip
                 cursor={false}
                 content={({ active, payload }) => {
@@ -280,10 +280,10 @@ function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardD
                   const m = Math.round(p.totalMinutes % 60);
                   const time = [h > 0 && `${h}h`, m > 0 && `${m}m`].filter(Boolean).join(" ") || "0m";
                   return (
-                    <div style={{ background: "#1a1a1a", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: "1.6" }}>
+                    <div style={{ background: "rgb(var(--surface-container-rgb))", border: "1px solid rgb(var(--on-surface-rgb) / 0.15)", borderRadius: 8, padding: "8px 12px", fontSize: 13, color: "rgb(var(--on-surface-rgb) / 0.85)", lineHeight: "1.6" }}>
                       <div style={{ fontWeight: 700, marginBottom: 4 }}>{time} watched</div>
-                      {p.episodes > 0 && <div style={{ color: "rgba(255,255,255,0.55)" }}>{p.episodes} episode{p.episodes !== 1 ? "s" : ""}</div>}
-                      {p.movies > 0 && <div style={{ color: "rgba(255,255,255,0.55)" }}>{p.movies} movie{p.movies !== 1 ? "s" : ""}</div>}
+                      {p.episodes > 0 && <div style={{ color: "rgb(var(--on-surface-rgb) / 0.55)" }}>{p.episodes} episode{p.episodes !== 1 ? "s" : ""}</div>}
+                      {p.movies > 0 && <div style={{ color: "rgb(var(--on-surface-rgb) / 0.55)" }}>{p.movies} movie{p.movies !== 1 ? "s" : ""}</div>}
                     </div>
                   );
                 }}
@@ -292,7 +292,7 @@ function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardD
                 {chartData.map((item, i) => (
                   <Cell
                     key={i}
-                    fill={activeBar === i ? "rgb(var(--accent-rgb))" : "rgba(255,255,255,0.2)"}
+                    fill={activeBar === i ? "rgb(var(--accent-rgb))" : "rgb(var(--on-surface-rgb) / 0.2)"}
                     onMouseEnter={() => setActiveBar(i)}
                     onClick={() => onBarClick?.(item.dateStr)}
                     style={{ cursor: onBarClick ? "pointer" : "default" }}

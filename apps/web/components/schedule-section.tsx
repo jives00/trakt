@@ -160,7 +160,7 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
           {formatDateHeader(day)}
         </div>
         {hasPoster && (
-          <Link href={activeHref} className="relative aspect-[2/3] overflow-hidden border border-white/10 block">
+          <Link href={activeHref} className="relative aspect-[2/3] overflow-hidden border border-outline-variant/40 block">
             {slotA && (
               <Image
                 src={slotA}
@@ -210,7 +210,7 @@ function ScheduleColumn({
         {entries.map((entry, i) => (
           <div key={i} onMouseEnter={() => onHover?.(i)}>
             {i > 0 && (
-              <div className="h-px bg-white/10 my-4" />
+              <div className="h-px bg-on-surface/10 my-4" />
             )}
             <ScheduleEntry entry={entry} />
           </div>

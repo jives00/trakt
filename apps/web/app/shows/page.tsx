@@ -87,11 +87,11 @@ export default function ShowsPage() {
                     className={
                       active
                         ? "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-accent/15 text-on-surface border border-accent/30"
-                        : "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 hover:bg-surface-container transition-colors"
+                        : "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:text-on-surface hover:border-outline-variant hover:bg-surface-container transition-colors"
                     }
                   >
                     <span className="block text-sm font-black uppercase tracking-widest">{item.label}</span>
-                    <span className="mt-1 block text-[13px] leading-snug text-white/40">{item.description}</span>
+                    <span className="mt-1 block text-[13px] leading-snug text-on-surface/40">{item.description}</span>
                   </button>
                 );
               })}
@@ -109,7 +109,7 @@ export default function ShowsPage() {
                   type="button"
                   disabled={page <= 1 || fetching}
                   onClick={() => setPage((value) => Math.max(1, value - 1))}
-                  className="h-9 w-9 rounded-full border border-white/10 bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container disabled:opacity-30 disabled:hover:bg-surface-container-low"
+                  className="h-9 w-9 rounded-full border border-outline-variant/40 bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container disabled:opacity-30 disabled:hover:bg-surface-container-low"
                   aria-label="Previous page"
                 >
                   <span className="material-symbols-outlined text-lg leading-none">chevron_left</span>
@@ -119,7 +119,7 @@ export default function ShowsPage() {
                   type="button"
                   disabled={page >= totalPages || fetching}
                   onClick={() => setPage((value) => value + 1)}
-                  className="h-9 w-9 rounded-full border border-white/10 bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container disabled:opacity-30 disabled:hover:bg-surface-container-low"
+                  className="h-9 w-9 rounded-full border border-outline-variant/40 bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container disabled:opacity-30 disabled:hover:bg-surface-container-low"
                   aria-label="Next page"
                 >
                   <span className="material-symbols-outlined text-lg leading-none">chevron_right</span>
@@ -140,7 +140,7 @@ export default function ShowsPage() {
                     className={
                       period === item.id
                         ? "px-3 py-2 rounded-full bg-accent text-white text-sm"
-                        : "px-3 py-2 rounded-full bg-surface-container-low border border-white/10 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
+                        : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                     }
                   >
                     {item.label}
@@ -166,7 +166,7 @@ export default function ShowsPage() {
 function ShowGrid({ items }: { items: DiscoverItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-lg border border-white/10 bg-surface-container-low p-8 text-center text-on-surface-variant/70">
+      <div className="rounded-lg border border-outline-variant/40 bg-surface-container-low p-8 text-center text-on-surface-variant/70">
         No shows found for this category.
       </div>
     );
@@ -185,7 +185,7 @@ function ShowCard({ item }: { item: DiscoverItem }) {
   const posterUrl = item.posterPath ? `${TMDB_IMG}w342${item.posterPath}` : null;
   return (
     <Link href={`/shows/${item.tmdbId}`} className="group min-w-0">
-      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5">
+      <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-outline-variant/30">
         {posterUrl ? (
           <Image
             src={posterUrl}

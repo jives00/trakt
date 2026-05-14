@@ -60,7 +60,7 @@ export function SearchResults() {
     <div className="flex flex-col gap-stack-md">
       {/* Hero Featured Section */}
       {featured && !loading && (
-        <section className="-mx-margin-page relative h-[360px] overflow-hidden mb-4 border-b border-white/10 group">
+        <section className="-mx-margin-page relative h-[360px] overflow-hidden mb-4 border-b border-outline-variant/40 group">
           {featured.posterPath && (
             <Image
               src={`https://image.tmdb.org/t/p/w1280${featured.posterPath}`}
@@ -119,7 +119,7 @@ export function SearchResults() {
               className={`px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
                 activeFilter === f
                   ? "bg-accent text-white"
-                  : "bg-[#181818] border border-white/10 text-white/60 hover:text-white hover:border-white/30"
+                  : "bg-surface-container border border-outline-variant/40 text-on-surface/60 hover:text-on-surface hover:border-outline-variant"
               }`}
             >
               {f}
@@ -127,21 +127,21 @@ export function SearchResults() {
           ))}
         </div>
         <div className="relative flex items-center gap-3">
-          <span className="text-white/40 text-sm font-bold uppercase tracking-widest whitespace-nowrap">Sort by:</span>
+          <span className="text-on-surface/40 text-sm font-bold uppercase tracking-widest whitespace-nowrap">Sort by:</span>
           <button
             onClick={() => setShowSort((s) => !s)}
-            className="flex items-center gap-2 text-white font-bold text-sm"
+            className="flex items-center gap-2 text-on-surface font-bold text-sm"
           >
             {sort}
             <span className="material-symbols-outlined text-accent">expand_more</span>
           </button>
           {showSort && (
-            <div className="absolute top-full right-0 mt-1 bg-[#181818] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl">
+            <div className="absolute top-full right-0 mt-1 bg-surface-container-low border border-outline-variant/40 rounded-xl overflow-hidden z-20 shadow-xl">
               {(["Relevance", "Rating", "Year"] as SortOption[]).map((s) => (
                 <button
                   key={s}
                   onClick={() => { setSort(s); setShowSort(false); }}
-                  className={`block w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-white/5 ${sort === s ? "text-accent" : "text-white/60"}`}
+                  className={`block w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-on-surface/5 ${sort === s ? "text-accent" : "text-on-surface/60"}`}
                 >
                   {s}
                 </button>
@@ -159,8 +159,8 @@ export function SearchResults() {
 
       {!loading && !searched && (
         <div className="text-center py-16">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">search</span>
-          <p className="text-white/40">Search for movies and shows above.</p>
+          <span className="material-symbols-outlined text-5xl text-on-surface/20 mb-4 block">search</span>
+          <p className="text-on-surface/40">Search for movies and shows above.</p>
         </div>
       )}
 
@@ -172,7 +172,7 @@ export function SearchResults() {
 
           {/* Load More */}
           <div className="flex justify-center pt-4">
-            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#181818] border border-white/10 text-white/60 hover:text-white font-bold text-sm uppercase tracking-widest transition-colors">
+            <button className="flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-container border border-outline-variant/40 text-on-surface/60 hover:text-on-surface font-bold text-sm uppercase tracking-widest transition-colors">
               Load More Results
               <span className="material-symbols-outlined text-sm animate-bounce">keyboard_double_arrow_down</span>
             </button>
@@ -198,7 +198,7 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
 
   return (
     <div className="flex flex-col gap-3 group">
-      <Link href={href} className="relative aspect-[2/3] rounded-xl overflow-hidden border border-white/5 bg-[#181818] block transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20">
+      <Link href={href} className="relative aspect-[2/3] rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container block transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-accent/20">
         {item.posterPath ? (
           <Image
             src={`${TMDB_IMG}${item.posterPath}`}
@@ -227,8 +227,8 @@ function MediaCard({ item, token }: { item: SearchResult; token: string | null }
         </div>
       </Link>
       <div>
-        <h3 className="text-white font-bold text-sm truncate">{item.title}</h3>
-        <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">
+        <h3 className="text-on-surface font-bold text-sm truncate">{item.title}</h3>
+        <p className="text-on-surface/40 text-[10px] uppercase tracking-widest mt-1">
           {item.mediaType === "movie" ? "Movie" : "Show"}{item.year ? ` · ${item.year}` : ""}
         </p>
       </div>

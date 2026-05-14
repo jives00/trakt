@@ -16,7 +16,7 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/";
 function GenreTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+      <div className="bg-surface-container border border-outline-variant/40 rounded px-2 py-1">
         <p className="text-sm text-accent">{(payload[0].value as number).toLocaleString()}</p>
       </div>
     );
@@ -48,7 +48,7 @@ export default function StatsPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!stats) return <p className="text-white/40">Loading…</p>;
+  if (!stats) return <p className="text-on-surface/40">Loading…</p>;
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
@@ -60,7 +60,7 @@ export default function StatsPage() {
           </div>
           <Link
             href={`/stats/year/${currentYear}`}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface text-xs font-bold uppercase tracking-widest transition-colors"
           >
             {currentYear} Review
             <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -126,13 +126,13 @@ export default function StatsPage() {
                   <Link key={show.tmdbId} href={`/shows/${show.tmdbId}`}
                     className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-accent/30 transition-all group"
                   >
-                    <span className="text-2xl font-black text-white/20 w-8 text-center">{i + 1}</span>
-                    <div className="relative w-10 h-14 rounded overflow-hidden bg-[#181818] flex-shrink-0">
+                    <span className="text-2xl font-black text-on-surface/20 w-8 text-center">{i + 1}</span>
+                    <div className="relative w-10 h-14 rounded overflow-hidden bg-surface-container flex-shrink-0">
                       {posterUrl && <Image src={posterUrl} alt={show.title} fill className="object-cover" />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-white group-hover:text-accent transition-colors">{show.title}</p>
-                      <p className="text-xs text-white/40">{show.episodeCount} episode{show.episodeCount !== 1 ? "s" : ""}</p>
+                      <p className="font-bold text-on-surface group-hover:text-accent transition-colors">{show.title}</p>
+                      <p className="text-xs text-on-surface/40">{show.episodeCount} episode{show.episodeCount !== 1 ? "s" : ""}</p>
                     </div>
                   </Link>
                 );
@@ -157,7 +157,7 @@ export default function StatsPage() {
               <Link
                 key={y}
                 href={`/stats/year/${y}`}
-                className="px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {y}
               </Link>
@@ -181,8 +181,10 @@ function HeatMap({ data, theme }: { data: { date: string; count: number }[]; the
   const byDate = new Map(data.map((d) => [d.date, d.count]));
 
   const themeColors: { [key: string]: { r: number; g: number; b: number } } = {
-    "red-dark": { r: 232, g: 0, b: 45 },
-    "blue-dark": { r: 0, g: 102, b: 255 },
+    "red-dark":  { r: 232, g: 0,  b: 45 },
+    "blue-dark": { r: 0,   g: 102, b: 255 },
+    "red-light":  { r: 232, g: 0,  b: 45 },
+    "blue-light": { r: 0,   g: 82, b: 204 },
   };
   const color = themeColors[theme as keyof typeof themeColors] || themeColors["red-dark"];
 
@@ -216,7 +218,7 @@ function HeatMap({ data, theme }: { data: { date: string; count: number }[]; the
           <div className="h-6 mb-1 flex-shrink-0" />
           <div className="flex flex-col gap-1">
             {dayLabels.map((day) => (
-              <div key={day} className="h-5 flex items-center justify-end pr-1 text-[10px] text-white/40 flex-shrink-0">
+              <div key={day} className="h-5 flex items-center justify-end pr-1 text-[10px] text-on-surface/40 flex-shrink-0">
                 {day}
               </div>
             ))}
@@ -229,7 +231,7 @@ function HeatMap({ data, theme }: { data: { date: string; count: number }[]; the
               const label = wi % 4 === 0 ? monthLabels[firstDate.getMonth()] : "";
               return (
                 <div key={wi} className="flex flex-col flex-1">
-                  <div className="h-6 flex items-end justify-center text-[10px] text-white/40 mb-1 flex-shrink-0">
+                  <div className="h-6 flex items-end justify-center text-[10px] text-on-surface/40 mb-1 flex-shrink-0">
                     {label}
                   </div>
                   <div className="flex flex-col gap-1">
@@ -243,7 +245,7 @@ function HeatMap({ data, theme }: { data: { date: string; count: number }[]; the
                           style={{
                             background: day.count > 0
                               ? `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`
-                              : "rgba(255,255,255,0.05)"
+                              : "rgb(var(--on-surface-rgb) / 0.05)"
                           }}
                         />
                       );

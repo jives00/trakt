@@ -19,7 +19,7 @@ function CustomBarShape(props: any) {
 function HoursTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+      <div className="bg-surface-container border border-outline-variant/40 rounded px-2 py-1">
         <p className="text-sm text-accent">{payload[0].value}h</p>
       </div>
     );
@@ -50,7 +50,7 @@ export default function StatsMonthPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!stats) return <p className="text-white/40">Loading…</p>;
+  if (!stats) return <p className="text-on-surface/40">Loading…</p>;
 
   const chartData = stats.dailyBreakdown.map((d) => ({
     day: d.day,
@@ -72,10 +72,10 @@ export default function StatsMonthPage() {
             <p className="text-on-surface-variant/70">Monthly watch breakdown.</p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/stats/month/${prevMonth.y}/${prevMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
+            <Link href={`/stats/month/${prevMonth.y}/${prevMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_left</span>
             </Link>
-            <Link href={`/stats/month/${nextMonth.y}/${nextMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
+            <Link href={`/stats/month/${nextMonth.y}/${nextMonth.m}`} className="p-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_right</span>
             </Link>
           </div>
@@ -121,11 +121,11 @@ export default function StatsMonthPage() {
                 const posterUrl = show.posterPath ? `${TMDB_IMG}w185${show.posterPath}` : null;
                 return (
                   <Link key={show.tmdbId} href={`/shows/${show.tmdbId}`} className="group">
-                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#181818] mb-1">
+                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface-container mb-1">
                       {posterUrl && <Image src={posterUrl} alt={show.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />}
                     </div>
-                    <p className="text-xs font-semibold text-white/60 line-clamp-1 group-hover:text-white transition-colors">{show.title}</p>
-                    <p className="text-[10px] text-white/40">{show.episodeCount} ep</p>
+                    <p className="text-xs font-semibold text-on-surface/60 line-clamp-1 group-hover:text-on-surface transition-colors">{show.title}</p>
+                    <p className="text-[10px] text-on-surface/40">{show.episodeCount} ep</p>
                   </Link>
                 );
               })}
@@ -142,10 +142,10 @@ export default function StatsMonthPage() {
                 const posterUrl = movie.posterPath ? `${TMDB_IMG}w185${movie.posterPath}` : null;
                 return (
                   <Link key={movie.tmdbId} href={`/movies/${movie.tmdbId}`} className="group">
-                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#181818] mb-1">
+                    <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface-container mb-1">
                       {posterUrl && <Image src={posterUrl} alt={movie.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />}
                     </div>
-                    <p className="text-xs font-semibold text-white/60 line-clamp-1 group-hover:text-white transition-colors">{movie.title}</p>
+                    <p className="text-xs font-semibold text-on-surface/60 line-clamp-1 group-hover:text-on-surface transition-colors">{movie.title}</p>
                   </Link>
                 );
               })}

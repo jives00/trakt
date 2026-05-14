@@ -116,14 +116,14 @@ export function UpNextSection({ items: initialItems }: { items: UpNextItem[] }) 
             <button
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
-              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-on-surface/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-sm">chevron_left</span>
             </button>
             <button
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
-              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-full glass-panel flex items-center justify-center hover:bg-on-surface/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             >
               <span className="material-symbols-outlined text-sm">chevron_right</span>
             </button>
@@ -203,7 +203,7 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
         transform: isRemoving ? "scale(0.95)" : "scale(1)"
       }}
     >
-      <Link href={episodeHref} className="group relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-white/5 transition-transform duration-300 group-hover:scale-[1.02] block">
+      <Link href={episodeHref} className="group relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-outline-variant/30 transition-transform duration-300 group-hover:scale-[1.02] block">
         {item.posterPath ? (
           <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
         ) : (
@@ -239,7 +239,7 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
             Remove
           </button>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-on-surface/20">
           {item.totalAired > 0 && (
             <div
               className="h-full bg-accent transition-all duration-300"

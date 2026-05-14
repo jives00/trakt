@@ -107,7 +107,7 @@ export default function HistoryPage() {
             className={`px-3 py-2 rounded-full text-sm transition-colors ${
               filter === f
                 ? "bg-accent text-white"
-                : "bg-surface-container-low text-on-surface-variant/70 border border-white/10 hover:bg-surface-container hover:text-on-surface"
+                : "bg-surface-container-low text-on-surface-variant/70 border border-outline-variant/40 hover:bg-surface-container hover:text-on-surface"
             }`}
           >
             {f === "all" ? "All Media" : f === "movie" ? "Movies" : "Episodes"}
@@ -123,7 +123,7 @@ export default function HistoryPage() {
         <section key={day} className="mb-10">
           <div className="flex items-center gap-4 mb-5">
             <h2 className="text-h2 font-black text-on-surface">{day}</h2>
-            <div className="h-px flex-grow bg-white/5" />
+            <div className="h-px flex-grow bg-on-surface/5" />
             <span className="text-sm font-bold uppercase tracking-widest text-accent">
               {dayItems.length} {dayItems.length === 1 ? "ITEM" : "ITEMS"}
             </span>
@@ -141,7 +141,7 @@ export default function HistoryPage() {
           <button
             onClick={loadMore}
             disabled={fetching}
-            className="px-6 py-3 rounded-lg bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:text-on-surface text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+            className="px-6 py-3 rounded-lg bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:text-on-surface text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
           >
             {fetching ? "Loading..." : "Load More"}
           </button>
@@ -182,7 +182,7 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
         )}
       </div>
       <div className="flex-grow p-5 flex flex-col justify-start gap-1">
-        <h3 className="font-bold text-xl leading-tight text-white line-clamp-1">
+        <h3 className="font-bold text-xl leading-tight text-on-surface line-clamp-1">
           {isEpisode ? item.showTitle : item.title}
         </h3>
         {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
@@ -191,14 +191,14 @@ function HistoryCard({ item, onDelete }: { item: HistoryItem; onDelete: () => vo
               S{String(item.seasonNumber).padStart(2, "0")} &middot; E{String(item.episodeNumber).padStart(2, "0")}
             </span>
             {item.title && (
-              <span className="text-sm text-white/60 truncate">{item.title}</span>
+              <span className="text-sm text-on-surface/60 truncate">{item.title}</span>
             )}
           </div>
         )}
         {!isEpisode && (
           <span className="text-sm text-on-surface-variant/70 font-bold uppercase">Movie</span>
         )}
-        <div className="flex items-center gap-3 border-t border-white/5 pt-3 mt-auto">
+        <div className="flex items-center gap-3 border-t border-outline-variant/30 pt-3 mt-auto">
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
             className="text-on-surface-variant/40 hover:text-accent transition-colors material-symbols-outlined text-lg"

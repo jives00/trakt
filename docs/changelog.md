@@ -2,6 +2,11 @@
 
 ## May 14, 2026
 
+### Web
+- Light mode theme support: added red-light and blue-light themes with CSS variable overrides; glass panels use white-backed glass-bg in light themes; replaced hardcoded dark opacity classes (text-white/*, border-white/*, bg-white/*) with semantic tokens across all pages and components; dashboard hero always uses dark overlay so text stays white across themes `a7f49f8`
+
+## May 14, 2026
+
 ### API
 - Expand test suite: added tests for user, settings, export-token, excel-export, and export-feeds routes (5 new test files, 26 new tests); added edge cases to auth, search, discover, and movies tests; tuned web vitest config with forks pool and 4 workers; updated /commit skill to run API/web tests in parallel and skip unaffected workspaces `5429acc`
 

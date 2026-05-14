@@ -166,7 +166,7 @@ export default function ListDetailPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!list) return <p className="text-white/40">Loading…</p>;
+  if (!list) return <p className="text-on-surface/40">Loading…</p>;
 
   let filtered = filter === "all" ? list.items : list.items.filter((i) => i.mediaType === filter);
 
@@ -185,7 +185,7 @@ export default function ListDetailPage() {
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <div>
         <header className="mb-8">
-          <Link href="/lists" className="flex items-center gap-1 text-xs text-white/40 hover:text-white mb-4 transition-colors">
+          <Link href="/lists" className="flex items-center gap-1 text-xs text-on-surface/40 hover:text-on-surface mb-4 transition-colors">
             <span className="material-symbols-outlined text-base">arrow_back</span>
             All Lists
           </Link>
@@ -198,7 +198,7 @@ export default function ListDetailPage() {
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full bg-surface-container-low border border-white/10 rounded-lg px-4 py-2 text-white text-h1 font-black focus:outline-none focus:border-accent transition-colors"
+                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface text-h1 font-black focus:outline-none focus:border-accent transition-colors"
                     placeholder="List name"
                     autoFocus
                   />
@@ -208,7 +208,7 @@ export default function ListDetailPage() {
                 <textarea
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="w-full bg-surface-container-low border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors resize-none"
+                  className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface text-sm focus:outline-none focus:border-accent transition-colors resize-none"
                   placeholder="Description (optional)"
                   rows={3}
                   autoFocus={list.isSystem}
@@ -223,7 +223,7 @@ export default function ListDetailPage() {
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 text-xs font-bold uppercase tracking-wider hover:bg-white/10 transition-colors"
+                  className="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface/60 text-xs font-bold uppercase tracking-wider hover:bg-surface-container-high transition-colors"
                 >
                   Cancel
                 </button>
@@ -232,17 +232,17 @@ export default function ListDetailPage() {
           ) : (
             <>
               <div className="flex items-start justify-between gap-4 mb-1">
-                <h1 className="text-h1 font-black tracking-tight text-white">{list.name}</h1>
+                <h1 className="text-h1 font-black tracking-tight text-on-surface">{list.name}</h1>
                 <button
                   onClick={() => setEditing(true)}
-                  className="text-white/40 hover:text-accent transition-colors"
+                  className="text-on-surface/40 hover:text-accent transition-colors"
                   aria-label="Edit list"
                 >
                   <span className="material-symbols-outlined text-lg">edit</span>
                 </button>
               </div>
-              {list.description && <p className="text-white/40">{list.description}</p>}
-              <p className="text-xs text-white/40 mt-1">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</p>
+              {list.description && <p className="text-on-surface/40">{list.description}</p>}
+              <p className="text-xs text-on-surface/40 mt-1">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</p>
             </>
           )}
         </header>
@@ -258,7 +258,7 @@ export default function ListDetailPage() {
                   className={
                     filter === opt.id
                       ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                      : "px-3 py-2 rounded-full bg-surface-container-low border border-white/10 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
+                      : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                   }
                 >
                   {opt.label}
@@ -275,7 +275,7 @@ export default function ListDetailPage() {
                   className={
                     sortBy === opt.id
                       ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                      : "px-3 py-2 rounded-full bg-surface-container-low border border-white/10 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
+                      : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                   }
                 >
                   {opt.label}
@@ -293,7 +293,7 @@ export default function ListDetailPage() {
                     className={
                       selectedStatuses.has(status)
                         ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                        : "px-3 py-2 rounded-full bg-surface-container-low border border-white/10 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
+                        : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                     }
                   >
                     {status}
@@ -306,8 +306,8 @@ export default function ListDetailPage() {
 
         {sorted.length === 0 && (
           <div className="text-center py-24">
-            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">playlist_add</span>
-            <p className="text-white/40">{list.items.length === 0 ? "This list is empty." : "No items match this filter."}</p>
+            <span className="material-symbols-outlined text-5xl text-on-surface/20 mb-4 block">playlist_add</span>
+            <p className="text-on-surface/40">{list.items.length === 0 ? "This list is empty." : "No items match this filter."}</p>
           </div>
         )}
 
@@ -332,18 +332,18 @@ function ListItemCard({ item, onRemove }: { item: ListItemEntry; onRemove: () =>
   return (
     <div className="group relative">
       <Link href={href} className="block">
-        <div className="relative aspect-[2/3] overflow-hidden bg-[#181818] mb-2">
+        <div className="relative aspect-[2/3] overflow-hidden bg-surface-container mb-2">
           {posterUrl ? (
             <Image src={posterUrl} alt={item.title ?? ""} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <span className="material-symbols-outlined text-3xl text-white/20">movie</span>
+              <span className="material-symbols-outlined text-3xl text-on-surface/20">movie</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
-        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-accent transition-colors">{item.title}</p>
-        {item.year && <p className="text-xs text-white/40">{item.year}</p>}
+        <p className="text-sm font-semibold text-on-surface line-clamp-1 group-hover:text-accent transition-colors">{item.title}</p>
+        {item.year && <p className="text-xs text-on-surface/40">{item.year}</p>}
       </Link>
       <button
         onClick={onRemove}

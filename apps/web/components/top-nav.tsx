@@ -134,13 +134,13 @@ export function TopNav() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/20 bg-[#0f0f0f]/80 backdrop-blur-2xl">
+    <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-outline-variant/40 bg-background/80 backdrop-blur-2xl">
       <div className="flex h-full items-center justify-between px-8 gap-8">
         {/* Left: Logo + Search Bar */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <Link
             href="/"
-            className="text-2xl font-black italic tracking-tighter text-white uppercase whitespace-nowrap"
+            className="text-2xl font-black italic tracking-tighter text-on-surface uppercase whitespace-nowrap"
           >
             TRAKT
           </Link>
@@ -153,22 +153,22 @@ export function TopNav() {
                   onChange={(e) => handleSearchInput(e.target.value)}
                   onKeyDown={handleSearchKeydown}
                   placeholder="Search movies and shows…"
-                  className="w-full rounded-full border border-white/20 bg-white/5 px-4 py-2 pr-10 text-white placeholder:text-white/40 focus:border-accent focus:outline-none transition-colors text-sm"
+                  className="w-full rounded-full border border-outline-variant/40 bg-surface-container px-4 py-2 pr-10 text-on-surface placeholder:text-on-surface/40 focus:border-accent focus:outline-none transition-colors text-sm"
                 />
                 {isSearchLoading && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-on-surface/20 border-t-on-surface rounded-full animate-spin" />
                 )}
               </div>
             </form>
 
             {/* Search Results Dropdown */}
             {isSearchOpen && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-low border border-outline-variant/40 rounded-lg shadow-xl z-50 overflow-hidden max-h-96 overflow-y-auto">
                 {searchResults.map((result, index) => (
                   <button
                     key={`${result.tmdbId}-${result.mediaType}`}
-                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 text-left transition-colors ${
-                      index === highlightedIndex ? "bg-white/10" : ""
+                    className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-on-surface/5 text-left transition-colors ${
+                      index === highlightedIndex ? "bg-on-surface/10" : ""
                     }`}
                     onMouseDown={() => handleSearchResultClick(result)}
                     onMouseEnter={() => setHighlightedIndex(index)}
@@ -181,12 +181,12 @@ export function TopNav() {
                       />
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium text-on-surface truncate">
                         {result.title}
                       </p>
-                      <p className="text-xs text-white/50 flex items-center gap-2">
+                      <p className="text-xs text-on-surface/50 flex items-center gap-2">
                         <span>{result.year ?? "—"}</span>
-                        <span className="uppercase tracking-wide text-[10px] text-white/40">
+                        <span className="uppercase tracking-wide text-[10px] text-on-surface/40">
                           {result.mediaType === "show" ? "TV Show" : "Movie"}
                         </span>
                       </p>
@@ -204,7 +204,7 @@ export function TopNav() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-white font-medium transition-colors hover:text-accent"
+              className="text-on-surface font-medium transition-colors hover:text-accent"
             >
               {link.label}
             </Link>
@@ -215,7 +215,7 @@ export function TopNav() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-white/20 hover:border-white/40 transition-colors bg-white/5"
+            className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-outline-variant/40 hover:border-outline-variant/80 transition-colors bg-surface-container"
           >
             <Image
               src="/avatar.jpg"
@@ -226,20 +226,20 @@ export function TopNav() {
             />
           </button>
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-[#181818] border border-white/10 rounded-xl overflow-hidden z-20 shadow-xl">
+            <div className="absolute right-0 mt-2 w-48 bg-surface-container-low border border-outline-variant/40 rounded-xl overflow-hidden z-20 shadow-xl">
               {avatarDropdownLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setShowDropdown(false)}
-                  className="block w-full text-left px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-b border-white/5"
+                  className="block w-full text-left px-4 py-3 text-on-surface hover:bg-on-surface/10 transition-colors text-sm font-medium border-b border-outline-variant/30"
                 >
                   {link.label}
                 </Link>
               ))}
               <button
                 onClick={handleLogout}
-                className="block w-full text-left px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-t border-white/5 text-red-400 hover:text-red-300"
+                className="block w-full text-left px-4 py-3 text-on-surface hover:bg-on-surface/10 transition-colors text-sm font-medium border-t border-outline-variant/30 text-red-400 hover:text-red-300"
               >
                 Logout
               </button>
@@ -250,4 +250,3 @@ export function TopNav() {
     </header>
   );
 }
-

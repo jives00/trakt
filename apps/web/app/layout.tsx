@@ -21,8 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
             try {
+              var valid = ['red-dark','blue-dark','red-light','blue-light'];
               var t = localStorage.getItem('theme');
-              if (t === 'blue-dark' || t === 'red-dark') {
+              if (t && valid.indexOf(t) !== -1) {
                 document.documentElement.setAttribute('data-theme', t);
               }
             } catch(e) {}
@@ -35,11 +36,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <TopNav />
             <main className="pt-16 min-h-screen flex flex-col">
               {children}
-              <footer className="bg-black border-t border-white/5 mt-12">
+              <footer className="bg-surface-container-lowest border-t border-outline-variant/30 mt-12">
                 <div className="max-w-page mx-auto px-margin-page py-10 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex flex-col items-center md:items-start gap-1">
-                    <span className="text-white font-bold italic tracking-tighter">TRAKT</span>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/30">© {new Date().getFullYear()} Personal Media Tracker</p>
+                    <span className="text-on-surface font-bold italic tracking-tighter">TRAKT</span>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface/30">© {new Date().getFullYear()} Personal Media Tracker</p>
                   </div>
                 </div>
               </footer>

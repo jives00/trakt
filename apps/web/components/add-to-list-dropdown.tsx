@@ -35,7 +35,6 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
       const customLists = fetchedLists.filter((l) => !l.isSystem);
       setLists(customLists);
 
-      // Fetch details for all lists to check membership
       const detailsMap = new Map<number, ListDetail>();
       const containingIds = new Set<number>();
 
@@ -77,7 +76,6 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
   async function handleToggleList(listId: number) {
     try {
       if (containingListIds.has(listId)) {
-        // Remove from list
         await api.removeListItem(listId, mediaType, mediaId, token);
         setContainingListIds((prev) => {
           const next = new Set(prev);
@@ -85,7 +83,6 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
           return next;
         });
       } else {
-        // Add to list
         await api.addListItem(listId, mediaType, mediaId, token);
         setContainingListIds((prev) => new Set([...prev, listId]));
       }
@@ -120,7 +117,7 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
         className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
           containingListIds.size > 0
             ? "bg-accent text-white"
-            : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+            : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
         }`}
       >
         <span className="material-symbols-outlined text-sm">playlist_add</span>
@@ -128,7 +125,7 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container border border-white/10 rounded-xl overflow-hidden shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container border border-outline-variant/40 rounded-xl overflow-hidden shadow-lg z-50">
           {creating ? (
             <div className="p-3 flex gap-2">
               <input
@@ -136,7 +133,7 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
                 placeholder="New list name"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
-                className="flex-1 bg-surface-container-low border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors"
+                className="flex-1 bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-2 text-on-surface text-sm focus:outline-none focus:border-accent transition-colors"
                 autoFocus
               />
               <button
@@ -147,7 +144,7 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
               </button>
               <button
                 onClick={() => setCreating(false)}
-                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/60 text-xs font-bold hover:bg-white/10 transition-colors"
+                className="px-3 py-2 rounded-lg bg-surface-container-high border border-outline-variant/40 text-on-surface/60 text-xs font-bold hover:bg-surface-container-highest transition-colors"
               >
                 Cancel
               </button>
@@ -155,20 +152,20 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
           ) : (
             <>
               {loading ? (
-                <div className="p-3 text-center text-white/40 text-sm">Loading lists…</div>
+                <div className="p-3 text-center text-on-surface/40 text-sm">Loading lists…</div>
               ) : lists.length === 0 ? (
-                <div className="p-3 text-center text-white/40 text-sm">No custom lists. Create one below.</div>
+                <div className="p-3 text-center text-on-surface/40 text-sm">No custom lists. Create one below.</div>
               ) : (
                 <div className="max-h-64 overflow-y-auto">
                   {lists.map((list) => (
                     <button
                       key={list.id}
                       onClick={() => handleToggleList(list.id)}
-                      className="w-full px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white transition-colors text-left border-b border-white/5 last:border-b-0 flex items-center justify-between"
+                      className="w-full px-4 py-3 text-sm font-medium text-on-surface/80 hover:bg-on-surface/5 hover:text-on-surface transition-colors text-left border-b border-outline-variant/30 last:border-b-0 flex items-center justify-between"
                     >
                       <span>{list.name}</span>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-white/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
+                        <span className="text-xs text-on-surface/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
                         {containingListIds.has(list.id) && (
                           <span className="material-symbols-outlined text-sm text-accent">check</span>
                         )}
@@ -178,10 +175,10 @@ export function AddToListDropdown({ token, mediaType, mediaId }: AddToListDropdo
                 </div>
               )}
 
-              <div className="border-t border-white/10">
+              <div className="border-t border-outline-variant/40">
                 <button
                   onClick={() => setCreating(true)}
-                  className="w-full px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white transition-colors text-left flex items-center gap-2"
+                  className="w-full px-4 py-3 text-sm font-medium text-on-surface/80 hover:bg-on-surface/5 hover:text-on-surface transition-colors text-left flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-base">add</span>
                   New List

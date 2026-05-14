@@ -193,48 +193,48 @@ export default function SeasonDetailPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
               {show.status && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
                   <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
-                  <p className="text-white text-base">{airsOnParts.join(" ")}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
+                  <p className="text-on-surface text-base">{airsOnParts.join(" ")}</p>
                 </div>
               )}
               {show.firstAirDate && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
-                  <p className="text-white text-base">{formatDate(show.firstAirDate)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
+                  <p className="text-on-surface text-base">{formatDate(show.firstAirDate)}</p>
                 </div>
               )}
               {show.runtimeMin && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
-                  <p className="text-white text-base">{show.runtimeMin} min</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
+                  <p className="text-on-surface text-base">{show.runtimeMin} min</p>
                 </div>
               )}
               {show.originCountry && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
-                  <p className="text-white text-base">{formatCountry(show.originCountry)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
+                  <p className="text-on-surface text-base">{formatCountry(show.originCountry)}</p>
                 </div>
               )}
               {show.originalLanguage && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
-                  <p className="text-white text-base">{formatLanguage(show.originalLanguage)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
+                  <p className="text-on-surface text-base">{formatLanguage(show.originalLanguage)}</p>
                 </div>
               )}
             </section>
 
             {/* Episodes */}
             <section>
-              <h2 className="text-white font-black text-xl mb-6">
+              <h2 className="text-on-surface font-black text-xl mb-6">
                 Episodes
                 {episodes.length > 0 && (
-                  <span className="text-white/30 font-normal text-base ml-2">({episodes.length})</span>
+                  <span className="text-on-surface/30 font-normal text-base ml-2">({episodes.length})</span>
                 )}
               </h2>
               <div>
@@ -256,7 +256,7 @@ export default function SeasonDetailPage() {
           <div className="lg:col-span-4">
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-on-surface font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
@@ -277,14 +277,14 @@ export default function SeasonDetailPage() {
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
                 <div className="grid grid-cols-3 gap-2">
                   <Link
                     href={`https://www.themoviedb.org/tv/${tmdbId}/season/${sn}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     TMDB
                   </Link>
@@ -292,14 +292,14 @@ export default function SeasonDetailPage() {
                     href={`https://trakt.tv/search?q=${encodeURIComponent(show?.title || '')}&type=show`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     Trakt
                   </Link>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
+              <div className="border-t border-outline-variant/40 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Episodes", onRefresh: handleRefreshEpisodes },

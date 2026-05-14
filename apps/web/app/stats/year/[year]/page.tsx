@@ -19,7 +19,7 @@ function CustomBarShape(props: any) {
 function HoursTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-surface-container border border-white/10 rounded px-2 py-1">
+      <div className="bg-surface-container border border-outline-variant/40 rounded px-2 py-1">
         <p className="text-sm text-accent">{payload[0].value}h</p>
       </div>
     );
@@ -51,7 +51,7 @@ export default function StatsYearPage() {
 
   if (isLoading) return null;
   if (error) return <p className="text-error">{error}</p>;
-  if (!stats) return <p className="text-white/40">Loading…</p>;
+  if (!stats) return <p className="text-on-surface/40">Loading…</p>;
 
   const chartData = stats.monthlyBreakdown.map((m) => ({
     month: MONTHS[m.month - 1],
@@ -71,10 +71,10 @@ export default function StatsYearPage() {
             <p className="text-on-surface-variant/70">Your year in watching.</p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/stats/year/${year - 1}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
+            <Link href={`/stats/year/${year - 1}`} className="p-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_left</span>
             </Link>
-            <Link href={`/stats/year/${year + 1}`} className="p-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface transition-colors">
+            <Link href={`/stats/year/${year + 1}`} className="p-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface transition-colors">
               <span className="material-symbols-outlined">chevron_right</span>
             </Link>
           </div>
@@ -124,13 +124,13 @@ export default function StatsYearPage() {
                   <Link key={show.tmdbId} href={`/shows/${show.tmdbId}`}
                     className="glass-panel rounded-xl p-3 flex items-center gap-4 hover:border-accent/30 transition-all group"
                   >
-                    <span className="text-2xl font-black text-white/20 w-8 text-center">{i + 1}</span>
-                    <div className="relative w-10 h-14 rounded overflow-hidden bg-[#181818] flex-shrink-0">
+                    <span className="text-2xl font-black text-on-surface/20 w-8 text-center">{i + 1}</span>
+                    <div className="relative w-10 h-14 rounded overflow-hidden bg-surface-container flex-shrink-0">
                       {posterUrl && <Image src={posterUrl} alt={show.title} fill className="object-cover" />}
                     </div>
                     <div className="flex-grow">
-                      <p className="font-bold text-white group-hover:text-accent transition-colors">{show.title}</p>
-                      <p className="text-xs text-white/40">{show.episodeCount} episodes</p>
+                      <p className="font-bold text-on-surface group-hover:text-accent transition-colors">{show.title}</p>
+                      <p className="text-xs text-on-surface/40">{show.episodeCount} episodes</p>
                     </div>
                   </Link>
                 );
@@ -146,8 +146,8 @@ export default function StatsYearPage() {
             <div className="flex flex-wrap gap-2">
               {stats.topGenres.slice(0, 8).map((g) => (
                 <div key={g.genre} className="glass-panel rounded-full px-4 py-2 flex items-center gap-2">
-                  <span className="text-sm font-bold text-white">{g.genre}</span>
-                  <span className="text-xs text-white/40">{g.count}</span>
+                  <span className="text-sm font-bold text-on-surface">{g.genre}</span>
+                  <span className="text-xs text-on-surface/40">{g.count}</span>
                 </div>
               ))}
             </div>
@@ -162,7 +162,7 @@ export default function StatsYearPage() {
               <Link
                 key={m}
                 href={`/stats/month/${year}/${i + 1}`}
-                className="px-4 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
+                className="px-4 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface-variant hover:text-on-surface hover:border-accent/40 text-sm font-bold transition-colors"
               >
                 {m}
               </Link>

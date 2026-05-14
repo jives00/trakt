@@ -44,7 +44,7 @@ export function RefreshButton({ sections, className = '' }: Props) {
         <button
           onClick={() => handleRefresh(sections[0])}
           disabled={loading !== null}
-          className="flex-1 py-3 rounded-l-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors bg-white/5 border border-white/10 text-white/80 hover:bg-white/10 disabled:opacity-50"
+          className="flex-1 py-3 rounded-l-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -67,7 +67,7 @@ export function RefreshButton({ sections, className = '' }: Props) {
         <button
           onClick={() => setDropdownOpen(!dropdownOpen)}
           disabled={loading !== null}
-          className="px-3 py-3 rounded-r-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center transition-colors bg-white/5 border border-l-0 border-white/10 text-white/80 hover:bg-white/10 disabled:opacity-50"
+          className="px-3 py-3 rounded-r-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center transition-colors bg-surface-container border border-l-0 border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high disabled:opacity-50"
           title="More options"
         >
           <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 0" }}>
@@ -78,13 +78,13 @@ export function RefreshButton({ sections, className = '' }: Props) {
 
       {/* Dropdown menu */}
       {dropdownOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container border border-white/10 rounded-xl overflow-hidden shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container border border-outline-variant/40 rounded-xl overflow-hidden shadow-lg z-50">
           {sections.map((section, idx) => (
             <button
               key={idx}
               onClick={() => handleRefresh(section)}
               disabled={loading !== null}
-              className="w-full px-4 py-3 text-sm font-medium text-white/80 hover:bg-white/5 hover:text-white transition-colors text-left disabled:opacity-50 border-b border-white/5 last:border-b-0"
+              className="w-full px-4 py-3 text-sm font-medium text-on-surface/80 hover:bg-on-surface/5 hover:text-on-surface transition-colors text-left disabled:opacity-50 border-b border-outline-variant/30 last:border-b-0"
             >
               {section.label}
             </button>

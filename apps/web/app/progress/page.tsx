@@ -50,8 +50,8 @@ export default function ProgressPage() {
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Watching Progress</h1>
-          <p className="text-white/40">
+          <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">Watching Progress</h1>
+          <p className="text-on-surface/40">
             {items.length > 0 ? `${items.length} show${items.length === 1 ? "" : "s"} in progress` : "No shows in progress."}
           </p>
         </div>
@@ -61,7 +61,7 @@ export default function ProgressPage() {
               key={s}
               onClick={() => setSortBy(s)}
               className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                sortBy === s ? "bg-accent text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                sortBy === s ? "bg-accent text-on-surface" : "bg-surface-container text-on-surface/40 border border-outline-variant/40 hover:text-on-surface"
               }`}
             >
               {s === "alphabetical" ? "A–Z" : s === "percent-watched" ? "% Watched" : "Episodes"}
@@ -70,12 +70,12 @@ export default function ProgressPage() {
         </div>
       </header>
 
-      {fetching && <p className="text-white/40">Loading…</p>}
+      {fetching && <p className="text-on-surface/40">Loading…</p>}
 
       {!fetching && items.length === 0 && (
         <div className="text-center py-24">
-          <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">trending_up</span>
-          <p className="text-white/40">No in-progress shows.</p>
+          <span className="material-symbols-outlined text-5xl text-on-surface/20 mb-4 block">trending_up</span>
+          <p className="text-on-surface/40">No in-progress shows.</p>
         </div>
       )}
 
@@ -99,24 +99,24 @@ function ProgressCard({ item }: { item: ProgressItem }) {
           <Image src={posterUrl} alt={item.title} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
         ) : (
           <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-            <span className="material-symbols-outlined text-4xl text-white/20">tv</span>
+            <span className="material-symbols-outlined text-4xl text-on-surface/20">tv</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#181818] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent" />
       </div>
       <div className="p-5">
-        <h4 className="font-bold text-white text-base leading-tight mb-1 line-clamp-1">{item.title}</h4>
+        <h4 className="font-bold text-on-surface text-base leading-tight mb-1 line-clamp-1">{item.title}</h4>
         {item.nextEpisode && (
-          <p className="text-white/40 text-xs font-medium mb-4 line-clamp-1">
+          <p className="text-on-surface/40 text-xs font-medium mb-4 line-clamp-1">
             Next: S{String(item.nextEpisode.seasonNumber).padStart(2,"0")}E{String(item.nextEpisode.episodeNumber).padStart(2,"0")}
             {item.nextEpisode.title ? ` · ${item.nextEpisode.title}` : ""}
           </p>
         )}
-        <div className="flex justify-between items-center text-[10px] font-bold text-white/60 uppercase tracking-widest mb-2">
+        <div className="flex justify-between items-center text-[10px] font-bold text-on-surface/60 uppercase tracking-widest mb-2">
           <span>{item.watchedEpisodes} / {item.totalEpisodes} eps</span>
           <span className="text-accent">{pct}%</span>
         </div>
-        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-1 bg-on-surface/10 rounded-full overflow-hidden">
           <div
             className="h-full bg-accent rounded-full"
             style={{ width: `${pct}%`, boxShadow: "0 0 8px rgb(var(--accent-rgb))" }}

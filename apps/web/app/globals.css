@@ -1,4 +1,6 @@
 /* Theme color variables - space-separated for rgb(var / alpha) compatibility */
+
+/* ─── Dark themes (default) ─────────────────────────────────────────────── */
 :root,
 [data-theme="red-dark"] {
   --accent-rgb: 232 0 45;
@@ -6,6 +8,21 @@
   --accent-light-rgb: 255 26 74;
   --on-accent-bg: #68000e;
   --glass-bg: rgba(24, 24, 24, 0.7);
+
+  --background-rgb: 29 29 29;
+  --surface-container-lowest-rgb: 12 15 15;
+  --surface-container-low-rgb: 26 28 28;
+  --surface-container-rgb: 30 32 32;
+  --surface-container-high-rgb: 40 42 43;
+  --surface-container-highest-rgb: 51 53 53;
+  --surface-variant-rgb: 51 53 53;
+
+  --on-surface-rgb: 226 226 226;
+  --on-surface-variant-rgb: 204 204 204;
+  --on-background-rgb: 226 226 226;
+
+  --outline-rgb: 175 135 133;
+  --outline-variant-rgb: 94 63 61;
 }
 
 [data-theme="blue-dark"] {
@@ -14,6 +31,68 @@
   --accent-light-rgb: 51 133 255;
   --on-accent-bg: #002b80;
   --glass-bg: rgba(24, 24, 24, 0.7);
+
+  --background-rgb: 29 29 29;
+  --surface-container-lowest-rgb: 12 15 15;
+  --surface-container-low-rgb: 26 28 28;
+  --surface-container-rgb: 30 32 32;
+  --surface-container-high-rgb: 40 42 43;
+  --surface-container-highest-rgb: 51 53 53;
+  --surface-variant-rgb: 51 53 53;
+
+  --on-surface-rgb: 226 226 226;
+  --on-surface-variant-rgb: 204 204 204;
+  --on-background-rgb: 226 226 226;
+
+  --outline-rgb: 175 135 133;
+  --outline-variant-rgb: 94 63 61;
+}
+
+/* ─── Light themes ───────────────────────────────────────────────────────── */
+[data-theme="red-light"] {
+  --accent-rgb: 232 0 45;
+  --accent-hover-rgb: 212 0 38;
+  --accent-light-rgb: 192 0 30;
+  --on-accent-bg: #fff0f0;
+  --glass-bg: rgba(255, 255, 255, 0.80);
+
+  --background-rgb: 240 242 245;
+  --surface-container-lowest-rgb: 234 236 239;
+  --surface-container-low-rgb: 232 234 237;
+  --surface-container-rgb: 221 225 231;
+  --surface-container-high-rgb: 210 214 221;
+  --surface-container-highest-rgb: 199 204 212;
+  --surface-variant-rgb: 199 204 212;
+
+  --on-surface-rgb: 28 30 33;
+  --on-surface-variant-rgb: 60 64 67;
+  --on-background-rgb: 28 30 33;
+
+  --outline-rgb: 120 125 132;
+  --outline-variant-rgb: 200 205 210;
+}
+
+[data-theme="blue-light"] {
+  --accent-rgb: 0 82 204;
+  --accent-hover-rgb: 0 65 163;
+  --accent-light-rgb: 0 102 255;
+  --on-accent-bg: #e8f0fe;
+  --glass-bg: rgba(255, 255, 255, 0.80);
+
+  --background-rgb: 240 242 245;
+  --surface-container-lowest-rgb: 234 236 239;
+  --surface-container-low-rgb: 232 234 237;
+  --surface-container-rgb: 221 225 231;
+  --surface-container-high-rgb: 210 214 221;
+  --surface-container-highest-rgb: 199 204 212;
+  --surface-variant-rgb: 199 204 212;
+
+  --on-surface-rgb: 28 30 33;
+  --on-surface-variant-rgb: 60 64 67;
+  --on-background-rgb: 28 30 33;
+
+  --outline-rgb: 120 125 132;
+  --outline-variant-rgb: 200 205 210;
 }
 
 @tailwind base;
@@ -40,7 +119,7 @@
   .glass-panel {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgb(var(--on-surface-rgb) / 0.08);
   }
   .red-glow-hover:hover {
     box-shadow: 0 0 20px rgb(var(--accent-rgb) / 0.15);

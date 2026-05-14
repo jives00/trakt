@@ -56,21 +56,21 @@ export function ImagePickerModal({ open, onClose, tmdbId, imageType, mediaType, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 bg-[#181818] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <h2 className="text-white font-bold text-lg">
+      <div className="relative z-10 bg-surface-container-low border border-outline-variant/40 rounded-2xl w-full max-w-4xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant/40">
+          <h2 className="text-on-surface font-bold text-lg">
             {imageType === "hero" ? "Choose Backdrop" : "Choose Poster"}
           </h2>
-          <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
+          <button onClick={onClose} className="text-on-surface/40 hover:text-on-surface transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
         <div className="overflow-y-auto p-6">
           {loading ? (
-            <p className="text-white/40 text-sm text-center py-12">Loading images…</p>
+            <p className="text-on-surface/40 text-sm text-center py-12">Loading images…</p>
           ) : images.length === 0 ? (
-            <p className="text-white/40 text-sm text-center py-12">No images available.</p>
+            <p className="text-on-surface/40 text-sm text-center py-12">No images available.</p>
           ) : (
             <div className={`grid gap-3 ${imageType === "hero" ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"}`}>
               {images.map((path) => (

@@ -225,14 +225,14 @@ export default function EpisodeDetailPage() {
               <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
                 {episode.airDate && (
                   <div>
-                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Air Date</p>
-                    <p className="text-white text-base">{formatDate(episode.airDate)}</p>
+                    <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Air Date</p>
+                    <p className="text-on-surface text-base">{formatDate(episode.airDate)}</p>
                   </div>
                 )}
                 {episode.runtimeMin && (
                   <div>
-                    <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
-                    <p className="text-white text-base">{episode.runtimeMin} min</p>
+                    <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
+                    <p className="text-on-surface text-base">{episode.runtimeMin} min</p>
                   </div>
                 )}
               </section>
@@ -240,7 +240,7 @@ export default function EpisodeDetailPage() {
 
             {/* Episode Still */}
             {stillUrl && (
-              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-white/5">
+              <section className="relative aspect-video overflow-hidden bg-surface-container-high border border-outline-variant/30">
                 <Image src={stillUrl} alt={episode.title ?? ""} fill className="object-cover" />
               </section>
             )}
@@ -249,13 +249,13 @@ export default function EpisodeDetailPage() {
             {cast.length > 0 && (
               <section>
                 <div className="mb-6">
-                  <h2 className="text-white font-black text-xl">Cast</h2>
+                  <h2 className="text-on-surface font-black text-xl">Cast</h2>
                 </div>
                 <div className="space-y-8">
                   {regulars.length > 0 && (
                     <div>
                       {guestStars.length > 0 && (
-                        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Series Regulars</p>
+                        <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-4">Series Regulars</p>
                       )}
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                         {regulars.map((member) => (
@@ -267,7 +267,7 @@ export default function EpisodeDetailPage() {
                   {guestStars.length > 0 && (
                     <div>
                       {regulars.length > 0 && (
-                        <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">Guest Stars</p>
+                        <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-4">Guest Stars</p>
                       )}
                       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                         {guestStars.map((member) => (
@@ -285,7 +285,7 @@ export default function EpisodeDetailPage() {
           <div className="lg:col-span-4">
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-on-surface font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
@@ -301,20 +301,20 @@ export default function EpisodeDetailPage() {
               </div>
 
               {history.length > 0 && (
-                <div className="border-t border-white/10 pt-4">
-                  <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
+                <div className="border-t border-outline-variant/40 pt-4">
+                  <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Watch History</label>
                   <div className="space-y-2">
                     {history.map((entry) => (
-                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-white/5 hover:bg-white/10 transition-colors">
+                      <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
                         <div className="flex-1">
-                          <p className="text-white text-sm">
+                          <p className="text-on-surface text-sm">
                             {new Date(entry.watchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
-                          <p className="text-white/50 text-xs capitalize">{entry.source}</p>
+                          <p className="text-on-surface/50 text-xs capitalize">{entry.source}</p>
                         </div>
                         <button
                           onClick={() => handleRemoveLatest(entry.id)}
-                          className="text-white/40 hover:text-accent transition-colors ml-2"
+                          className="text-on-surface/40 hover:text-accent transition-colors ml-2"
                         >
                           <span className="material-symbols-outlined text-base">close</span>
                         </button>
@@ -324,14 +324,14 @@ export default function EpisodeDetailPage() {
                 </div>
               )}
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
                 <div className="grid grid-cols-3 gap-2">
                   <Link
                     href={`https://www.themoviedb.org/tv/${tmdbId}/season/${sn}/episode/${ep}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     TMDB
                   </Link>
@@ -339,14 +339,14 @@ export default function EpisodeDetailPage() {
                     href={`https://trakt.tv/search?q=${encodeURIComponent(show?.title || '')}&type=show`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     Trakt
                   </Link>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
+              <div className="border-t border-outline-variant/40 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Episode Data", onRefresh: handleRefreshEpisodeData },
@@ -370,17 +370,17 @@ function CastCard({ member }: { member: CastMember }) {
       rel="noopener noreferrer"
       className="text-center group cursor-pointer"
     >
-      <div className="relative aspect-[2/3] mb-2 overflow-hidden bg-surface-container-high rounded border border-white/5 group-hover:border-white/20 transition-colors">
+      <div className="relative aspect-[2/3] mb-2 overflow-hidden bg-surface-container-high rounded border border-outline-variant/30 group-hover:border-outline-variant transition-colors">
         {photoUrl ? (
           <Image src={photoUrl} alt={member.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="material-symbols-outlined text-2xl text-white/20">person</span>
+            <span className="material-symbols-outlined text-2xl text-on-surface/20">person</span>
           </div>
         )}
       </div>
-      <p className="text-white text-xs font-semibold line-clamp-2 group-hover:text-accent transition-colors">{member.name}</p>
-      <p className="text-white/50 text-[10px] line-clamp-2 mt-0.5">{member.character}</p>
+      <p className="text-on-surface text-xs font-semibold line-clamp-2 group-hover:text-accent transition-colors">{member.name}</p>
+      <p className="text-on-surface/50 text-[10px] line-clamp-2 mt-0.5">{member.character}</p>
     </a>
   );
 }

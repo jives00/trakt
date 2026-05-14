@@ -92,7 +92,7 @@ export default function CalendarPage() {
               key={f}
               onClick={() => handleFilterChange(f)}
               className={`px-3 py-2 rounded-full text-sm transition-colors ${
-                filter === f ? "bg-accent text-white" : "bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"
+                filter === f ? "bg-accent text-white" : "bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"
               }`}
             >
               {f === "all" ? "All Media" : f === "tv" ? "Episodes" : "Movies"}
@@ -101,7 +101,7 @@ export default function CalendarPage() {
           <select
             value={range}
             onChange={(e) => handleRangeChange(Number(e.target.value))}
-            className="bg-surface-container-low border border-white/10 rounded-full px-3 py-2 text-sm text-on-surface-variant/70 focus:outline-none focus:border-accent transition-colors"
+            className="bg-surface-container-low border border-outline-variant/40 rounded-full px-3 py-2 text-sm text-on-surface-variant/70 focus:outline-none focus:border-accent transition-colors"
           >
             <option value={7}>Next 7 days</option>
             <option value={14}>Next 14 days</option>
@@ -145,7 +145,7 @@ export default function CalendarPage() {
               {startDays > 0 && (
                 <button
                   onClick={() => setStartDays(0)}
-                  className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-outline-variant transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">home</span>
                   Back to Today
@@ -153,7 +153,7 @@ export default function CalendarPage() {
               )}
               <button
                 onClick={() => setStartDays(startDays + range)}
-                className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-surface-container-low border border-outline-variant/40 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant/70 hover:text-on-surface hover:border-outline-variant transition-colors"
               >
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
                 View Next {range} Days

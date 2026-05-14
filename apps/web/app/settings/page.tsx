@@ -299,11 +299,11 @@ export default function SettingsPage() {
                   className={
                     active
                       ? "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-accent/15 text-on-surface border border-accent/30"
-                      : "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-surface-container-low border border-white/10 text-on-surface-variant/70 hover:text-on-surface hover:border-white/20 hover:bg-surface-container transition-colors"
+                      : "flex-none lg:flex-auto text-left px-4 py-3 rounded-lg bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:text-on-surface hover:border-outline-variant hover:bg-surface-container transition-colors"
                   }
                 >
                   <span className="block text-sm font-black uppercase tracking-widest">{tab.label}</span>
-                  <span className="mt-1 block text-[13px] leading-snug text-white/40">{tab.description}</span>
+                  <span className="mt-1 block text-[13px] leading-snug text-on-surface/40">{tab.description}</span>
                 </button>
               );
             })}
@@ -328,7 +328,7 @@ export default function SettingsPage() {
                   onChange={(e) => { setDisplayName(e.target.value); setSaveError(""); }}
                   maxLength={50}
                   placeholder="Enter your name"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-accent transition-colors"
                 />
                 {saveError && <p className="text-xs text-accent">{saveError}</p>}
                 <button
@@ -352,7 +352,7 @@ export default function SettingsPage() {
                   onChange={(e) => { setUsername(e.target.value); setUsernameError(""); }}
                   maxLength={255}
                   placeholder="Enter your username"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-accent transition-colors"
                 />
                 {usernameError && <p className="text-xs text-accent">{usernameError}</p>}
                 {usernameSuccess && <p className="text-xs text-green-400">Username changed successfully</p>}
@@ -376,21 +376,21 @@ export default function SettingsPage() {
                   value={currentPassword}
                   onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(""); }}
                   placeholder="Current password"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-accent transition-colors"
                 />
                 <input
                   type="password"
                   value={newPassword}
                   onChange={(e) => { setNewPassword(e.target.value); setPasswordError(""); }}
                   placeholder="New password"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-accent transition-colors"
                 />
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(""); }}
                   placeholder="Confirm new password"
-                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-white/10 text-on-surface placeholder-white/30 focus:outline-none focus:border-accent transition-colors"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface placeholder-on-surface/30 focus:outline-none focus:border-accent transition-colors"
                 />
                 {passwordError && <p className="text-xs text-accent">{passwordError}</p>}
                 {passwordSuccess && <p className="text-xs text-green-400">Password changed successfully</p>}
@@ -412,31 +412,37 @@ export default function SettingsPage() {
                 <h2 className="text-h2 font-black tracking-tight text-on-surface">Appearance</h2>
                 <p className="text-sm text-on-surface-variant/70 mt-1">Customize your visual experience</p>
               </div>
-              <div className="glass-panel rounded-xl p-5">
+              <div className="glass-panel rounded-xl p-5 space-y-5">
               <h3 className="font-bold text-on-surface mb-1">Theme</h3>
-              <p className="text-xs text-on-surface-variant mb-4">Choose your accent color.</p>
-              <div className="flex gap-3">
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTheme(t.id)}
-                    className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
-                      theme === t.id
-                        ? "border-accent bg-accent/10 text-on-surface"
-                        : "border-white/10 bg-surface-container text-on-surface-variant hover:text-on-surface"
-                    }`}
-                  >
-                    <span
-                      className="w-5 h-5 rounded-full border-2 border-white/20"
-                      style={{ backgroundColor: t.previewColor }}
-                    />
-                    <span className="text-xs font-bold uppercase tracking-widest">{t.label}</span>
-                    {theme === t.id && (
-                      <span className="text-[9px] font-black text-accent uppercase tracking-widest">Active</span>
-                    )}
-                  </button>
-                ))}
-              </div>
+              {(["dark", "light"] as const).map((mode) => (
+                <div key={mode}>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant/60 mb-3">
+                    {mode === "dark" ? "Dark" : "Light"}
+                  </p>
+                  <div className="flex gap-3">
+                    {THEMES.filter((t) => t.mode === mode).map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setTheme(t.id)}
+                        className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                          theme === t.id
+                            ? "border-accent bg-accent/10 text-on-surface"
+                            : "border-outline-variant/40 bg-surface-container text-on-surface-variant hover:text-on-surface"
+                        }`}
+                      >
+                        <span
+                          className="w-5 h-5 rounded-full border-2 border-on-surface/20"
+                          style={{ backgroundColor: t.previewColor }}
+                        />
+                        <span className="text-xs font-bold uppercase tracking-widest">{t.label}</span>
+                        {theme === t.id && (
+                          <span className="text-[9px] font-black text-accent uppercase tracking-widest">Active</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
               </div>
             </div>
           )}
@@ -457,7 +463,7 @@ export default function SettingsPage() {
                     className={
                       intTab === t
                         ? "px-3 py-2 rounded-full bg-accent text-white text-sm"
-                        : "px-3 py-2 rounded-full bg-surface-container-low border border-white/10 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
+                        : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                     }
                   >
                     {t === "config" ? "Configuration" : "Instructions"}
@@ -511,14 +517,14 @@ export default function SettingsPage() {
                   <div className="glass-panel rounded-xl p-6">
                     <h3 className="font-bold text-on-surface mb-1">API Key</h3>
                     <p className="text-xs text-on-surface-variant mb-4">For third-party integrations using the <code className="text-accent">X-Api-Key</code> header.</p>
-                    <div className="flex items-center gap-2 bg-surface-container rounded-lg px-4 py-3 border border-white/10">
-                      <code className="text-sm text-white/60 font-mono tracking-widest break-all flex-grow">
+                    <div className="flex items-center gap-2 bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40">
+                      <code className="text-sm text-on-surface/60 font-mono tracking-widest break-all flex-grow">
                         {loading ? "Loading..." : showKey && apiKey ? apiKey : "••••••••••••••••••••••••"}
                       </code>
                       {!loading && apiKey && (
                         <button
                           onClick={() => setShowKey((s) => !s)}
-                          className="flex-shrink-0 material-symbols-outlined text-white/40 hover:text-white transition-colors text-base"
+                          className="flex-shrink-0 material-symbols-outlined text-on-surface/40 hover:text-on-surface transition-colors text-base"
                         >
                           {showKey ? "visibility_off" : "visibility"}
                         </button>
@@ -530,14 +536,14 @@ export default function SettingsPage() {
                   <div className="glass-panel rounded-xl p-6">
                     <h3 className="font-bold text-on-surface mb-1">Export Token</h3>
                     <p className="text-xs text-on-surface-variant mb-4">Read-only token for Sonarr, Radarr, and RSS feed access.</p>
-                    <div className="flex items-center gap-2 bg-surface-container rounded-lg px-4 py-3 border border-white/10 mb-3">
-                      <code className="text-sm text-white/60 font-mono tracking-widest break-all flex-grow">
+                    <div className="flex items-center gap-2 bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 mb-3">
+                      <code className="text-sm text-on-surface/60 font-mono tracking-widest break-all flex-grow">
                         {loading ? "Loading..." : showExportToken && exportToken ? exportToken : exportToken ? "••••••••••••••••••••••••" : "No token generated"}
                       </code>
                       {!loading && exportToken && (
                         <button
                           onClick={() => setShowExportToken((s) => !s)}
-                          className="flex-shrink-0 material-symbols-outlined text-white/40 hover:text-white transition-colors text-base"
+                          className="flex-shrink-0 material-symbols-outlined text-on-surface/40 hover:text-on-surface transition-colors text-base"
                         >
                           {showExportToken ? "visibility_off" : "visibility"}
                         </button>
@@ -551,7 +557,7 @@ export default function SettingsPage() {
                       {rotatingToken ? "Generating..." : exportToken ? "Rotate Token" : "Generate Token"}
                     </button>
                     {exportToken && (
-                      <p className="text-xs text-white/40 mt-2">Rotating generates a new token and immediately revokes the old one.</p>
+                      <p className="text-xs text-on-surface/40 mt-2">Rotating generates a new token and immediately revokes the old one.</p>
                     )}
                   </div>
 
@@ -561,7 +567,7 @@ export default function SettingsPage() {
                     <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio.</p>
                     <div className="space-y-2">
                       {exportableLists.map((list) => (
-                        <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-white/10">
+                        <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40">
                           <span className="text-sm text-on-surface">{list.name}</span>
                           <button
                             onClick={async () => {
@@ -579,7 +585,7 @@ export default function SettingsPage() {
                               }
                             }}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                              list.stremioCatalog ? "bg-accent" : "bg-white/20"
+                              list.stremioCatalog ? "bg-accent" : "bg-on-surface/20"
                             }`}
                           >
                             <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
@@ -589,7 +595,7 @@ export default function SettingsPage() {
                         </div>
                       ))}
                       {exportableLists.length === 0 && (
-                        <p className="text-sm text-white/40 py-2 text-center">No lists found</p>
+                        <p className="text-sm text-on-surface/40 py-2 text-center">No lists found</p>
                       )}
                     </div>
                   </div>
@@ -644,7 +650,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-black">{n}</div>
       <div className="flex-grow">
         <h4 className="font-bold text-on-surface mb-1">{title}</h4>
-        <div className="text-sm text-white/60 space-y-2">{children}</div>
+        <div className="text-sm text-on-surface/60 space-y-2">{children}</div>
       </div>
     </div>
   );
@@ -653,11 +659,11 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 function CodeBlock({ children }: { children: string }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div className="relative group bg-surface-container rounded-lg px-4 py-3 border border-white/10 mt-2 mb-2">
+    <div className="relative group bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 mt-2 mb-2">
       <code className="text-sm text-accent font-mono break-all">{children}</code>
       <button
         onClick={() => { navigator.clipboard.writeText(children); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-        className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-white/40 hover:text-white text-base"
+        className="absolute top-2 right-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-on-surface/40 hover:text-on-surface text-base"
       >
         {copied ? "check" : "content_copy"}
       </button>
@@ -690,7 +696,7 @@ function StremioGuide({
           <Step n={3} title="Start Watching">
             <p>Play any content in Stremio. When you open the subtitles menu, this app will start tracking your playback via Trakt. Watch progress and completion will be automatically synced to your History.</p>
           </Step>
-          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-white/60">
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
             <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
             Playback progress is synced from Trakt (updated every minute). Make sure Stremio is configured to send playback data to Trakt.
           </div>
@@ -830,7 +836,7 @@ function ExclusionPanel({
               placeholder="Search titles to exclude..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-grow bg-surface-container border border-white/10 rounded-lg px-4 py-2 text-on-surface placeholder-white/40 focus:outline-none focus:border-accent"
+              className="flex-grow bg-surface-container border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface placeholder-on-surface/40 focus:outline-none focus:border-accent"
               autoComplete="off"
             />
             <button
@@ -843,12 +849,12 @@ function ExclusionPanel({
           </div>
 
           {searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container border border-white/10 rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container border border-outline-variant/40 rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto">
               {searchResults.map((result) => (
                 <button
                   key={`${result.tmdbId}-${result.mediaType}`}
                   onClick={() => handleSelectResult(result)}
-                  className="w-full text-left px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-white/5 last:border-b-0"
+                  className="w-full text-left px-4 py-3 hover:bg-surface-container-low transition-colors border-b border-outline-variant/30 last:border-b-0"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-grow min-w-0">
@@ -865,29 +871,29 @@ function ExclusionPanel({
           )}
 
           {searching && searchQuery.trim() && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container border border-white/10 rounded-lg px-4 py-3 text-sm text-on-surface-variant">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-container border border-outline-variant/40 rounded-lg px-4 py-3 text-sm text-on-surface-variant">
               Searching...
             </div>
           )}
         </div>
 
         {exclusions.length === 0 ? (
-          <p className="text-sm text-white/40 py-4 text-center">No excluded titles yet</p>
+          <p className="text-sm text-on-surface/40 py-4 text-center">No excluded titles yet</p>
         ) : (
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {exclusions.map((excl) => (
               <div
                 key={excl.id}
-                className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-2 border border-white/10"
+                className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-2 border border-outline-variant/40"
               >
                 <div className="flex-grow">
                   <p className="text-on-surface text-sm">{excl.title}</p>
-                  <p className="text-xs text-white/40">{excl.mediaType === "show" ? "TV Show" : "Movie"}</p>
+                  <p className="text-xs text-on-surface/40">{excl.mediaType === "show" ? "TV Show" : "Movie"}</p>
                 </div>
                 <button
                   onClick={() => handleRemove(excl.id)}
                   disabled={removing === excl.id}
-                  className="text-white/40 hover:text-accent transition-colors material-symbols-outlined text-base"
+                  className="text-on-surface/40 hover:text-accent transition-colors material-symbols-outlined text-base"
                 >
                   {removing === excl.id ? "hourglass_empty" : "close"}
                 </button>
@@ -906,7 +912,7 @@ function ListSelect({ lists, value, onChange }: { lists: { slug: string; name: s
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-surface-container border border-white/10 rounded-lg px-3 py-2 text-on-surface text-sm focus:outline-none focus:border-accent"
+      className="w-full bg-surface-container border border-outline-variant/40 rounded-lg px-3 py-2 text-on-surface text-sm focus:outline-none focus:border-accent"
     >
       {lists.map((l) => (
         <option key={l.slug} value={l.slug}>{l.name}</option>
@@ -928,7 +934,7 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
   }, [lists.length]);
 
   const noToken = (
-    <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-white/60">
+    <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
       <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
       Generate an export token in the <strong className="text-on-surface">Configuration</strong> tab to enable these integrations.
     </div>
@@ -939,7 +945,7 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
       {/* Stremio Catalog */}
       <div className="glass-panel rounded-xl p-6">
         <h2 className="text-h3 font-bold text-on-surface mb-2">Stremio — Personal Catalogs</h2>
-        <p className="text-sm text-white/60 mb-6">Your lists are available as catalogs in the existing Stremio addon. Each list with movies appears under Movies, and each list with shows appears under Series in the Discover tab.</p>
+        <p className="text-sm text-on-surface/60 mb-6">Your lists are available as catalogs in the existing Stremio addon. Each list with movies appears under Movies, and each list with shows appears under Series in the Discover tab.</p>
         <div className="flex flex-col gap-6">
           <Step n={1} title="Copy the addon URL">
             <CodeBlock>{`${origin}/stremio-addon/manifest.json`}</CodeBlock>
@@ -950,8 +956,8 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
           <Step n={3} title="Install or Update">
             <p>Click <strong className="text-on-surface">Install</strong> (or <strong className="text-on-surface">Update</strong> if already installed). Your lists will appear as browsable sections.</p>
           </Step>
-          <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
-            <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+          <div className="bg-surface-container rounded-xl p-4 text-sm text-on-surface/60 border border-outline-variant/40">
+            <span className="material-symbols-outlined text-on-surface/40 text-base align-middle mr-2">info</span>
             This is the same addon used for scrobbling — no separate install required.
           </div>
         </div>
@@ -960,7 +966,7 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
       {/* Radarr */}
       <div className="glass-panel rounded-xl p-6">
         <h2 className="text-h3 font-bold text-on-surface mb-2">Radarr — Movie Import List</h2>
-        <p className="text-sm text-white/60 mb-6">Import a movie list into Radarr. Radarr will periodically sync the list and can automatically add or monitor new entries.</p>
+        <p className="text-sm text-on-surface/60 mb-6">Import a movie list into Radarr. Radarr will periodically sync the list and can automatically add or monitor new entries.</p>
         {!exportToken ? noToken : (
           <div className="flex flex-col gap-6">
             <Step n={1} title="Select a list and copy the URL">
@@ -973,8 +979,8 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
             <Step n={3} title="Configure and save">
               <p>Paste the URL into the <strong className="text-on-surface">URL</strong> field. Set your <strong className="text-on-surface">Quality Profile</strong> and <strong className="text-on-surface">Root Folder</strong>, click <strong className="text-on-surface">Test</strong>, then <strong className="text-on-surface">Save</strong>.</p>
             </Step>
-            <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
-              <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+            <div className="bg-surface-container rounded-xl p-4 text-sm text-on-surface/60 border border-outline-variant/40">
+              <span className="material-symbols-outlined text-on-surface/40 text-base align-middle mr-2">info</span>
               Only movie items are included. Rotating your export token will break the list — update the URL in Radarr afterward.
             </div>
           </div>
@@ -984,7 +990,7 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
       {/* Sonarr */}
       <div className="glass-panel rounded-xl p-6">
         <h2 className="text-h3 font-bold text-on-surface mb-2">Sonarr — TV Show Import List</h2>
-        <p className="text-sm text-white/60 mb-6">Import a TV show list into Sonarr. Sonarr will periodically fetch the list and can automatically add or monitor new entries.</p>
+        <p className="text-sm text-on-surface/60 mb-6">Import a TV show list into Sonarr. Sonarr will periodically fetch the list and can automatically add or monitor new entries.</p>
         {!exportToken ? noToken : (
           <div className="flex flex-col gap-6">
             <Step n={1} title="Select a list and copy the URL">
@@ -997,8 +1003,8 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
             <Step n={3} title="Configure and save">
               <p>Paste the URL into the <strong className="text-on-surface">URL</strong> field. Set your <strong className="text-on-surface">Quality Profile</strong>, <strong className="text-on-surface">Root Folder</strong>, and <strong className="text-on-surface">Series Type</strong>, click <strong className="text-on-surface">Test</strong>, then <strong className="text-on-surface">Save</strong>.</p>
             </Step>
-            <div className="bg-surface-container rounded-xl p-4 text-sm text-white/60 border border-white/10">
-              <span className="material-symbols-outlined text-white/40 text-base align-middle mr-2">info</span>
+            <div className="bg-surface-container rounded-xl p-4 text-sm text-on-surface/60 border border-outline-variant/40">
+              <span className="material-symbols-outlined text-on-surface/40 text-base align-middle mr-2">info</span>
               Only TV show items are included. Shows without a TVDB ID are excluded (rare, for very new titles). Rotating your export token will break the list — update the URL in Sonarr afterward.
             </div>
           </div>
@@ -1049,21 +1055,21 @@ function ExportTab({ authHeaders }: { authHeaders: Record<string, string> }) {
             <span className="material-symbols-outlined text-accent text-base mt-0.5">history</span>
             <div>
               <p className="text-on-surface font-medium">Watch History</p>
-              <p className="text-xs text-white/40">All movies and episodes you&apos;ve watched, with dates, progress, and source.</p>
+              <p className="text-xs text-on-surface/40">All movies and episodes you&apos;ve watched, with dates, progress, and source.</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <span className="material-symbols-outlined text-accent text-base mt-0.5">star</span>
             <div>
               <p className="text-on-surface font-medium">Ratings</p>
-              <p className="text-xs text-white/40">Every rating you&apos;ve given to movies, shows, and episodes.</p>
+              <p className="text-xs text-on-surface/40">Every rating you&apos;ve given to movies, shows, and episodes.</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <span className="material-symbols-outlined text-accent text-base mt-0.5">list</span>
             <div>
               <p className="text-on-surface font-medium">Lists</p>
-              <p className="text-xs text-white/40">All items across your watchlist and custom lists.</p>
+              <p className="text-xs text-on-surface/40">All items across your watchlist and custom lists.</p>
             </div>
           </div>
         </div>
@@ -1092,12 +1098,12 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface-container rounded-xl border border-white/10 p-6 max-w-md w-full mx-4">
+      <div className="bg-surface-container rounded-xl border border-outline-variant/40 p-6 max-w-md w-full mx-4">
         <h3 className="text-h3 font-bold text-on-surface mb-4">Authorize Trakt Access</h3>
 
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-white/60 mb-2">1. Visit this URL on any device:</p>
+            <p className="text-sm text-on-surface/60 mb-2">1. Visit this URL on any device:</p>
             <a
               href="https://trakt.tv/activate"
               target="_blank"
@@ -1109,12 +1115,12 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
           </div>
 
           <div>
-            <p className="text-sm text-white/60 mb-2">2. Enter this code:</p>
+            <p className="text-sm text-on-surface/60 mb-2">2. Enter this code:</p>
             <div className="flex items-center gap-2 bg-surface-container-lowest rounded-lg px-4 py-3 border border-accent/30">
               <code className="text-lg font-bold text-accent tracking-widest flex-grow">{userCode}</code>
               <button
                 onClick={handleCopy}
-                className="text-white/40 hover:text-white transition-colors material-symbols-outlined text-base"
+                className="text-on-surface/40 hover:text-on-surface transition-colors material-symbols-outlined text-base"
               >
                 {copied ? "check" : "content_copy"}
               </button>
@@ -1122,7 +1128,7 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
           </div>
 
           <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
-            <p className="text-xs text-white/60">
+            <p className="text-xs text-on-surface/60">
               <span className="material-symbols-outlined text-accent text-sm align-middle mr-1">info</span>
               Waiting for authorization... This usually takes less than 30 seconds.
             </p>
@@ -1130,7 +1136,7 @@ function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () 
 
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-sm font-bold"
+            className="w-full px-4 py-2 bg-on-surface/10 text-on-surface rounded-lg hover:bg-on-surface/20 transition-colors text-sm font-bold"
           >
             Cancel
           </button>

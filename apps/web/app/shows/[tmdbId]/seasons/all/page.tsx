@@ -219,48 +219,48 @@ export default function AllSeasonsPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
               {show.status && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
                   <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
-                  <p className="text-white text-base">{airsOnParts.join(" ")}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
+                  <p className="text-on-surface text-base">{airsOnParts.join(" ")}</p>
                 </div>
               )}
               {show.firstAirDate && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
-                  <p className="text-white text-base">{formatDate(show.firstAirDate)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
+                  <p className="text-on-surface text-base">{formatDate(show.firstAirDate)}</p>
                 </div>
               )}
               {show.runtimeMin && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
-                  <p className="text-white text-base">{show.runtimeMin} min</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
+                  <p className="text-on-surface text-base">{show.runtimeMin} min</p>
                 </div>
               )}
               {show.originCountry && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
-                  <p className="text-white text-base">{formatCountry(show.originCountry)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
+                  <p className="text-on-surface text-base">{formatCountry(show.originCountry)}</p>
                 </div>
               )}
               {show.originalLanguage && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
-                  <p className="text-white text-base">{formatLanguage(show.originalLanguage)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
+                  <p className="text-on-surface text-base">{formatLanguage(show.originalLanguage)}</p>
                 </div>
               )}
             </section>
 
             {/* All Episodes */}
             <section>
-              <h2 className="text-white font-black text-xl mb-6">
+              <h2 className="text-on-surface font-black text-xl mb-6">
                 All Episodes
                 {totalEpisodes > 0 && (
-                  <span className="text-white/30 font-normal text-base ml-2">({totalEpisodes})</span>
+                  <span className="text-on-surface/30 font-normal text-base ml-2">({totalEpisodes})</span>
                 )}
               </h2>
 
@@ -268,9 +268,9 @@ export default function AllSeasonsPage() {
                 <div key={season.seasonNumber} className="mb-10">
                   <div className="flex items-center gap-4 mb-4">
                     <Link href={`/shows/${tmdbId}/seasons/${season.seasonNumber}`} className="hover:text-accent transition-colors">
-                      <h3 className="text-white font-black text-lg">Season {season.seasonNumber}</h3>
+                      <h3 className="text-on-surface font-black text-lg">Season {season.seasonNumber}</h3>
                     </Link>
-                    <span className="text-white/30 text-sm">{season.episodes.length} episode{season.episodes.length !== 1 ? "s" : ""}</span>
+                    <span className="text-on-surface/30 text-sm">{season.episodes.length} episode{season.episodes.length !== 1 ? "s" : ""}</span>
                   </div>
                   {season.episodes.map((ep) => (
                     <EpisodeRow
@@ -288,13 +288,13 @@ export default function AllSeasonsPage() {
               {/* Sentinel + loading indicator */}
               <div ref={sentinelRef} className="h-4" />
               {isLoadingMore && (
-                <div className="flex items-center justify-center py-8 text-white/30 text-sm">
+                <div className="flex items-center justify-center py-8 text-on-surface/30 text-sm">
                   <span className="material-symbols-outlined animate-spin mr-2 text-lg">progress_activity</span>
                   Loading season {loadedCountRef.current + 1}…
                 </div>
               )}
               {!isLoadingMore && loadedSeasons.length === seasons.length && seasons.length > 0 && (
-                <p className="text-white/20 text-xs text-center py-4">All {seasons.length} seasons loaded</p>
+                <p className="text-on-surface/20 text-xs text-center py-4">All {seasons.length} seasons loaded</p>
               )}
             </section>
           </div>
@@ -303,7 +303,7 @@ export default function AllSeasonsPage() {
           <div className="lg:col-span-4">
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24">
               <div>
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-on-surface font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
@@ -311,7 +311,7 @@ export default function AllSeasonsPage() {
                   <button
                     onClick={handleWatchlist}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inWatchlist ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
@@ -320,7 +320,7 @@ export default function AllSeasonsPage() {
                   <button
                     onClick={handleDropped}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inDropped ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inDropped ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">block</span>
@@ -329,7 +329,7 @@ export default function AllSeasonsPage() {
                   <button
                     onClick={handleRewatch}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inRewatch ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inRewatch ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">replay</span>
@@ -347,12 +347,12 @@ export default function AllSeasonsPage() {
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
                 <div className="flex gap-1 justify-between">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
                     <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-on-surface/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
                 </div>
@@ -362,7 +362,7 @@ export default function AllSeasonsPage() {
                 href={`https://www.themoviedb.org/tv/${tmdbId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
+                className="block w-full border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-3 rounded-xl font-bold text-xs uppercase tracking-wider text-center transition-all"
               >
                 View on TMDB
               </Link>

@@ -26,13 +26,13 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark
   const stillUrl = ep.stillPath ? `${TMDB_IMG}w500${ep.stillPath}` : null;
   const href = `/shows/${tmdbId}/seasons/${seasonNumber}/episodes/${ep.episodeNumber}`;
   return (
-    <div className="flex gap-5 py-5 border-b border-white/5 last:border-0">
+    <div className="flex gap-5 py-5 border-b border-outline-variant/30 last:border-0">
       <Link href={href} className="shrink-0 relative w-56 aspect-video bg-surface-container-high overflow-hidden rounded">
         {stillUrl ? (
           <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover hover:scale-105 transition-transform duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+            <span className="material-symbols-outlined text-3xl text-on-surface/20">tv</span>
           </div>
         )}
         {ep.runtimeMin && (
@@ -40,16 +40,16 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark
         )}
       </Link>
       <div className="flex-1 min-w-0 py-0.5">
-        <p className="text-white/50 text-sm font-bold uppercase tracking-widest mb-1.5">
+        <p className="text-on-surface/50 text-sm font-bold uppercase tracking-widest mb-1.5">
           S{String(seasonNumber).padStart(2, "0")} · E{String(ep.episodeNumber).padStart(2, "0")}
         </p>
         <Link href={href} className="hover:text-accent transition-colors">
-          <p className="text-white font-bold leading-snug mb-2 line-clamp-1 text-lg">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
+          <p className="text-on-surface font-bold leading-snug mb-2 line-clamp-1 text-lg">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
         </Link>
         {ep.overview && (
-          <p className="text-white/50 text-sm line-clamp-3 mb-3">{ep.overview}</p>
+          <p className="text-on-surface/50 text-sm line-clamp-3 mb-3">{ep.overview}</p>
         )}
-        <div className="flex items-center gap-2 text-white/40 text-sm">
+        <div className="flex items-center gap-2 text-on-surface/40 text-sm">
           {ep.airDate && <span>{formatDate(ep.airDate)}</span>}
           {ep.airDate && ep.runtimeMin && <span>·</span>}
           {ep.runtimeMin && <span>{ep.runtimeMin} min</span>}
@@ -73,7 +73,7 @@ export function EpisodeRow({ tmdbId, seasonNumber, ep, watched, onToggle, onMark
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider border transition-colors ${
               watched
                 ? "bg-accent border-accent text-white"
-                : "border-white/20 text-white/40 hover:border-accent/40 hover:text-accent"
+                : "border-outline-variant/40 text-on-surface/40 hover:border-accent/40 hover:text-accent"
             }`}
           >
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: watched ? "'FILL' 1" : "'FILL' 0" }}>

@@ -63,8 +63,8 @@ export default function RatingsPage() {
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <div>
         <header className="mb-8">
-          <h1 className="text-h1 font-black tracking-tight text-white mb-1">Ratings</h1>
-          <p className="text-white/40">{total} item{total !== 1 ? "s" : ""} rated.</p>
+          <h1 className="text-h1 font-black tracking-tight text-on-surface mb-1">Ratings</h1>
+          <p className="text-on-surface/40">{total} item{total !== 1 ? "s" : ""} rated.</p>
         </header>
 
         <div className="flex flex-wrap gap-2 mb-8">
@@ -74,7 +74,7 @@ export default function RatingsPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                  filter === f ? "bg-accent text-white" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                  filter === f ? "bg-accent text-white" : "bg-surface-container text-on-surface/40 border border-outline-variant/40 hover:text-on-surface"
                 }`}
               >
                 {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1) + "s"}
@@ -87,7 +87,7 @@ export default function RatingsPage() {
                 key={s}
                 onClick={() => setSort(s)}
                 className={`px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors ${
-                  sort === s ? "bg-[#181818] text-white border border-white/30" : "bg-[#181818] text-white/40 border border-white/10 hover:text-white"
+                  sort === s ? "bg-surface-container text-on-surface border border-outline-variant" : "bg-surface-container text-on-surface/40 border border-outline-variant/40 hover:text-on-surface"
                 }`}
               >
                 {s === "date" ? "By Date" : "By Rating"}
@@ -96,12 +96,12 @@ export default function RatingsPage() {
           </div>
         </div>
 
-        {fetching && items.length === 0 && <p className="text-white/40">Loading…</p>}
+        {fetching && items.length === 0 && <p className="text-on-surface/40">Loading…</p>}
 
         {!fetching && items.length === 0 && (
           <div className="text-center py-24">
-            <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">star</span>
-            <p className="text-white/40">No ratings yet.</p>
+            <span className="material-symbols-outlined text-5xl text-on-surface/20 mb-4 block">star</span>
+            <p className="text-on-surface/40">No ratings yet.</p>
           </div>
         )}
 
@@ -116,7 +116,7 @@ export default function RatingsPage() {
             <button
               onClick={loadMore}
               disabled={fetching}
-              className="px-6 py-3 rounded-lg bg-[#181818] border border-white/10 text-white/60 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              className="px-6 py-3 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface/60 hover:text-on-surface text-sm font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
             >
               {fetching ? "Loading…" : "Load More"}
             </button>
@@ -138,12 +138,12 @@ function RatingCard({ item, onDelete }: { item: RatingItem; onDelete: () => void
   return (
     <div className="group relative">
       <Link href={href ?? "#"}>
-        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#181818] mb-2">
+        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-surface-container mb-2">
           {posterUrl ? (
             <Image src={posterUrl} alt={displayTitle ?? ""} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <div className="flex items-center justify-center h-full">
-              <span className="material-symbols-outlined text-3xl text-white/20">
+              <span className="material-symbols-outlined text-3xl text-on-surface/20">
                 {isEpisode ? "tv" : item.mediaType === "movie" ? "movie" : "tv"}
               </span>
             </div>
@@ -154,8 +154,8 @@ function RatingCard({ item, onDelete }: { item: RatingItem; onDelete: () => void
             <span className="text-xs font-bold text-white">{item.rating}/10</span>
           </div>
         </div>
-        <p className="text-sm font-semibold text-white line-clamp-1 group-hover:text-accent transition-colors">{displayTitle}</p>
-        {item.year && <p className="text-xs text-white/40">{item.year}</p>}
+        <p className="text-sm font-semibold text-on-surface line-clamp-1 group-hover:text-accent transition-colors">{displayTitle}</p>
+        {item.year && <p className="text-xs text-on-surface/40">{item.year}</p>}
         {isEpisode && item.seasonNumber != null && item.episodeNumber != null && (
           <p className="text-xs text-accent font-bold">
             S{String(item.seasonNumber).padStart(2, "0")}E{String(item.episodeNumber).padStart(2, "0")}

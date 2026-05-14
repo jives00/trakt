@@ -42,16 +42,16 @@ function EpisodeThumb({ showTmdbId, ep, label, showLabel = true }: { showTmdbId:
   return (
     <Link href={href}>
       <div>
-        <div className="pb-3 mb-3 border-b border-white/5">
-          <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-white border-accent" : "text-transparent border-transparent"}`}>{label}</span>
+        <div className="pb-3 mb-3 border-b border-outline-variant/30">
+          <span className={`pb-1 text-sm font-bold border-b-2 ${showLabel ? "text-on-surface border-accent" : "text-transparent border-transparent"}`}>{label}</span>
         </div>
-        <div className="bg-surface-container-high border border-white/5 overflow-hidden hover:border-white/10 transition-colors cursor-pointer">
+        <div className="bg-surface-container-high border border-outline-variant/30 overflow-hidden hover:border-outline-variant/50 transition-colors cursor-pointer">
           <div className="relative aspect-video overflow-hidden">
             {stillUrl ? (
               <Image src={stillUrl} alt={ep.title ?? ""} fill className="object-cover" />
             ) : (
               <div className="w-full h-full bg-surface-container-high flex items-center justify-center">
-                <span className="material-symbols-outlined text-2xl text-white/20">tv</span>
+                <span className="material-symbols-outlined text-2xl text-on-surface/20">tv</span>
               </div>
             )}
             {ep.runtimeMin && (
@@ -59,9 +59,9 @@ function EpisodeThumb({ showTmdbId, ep, label, showLabel = true }: { showTmdbId:
             )}
           </div>
           <div className="p-3">
-            <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-0.5">S{ep.seasonNumber} E{ep.episodeNumber}</p>
-            <p className="text-white text-base font-bold line-clamp-1">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
-            {ep.airDate && <p className="text-white/40 text-xs mt-0.5">{formatDate(ep.airDate)}</p>}
+            <p className="text-on-surface/40 text-xs font-bold uppercase tracking-wider mb-0.5">S{ep.seasonNumber} E{ep.episodeNumber}</p>
+            <p className="text-on-surface text-base font-bold line-clamp-1">{ep.title ?? `Episode ${ep.episodeNumber}`}</p>
+            {ep.airDate && <p className="text-on-surface/40 text-xs mt-0.5">{formatDate(ep.airDate)}</p>}
           </div>
         </div>
       </div>
@@ -291,38 +291,38 @@ export default function ShowDetailPage() {
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
               {show.status && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Status</p>
                   <p className="text-accent font-bold">{show.status}</p>
                 </div>
               )}
               {airsOnParts.length > 0 && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
-                  <p className="text-white text-base">{airsOnParts.join(" ")}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Airs On</p>
+                  <p className="text-on-surface text-base">{airsOnParts.join(" ")}</p>
                 </div>
               )}
               {show.firstAirDate && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
-                  <p className="text-white text-base">{formatDate(show.firstAirDate)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Premiered</p>
+                  <p className="text-on-surface text-base">{formatDate(show.firstAirDate)}</p>
                 </div>
               )}
               {show.runtimeMin && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
-                  <p className="text-white text-base">{show.runtimeMin} min</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Runtime</p>
+                  <p className="text-on-surface text-base">{show.runtimeMin} min</p>
                 </div>
               )}
               {show.originCountry && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
-                  <p className="text-white text-base">{formatCountry(show.originCountry)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Country</p>
+                  <p className="text-on-surface text-base">{formatCountry(show.originCountry)}</p>
                 </div>
               )}
               {show.originalLanguage && (
                 <div>
-                  <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
-                  <p className="text-white text-base">{formatLanguage(show.originalLanguage)}</p>
+                  <p className="text-on-surface/40 text-xs font-black uppercase tracking-widest mb-1">Language</p>
+                  <p className="text-on-surface text-base">{formatLanguage(show.originalLanguage)}</p>
                 </div>
               )}
             </section>
@@ -341,7 +341,7 @@ export default function ShowDetailPage() {
             {/* Cast */}
             {(cast.length > 0 || castLoading) && (
               <section>
-                <div className="flex gap-6 border-b border-white/5 mb-6 justify-between items-center">
+                <div className="flex gap-6 border-b border-outline-variant/30 mb-6 justify-between items-center">
                   <div className="flex gap-6">
                     {cast.length > 0 ? (
                       (["regulars", "guests"] as const).map((tab) => (
@@ -349,14 +349,14 @@ export default function ShowDetailPage() {
                           key={tab}
                           onClick={() => setCastTab(tab)}
                           className={`pb-2 text-sm font-bold border-b-2 transition-colors ${
-                            castTab === tab ? "text-white border-accent" : "text-white/40 border-transparent hover:text-white"
+                            castTab === tab ? "text-on-surface border-accent" : "text-on-surface/40 border-transparent hover:text-on-surface"
                           }`}
                         >
                           {tab === "regulars" ? `Series Regulars (${regulars.length})` : `Guest Stars (${guests.length})`}
                         </button>
                       ))
                     ) : (
-                      <span className="text-white/40 text-sm">Loading cast…</span>
+                      <span className="text-on-surface/40 text-sm">Loading cast…</span>
                     )}
                   </div>
                 </div>
@@ -364,7 +364,7 @@ export default function ShowDetailPage() {
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div key={i} className="text-center">
-                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 animate-pulse" />
                         <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
                         <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                       </div>
@@ -380,18 +380,18 @@ export default function ShowDetailPage() {
                         rel="noopener noreferrer"
                         className="text-center group cursor-pointer"
                       >
-                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                        <div className="relative w-full aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 group-hover:border-outline-variant transition-colors">
                           {m.profilePath ? (
                             <Image src={`${TMDB_IMG}w185${m.profilePath}`} alt={m.name} fill sizes="(max-width: 640px) 33vw, (max-width: 768px) 25vw, (max-width: 1024px) 20vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <span className="material-symbols-outlined text-2xl text-white/20">person</span>
+                              <span className="material-symbols-outlined text-2xl text-on-surface/20">person</span>
                             </div>
                           )}
                         </div>
-                        <p className="text-white text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
-                        <p className="text-white/40 text-sm line-clamp-1">{m.character}</p>
-                        <p className="text-white/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
+                        <p className="text-on-surface text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
+                        <p className="text-on-surface/40 text-sm line-clamp-1">{m.character}</p>
+                        <p className="text-on-surface/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
                       </a>
                     ))}
                   </div>
@@ -402,13 +402,13 @@ export default function ShowDetailPage() {
             {/* Seasons */}
             {(seasons.length > 0 || seasonsLoading) && (
               <section>
-                <h2 className="text-white font-black text-xl mb-6">Seasons {seasonsLoading && seasons.length === 0 && <span className="text-white/40 text-lg font-normal">(loading…)</span>}</h2>
+                <h2 className="text-on-surface font-black text-xl mb-6">Seasons {seasonsLoading && seasons.length === 0 && <span className="text-on-surface/40 text-lg font-normal">(loading…)</span>}</h2>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {seasonsLoading && seasons.length === 0 ? (
                     <>
                       {Array.from({ length: 8 }).map((_, i) => (
                         <div key={i}>
-                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 animate-pulse" />
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 animate-pulse" />
                           <div className="h-3 bg-surface-container-high rounded mb-2 animate-pulse" />
                           <div className="h-2 bg-surface-container-high rounded animate-pulse" />
                         </div>
@@ -418,32 +418,32 @@ export default function ShowDetailPage() {
                     <>
                       {seasons.length > 1 && (
                         <Link href={`/shows/${tmdbId}/seasons/all`} className="group">
-                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 group-hover:border-outline-variant transition-colors">
                             {show.posterPath ? (
                               <Image src={`${TMDB_IMG}w342${show.posterPath}`} alt="All Seasons" fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                                <span className="material-symbols-outlined text-3xl text-on-surface/20">tv</span>
                               </div>
                             )}
                           </div>
-                          <p className="text-white text-xs font-bold">All Seasons</p>
-                          <p className="text-white/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
+                          <p className="text-on-surface text-xs font-bold">All Seasons</p>
+                          <p className="text-on-surface/40 text-xs">{seasons.reduce((sum, s) => sum + s.episodeCount, 0)} episodes</p>
                         </Link>
                       )}
                       {seasons.map((s) => (
                         <Link key={s.seasonNumber} href={`/shows/${tmdbId}/seasons/${s.seasonNumber}`} className="group">
-                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-white/5 group-hover:border-white/20 transition-colors">
+                          <div className="relative aspect-[2/3] overflow-hidden bg-surface-container-high mb-2 border border-outline-variant/30 group-hover:border-outline-variant transition-colors">
                             {s.posterPath ? (
                               <Image src={`${TMDB_IMG}w342${s.posterPath}`} alt={`Season ${s.seasonNumber}`} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <span className="material-symbols-outlined text-3xl text-white/20">tv</span>
+                                <span className="material-symbols-outlined text-3xl text-on-surface/20">tv</span>
                               </div>
                             )}
                           </div>
-                          <p className="text-white text-xs font-bold">Season {s.seasonNumber}</p>
-                          <p className="text-white/40 text-xs">{s.episodeCount} episode{s.episodeCount !== 1 ? "s" : ""}</p>
+                          <p className="text-on-surface text-xs font-bold">Season {s.seasonNumber}</p>
+                          <p className="text-on-surface/40 text-xs">{s.episodeCount} episode{s.episodeCount !== 1 ? "s" : ""}</p>
                         </Link>
                       ))}
                     </>
@@ -457,7 +457,7 @@ export default function ShowDetailPage() {
           <div className="lg:col-span-4">
             <div className="glass-panel rounded-3xl p-6 space-y-6 sticky top-24 overflow-visible">
               <div>
-                <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-on-surface font-bold mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-accent">person</span>
                   Personal Tracking
                 </h3>
@@ -465,7 +465,7 @@ export default function ShowDetailPage() {
                   <button
                     onClick={handleWatchlist}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inWatchlist ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inWatchlist ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
@@ -474,7 +474,7 @@ export default function ShowDetailPage() {
                   <button
                     onClick={handleDropped}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inDropped ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inDropped ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">block</span>
@@ -483,7 +483,7 @@ export default function ShowDetailPage() {
                   <button
                     onClick={handleRewatch}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inRewatch ? "bg-accent text-white" : "bg-white/5 border border-white/10 text-white/80 hover:bg-white/10"
+                      status.inRewatch ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
                     }`}
                   >
                     <span className="material-symbols-outlined text-sm">replay</span>
@@ -508,12 +508,12 @@ export default function ShowDetailPage() {
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">My Rating</label>
                 <div className="flex gap-1 justify-between">
                   {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
                     <button key={star} onClick={() => handleRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} aria-label={`Rate ${star} out of 10`}>
-                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-white/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                      <span className={`material-symbols-outlined text-sm cursor-pointer transition-colors ${star <= (hoverRating || rating) ? "text-accent" : "text-on-surface/20"}`} style={{ fontVariationSettings: star <= (hoverRating || rating) ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                     </button>
                   ))}
                 </div>
@@ -522,26 +522,26 @@ export default function ShowDetailPage() {
               <div className="space-y-2">
                 {show.rtCriticScore != null && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/40 font-bold">IMDb</span>
-                    <span className="text-white">{(show.rtCriticScore / 10).toFixed(1)}/10</span>
+                    <span className="text-on-surface/40 font-bold">IMDb</span>
+                    <span className="text-on-surface">{(show.rtCriticScore / 10).toFixed(1)}/10</span>
                   </div>
                 )}
                 {show.tmdbRating != null && (
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/40 font-bold">TMDB</span>
-                    <span className="text-white">{(show.tmdbRating / 10).toFixed(1)}/10</span>
+                    <span className="text-on-surface/40 font-bold">TMDB</span>
+                    <span className="text-on-surface">{(show.tmdbRating / 10).toFixed(1)}/10</span>
                   </div>
                 )}
               </div>
 
-              <div className="border-t border-white/10 pt-4">
-                <label className="text-white/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
+              <div className="border-t border-outline-variant/40 pt-4">
+                <label className="text-on-surface/40 text-[10px] font-black uppercase tracking-widest block mb-3">Links</label>
                 <div className="grid grid-cols-3 gap-2">
                   <Link
                     href={`https://www.themoviedb.org/tv/${tmdbId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     TMDB
                   </Link>
@@ -550,7 +550,7 @@ export default function ShowDetailPage() {
                       href={`https://www.imdb.com/title/${show.imdbId}/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                      className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                     >
                       IMDb
                     </Link>
@@ -559,14 +559,14 @@ export default function ShowDetailPage() {
                     href={`https://trakt.tv/search?q=${encodeURIComponent(show.title)}&type=show`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="border border-white/10 hover:border-accent/40 text-white/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
+                    className="border border-outline-variant/40 hover:border-accent/40 text-on-surface/60 hover:text-accent py-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-center transition-all"
                   >
                     Trakt
                   </Link>
                 </div>
               </div>
 
-              <div className="border-t border-white/10 pt-4">
+              <div className="border-t border-outline-variant/40 pt-4">
                 <RefreshButton sections={[
                   { label: "All Data", onRefresh: handleRefreshAll },
                   { label: "Metadata", onRefresh: handleRefreshShowMetadata },

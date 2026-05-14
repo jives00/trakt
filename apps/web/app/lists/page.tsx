@@ -59,7 +59,7 @@ export default function ListsPage() {
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
       <header className="mb-8 flex items-end justify-between gap-4">
-        <h1 className="text-h1 font-black tracking-tight text-white">Lists</h1>
+        <h1 className="text-h1 font-black tracking-tight text-on-surface">Lists</h1>
         <button
           onClick={() => setCreating(true)}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white text-xs font-bold uppercase tracking-widest hover:bg-accent-hover transition-colors"
@@ -71,14 +71,14 @@ export default function ListsPage() {
 
       {creating && (
         <form onSubmit={handleCreate} className="glass-panel rounded-xl p-5 mb-8">
-          <h3 className="font-bold text-white mb-4">New List</h3>
+          <h3 className="font-bold text-on-surface mb-4">New List</h3>
           <div className="flex flex-col gap-3">
             <input
               type="text"
               placeholder="List name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors"
+              className="bg-surface-container border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface text-sm focus:outline-none focus:border-accent transition-colors"
               autoFocus
             />
             <input
@@ -86,13 +86,13 @@ export default function ListsPage() {
               placeholder="Description (optional)"
               value={newDesc}
               onChange={(e) => setNewDesc(e.target.value)}
-              className="bg-[#181818] border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-accent transition-colors"
+              className="bg-surface-container border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface text-sm focus:outline-none focus:border-accent transition-colors"
             />
             <div className="flex gap-2">
               <button type="submit" className="px-4 py-2 rounded-lg bg-accent text-white text-xs font-bold uppercase tracking-widest">
                 Create
               </button>
-              <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 rounded-lg bg-[#181818] text-white/60 border border-white/10 text-xs font-bold uppercase tracking-widest">
+              <button type="button" onClick={() => setCreating(false)} className="px-4 py-2 rounded-lg bg-surface-container text-on-surface/60 border border-outline-variant/40 text-xs font-bold uppercase tracking-widest">
                 Cancel
               </button>
             </div>
@@ -100,12 +100,12 @@ export default function ListsPage() {
         </form>
       )}
 
-      {fetching && <p className="text-white/40">Loading…</p>}
+      {fetching && <p className="text-on-surface/40">Loading…</p>}
 
       {!fetching && (
         <>
           <div className="mb-10">
-            <h2 className="text-h2 font-black tracking-tight text-white mb-4">
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">
               <span className="block w-8 h-1 bg-accent rounded mb-2" />
               System Lists
             </h2>
@@ -117,14 +117,14 @@ export default function ListsPage() {
           </div>
 
           <div>
-            <h2 className="text-h2 font-black tracking-tight text-white mb-4">
+            <h2 className="text-h2 font-black tracking-tight text-on-surface mb-4">
               <span className="block w-8 h-1 bg-accent rounded mb-2" />
               Custom Lists
             </h2>
             {customLists.length === 0 && !creating ? (
               <div className="text-center py-16">
-                <span className="material-symbols-outlined text-5xl text-white/20 mb-4 block">format_list_bulleted</span>
-                <p className="text-white/40">No custom lists yet.</p>
+                <span className="material-symbols-outlined text-5xl text-on-surface/20 mb-4 block">format_list_bulleted</span>
+                <p className="text-on-surface/40">No custom lists yet.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -142,8 +142,8 @@ export default function ListsPage() {
 
 function ListArt({ backdrops }: { backdrops: string[] }) {
   if (backdrops.length === 0) return (
-    <div className="w-full h-full flex items-center justify-center bg-white/5">
-      <span className="material-symbols-outlined text-3xl text-white/20">image</span>
+    <div className="w-full h-full flex items-center justify-center bg-on-surface/5">
+      <span className="material-symbols-outlined text-3xl text-on-surface/20">image</span>
     </div>
   );
   const pick = backdrops[Math.floor(Math.random() * backdrops.length)];
@@ -157,7 +157,7 @@ function SystemListCard({ list }: { list: UserList }) {
       href={`/lists/${list.id}`}
       className="glass-panel overflow-hidden transition-all duration-300 flex flex-col group"
     >
-      <div className="relative aspect-video overflow-hidden bg-white/5">
+      <div className="relative aspect-video overflow-hidden bg-on-surface/5">
         <ListArt backdrops={list.previewBackdrops} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute bottom-3 left-3 flex items-center gap-2">
@@ -166,9 +166,9 @@ function SystemListCard({ list }: { list: UserList }) {
         </div>
       </div>
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
-        <span className="text-sm text-white/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
+        <span className="text-sm text-on-surface/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
         {list.description && (
-          <p className="text-xs text-white/40 line-clamp-2">{list.description}</p>
+          <p className="text-xs text-on-surface/40 line-clamp-2">{list.description}</p>
         )}
       </div>
     </Link>
@@ -178,31 +178,31 @@ function SystemListCard({ list }: { list: UserList }) {
 function CustomListCard({ list, onDelete }: { list: UserList; onDelete: () => void }) {
   return (
     <div className="glass-panel overflow-hidden transition-all duration-300 group flex flex-col">
-      <Link href={`/lists/${list.id}`} className="relative aspect-video overflow-hidden bg-white/5 block">
+      <Link href={`/lists/${list.id}`} className="relative aspect-video overflow-hidden bg-on-surface/5 block">
         <ListArt backdrops={list.previewBackdrops} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
       </Link>
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <Link href={`/lists/${list.id}`} className="font-bold text-white group-hover:text-accent transition-colors line-clamp-1 text-sm">
+          <Link href={`/lists/${list.id}`} className="font-bold text-on-surface group-hover:text-accent transition-colors line-clamp-1 text-sm">
             {list.name}
           </Link>
           <button
             onClick={onDelete}
-            className="text-white/20 hover:text-accent transition-colors material-symbols-outlined text-base shrink-0"
+            className="text-on-surface/20 hover:text-accent transition-colors material-symbols-outlined text-base shrink-0"
             aria-label="Delete list"
           >
             delete
           </button>
         </div>
         {list.description && (
-          <p className="text-xs text-white/40 line-clamp-2">{list.description}</p>
+          <p className="text-xs text-on-surface/40 line-clamp-2">{list.description}</p>
         )}
         <div className="flex items-center justify-between mt-auto pt-1">
-          <span className="text-xs text-white/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
+          <span className="text-xs text-on-surface/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
           <Link
             href={`/lists/${list.id}`}
-            className="text-[10px] font-bold uppercase tracking-widest text-white/40 hover:text-accent transition-colors flex items-center gap-1"
+            className="text-[10px] font-bold uppercase tracking-widest text-on-surface/40 hover:text-accent transition-colors flex items-center gap-1"
           >
             View <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </Link>
