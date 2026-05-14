@@ -6,6 +6,8 @@ dist/
 .expo/
 *.apk
 *.aab
+*.tsbuildinfo
+.claude/settings.local.json
 docs/codereviews/
 docs/designs/
 docs/trackt_screenshots/
