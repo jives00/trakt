@@ -55,7 +55,12 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
     const token = request.cookies[COOKIE];
     if (token) await deleteRefreshToken(token);
-    reply.clearCookie(COOKIE, { path: '/' });
+    reply.clearCookie(COOKIE, {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' && request.headers['x-forwarded-proto'] === 'https',
+      sameSite: 'strict',
+    });
     return reply.status(204).send();
   });
 }

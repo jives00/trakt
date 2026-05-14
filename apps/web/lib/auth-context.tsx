@@ -23,7 +23,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     api
       .refresh()
       .then((res) => setToken(res.accessToken))
-      .catch(() => setToken(null))
+      .catch((err) => {
+        console.error("Token refresh failed:", err);
+        setToken(null);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 

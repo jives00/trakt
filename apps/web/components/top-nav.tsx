@@ -24,7 +24,7 @@ const avatarDropdownLinks = [
 ];
 
 export function TopNav() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -127,6 +127,12 @@ export function TopNav() {
     router.push(`/search?q=${encodeURIComponent(query.trim())}`);
   }
 
+  async function handleLogout() {
+    await logout();
+    setShowDropdown(false);
+    router.push("/login");
+  }
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-white/20 bg-[#0f0f0f]/80 backdrop-blur-2xl">
       <div className="flex h-full items-center justify-between px-8 gap-8">
@@ -226,11 +232,17 @@ export function TopNav() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setShowDropdown(false)}
-                  className="block w-full text-left px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-b border-white/5 last:border-b-0"
+                  className="block w-full text-left px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-b border-white/5"
                 >
                   {link.label}
                 </Link>
               ))}
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-3 text-white hover:bg-white/10 transition-colors text-sm font-medium border-t border-white/5 text-red-400 hover:text-red-300"
+              >
+                Logout
+              </button>
             </div>
           )}
         </div>

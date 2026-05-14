@@ -6,9 +6,12 @@ const nextConfig = {
       { protocol: "https", hostname: "artworks.thetvdb.com" },
     ],
   },
-  async rewrites() {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-    return [{ source: "/api/:path*", destination: `${apiBase}/api/:path*` }];
+  rewrites: () => {
+    return {
+      beforeFiles: [
+        { source: "/api/:path*", destination: "http://localhost:3002/api/:path*" },
+      ],
+    };
   },
 };
 

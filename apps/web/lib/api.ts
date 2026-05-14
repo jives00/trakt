@@ -60,7 +60,14 @@ async function request<T>(
       throw new ApiError(res.status, body.error ?? res.statusText);
     }
     if (res.status === 204) return undefined as T;
-    return res.json();
+    const text = await res.text();
+    if (!text) return undefined as T;
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      console.error(`API ${path} returned status ${res.status} with invalid JSON:`, text);
+      throw new ApiError(0, `Invalid JSON response from ${path}: ${err instanceof Error ? err.message : String(err)}`);
+    }
   } finally {
     if (signal?.aborted) {
       activeControllers.forEach((c) => {
