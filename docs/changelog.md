@@ -5,6 +5,7 @@
 ### Mobile
 - EAS build: link Expo project ID, set `EXPO_PUBLIC_API_URL=https://berek.xyz` in build env `4eebcc3`
 - EAS build: switch to community autolinking to fix pnpm monorepo native module resolution `893f742`
+- EAS build: explicitly set `projectRoot` in settings.gradle so autolinking uses `apps/mobile/package.json`, not monorepo root `f1dac96`
 - Fix More tab: reset to MoreMenu on re-tap instead of jumping to previous tab; add scene background color to prevent tab-switch flash `76cdd88`
 - List detail sort options (Date Added, A–Z, Last Updated, Random) with pill selector defaulting to list's default sort `76cdd88`
 - Episode detail: split cast into Series Regulars and Guest Cast sections; remove grey overlay from still image `76cdd88`

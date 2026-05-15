@@ -22,12 +22,12 @@ plugins {
   id("expo-autolinking-settings")
 }
 
+// Explicitly set projectRoot to apps/mobile/ so autolinking uses the correct package.json
+// in the pnpm monorepo (without this, traversal can land on the monorepo root package.json)
+expoAutolinking.projectRoot = rootDir.parentFile
+
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
-    ex.autolinkLibrariesFromCommand()
-  } else {
-    ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
-  }
+  ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
 }
 expoAutolinking.useExpoModules()
 
