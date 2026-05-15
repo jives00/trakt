@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [fetching, setFetching] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [nowPlaying, setNowPlaying] = useState<NowPlayingItem | null>(null);
+  const [heroArt, setHeroArt] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoading || !token) return;
@@ -41,10 +42,12 @@ export default function DashboardPage() {
       api.getStatsAllTime(token),
       api.getShowRecommendations(token),
       api.getMovieRecommendations(token),
+      api.getDashboardArt(token),
     ])
-      .then(([prof, up, sched, stats, recent, at, srecs, mrecs]) => {
+      .then(([prof, up, sched, stats, recent, at, srecs, mrecs, art]) => {
         setProfile(prof); setUpNext(up); setSchedule(sched); setDashStats(stats);
         setRecentItems(recent); setAlltime(at); setShowRecs(srecs); setMovieRecs(mrecs);
+        setHeroArt(art);
       })
       .catch(() => setFetchError("Failed to load dashboard."))
       .finally(() => setFetching(false));
@@ -65,7 +68,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} />}
+      {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} art={heroArt} />}
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <ScheduleSection entries={schedule} />
@@ -77,22 +80,64 @@ export default function DashboardPage() {
   );
 }
 
-function HeroSection({ username, alltime }: { username: string; alltime: StatsAllTime | null }) {
+const POSTER_HEIGHT = 110; // px per row — 3 rows ≈ 330px, slightly overflows hero for top/bottom crop effect
+const POSTER_WIDTH = Math.round(POSTER_HEIGHT * (2 / 3)); // 2:3 ratio ≈ 73px
+const POSTERS_PER_ROW = 28; // 28 × 73px = 2044px, covers wide viewports
+
+function HeroSection({ username, alltime, art }: { username: string; alltime: StatsAllTime | null; art: string[] }) {
+  // Divide the pool into 3 non-overlapping slices, one per row
+  const fill = (offset: number) => {
+    if (art.length === 0) return [];
+    const out: string[] = [];
+    while (out.length < POSTERS_PER_ROW) out.push(art[(offset + out.length) % art.length]);
+    return out;
+  };
+  const third = Math.floor(art.length / 3);
+  const rowA = fill(0);
+  const rowB = fill(third);
+  const rowC = fill(third * 2);
+
+  const useStaticFallback = art.length < 6;
+
   return (
-    <section className="relative overflow-hidden bg-surface-container-low">
-      <div className="px-margin-page py-12 md:py-16">
+    <section className="relative overflow-hidden bg-black" style={{ minHeight: 220 }}>
+      {/* Background: dynamic poster grid or static fallback */}
+      {useStaticFallback ? (
         <div
           className="absolute inset-0 z-0"
           style={{
             backgroundImage: `url('/trakt-pattern.jpg')`,
             backgroundRepeat: 'repeat',
             backgroundSize: 'auto',
-            backgroundAttachment: 'fixed',
-            filter: 'blur(3px) brightness(0.8)',
+            filter: 'blur(3px) brightness(0.5)',
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent z-0" />
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-end gap-8">
+      ) : (
+        <div className="absolute inset-0 z-0 overflow-hidden" style={{ filter: 'blur(1px) brightness(0.75)' }}>
+          {[rowA, rowB, rowC].map((row, ri) => (
+            <div key={ri} className="flex" style={{ height: POSTER_HEIGHT }}>
+              {row.map((path, i) => (
+                <div key={i} className="flex-none relative" style={{ width: POSTER_WIDTH, height: POSTER_HEIGHT }}>
+                  <Image
+                    src={`${TMDB_IMG}w185${path}`}
+                    alt=""
+                    fill
+                    sizes={`${POSTER_WIDTH}px`}
+                    className="object-cover"
+                    priority={ri === 1 && i < 5}
+                  />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10 z-0" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 z-0" />
+
+      <div className="px-margin-page py-12 md:py-16 relative z-10">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
             <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
             {alltime && (
@@ -103,7 +148,6 @@ function HeroSection({ username, alltime }: { username: string; alltime: StatsAl
               </div>
             )}
           </div>
-            {/* Now Playing card – renders only when scrobble is active (Phase 2+) */}
         </div>
       </div>
     </section>

@@ -90,6 +90,44 @@ export async function getDashboardStats(userId: number): Promise<DashboardStats>
   };
 }
 
+export async function getDashboardArt(userId: number): Promise<string[]> {
+  const pool = getPool();
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT DISTINCT poster_path FROM (
+       SELECT m.poster_path
+       FROM watch_history wh
+       JOIN movies m ON wh.media_type='movie' AND m.id=wh.media_id
+       WHERE wh.user_id=? AND m.poster_path IS NOT NULL
+       UNION
+       SELECT ts.poster_path
+       FROM watch_history wh
+       JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
+       JOIN tv_shows ts ON e.show_id=ts.id
+       WHERE wh.user_id=? AND ts.poster_path IS NOT NULL
+       UNION
+       SELECT m.poster_path
+       FROM list_items li
+       JOIN lists l ON l.id=li.list_id
+       JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
+       WHERE l.user_id=? AND m.poster_path IS NOT NULL
+       UNION
+       SELECT ts.poster_path
+       FROM list_items li
+       JOIN lists l ON l.id=li.list_id
+       JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
+       WHERE l.user_id=? AND ts.poster_path IS NOT NULL
+     ) AS combined`,
+    [userId, userId, userId, userId],
+  );
+  const paths = (rows as RowDataPacket[]).map(r => r.poster_path as string);
+  // shuffle in-place (Fisher-Yates)
+  for (let i = paths.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [paths[i], paths[j]] = [paths[j], paths[i]];
+  }
+  return paths;
+}
+
 export async function getRecentItems(userId: number, limit = 10): Promise<RecentItem[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(

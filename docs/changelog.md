@@ -3,6 +3,14 @@
 ## May 14, 2026
 
 ### API
+- Add `GET /api/dashboard/art` endpoint returning shuffled poster paths from watch history and all list items (movies + shows, deduped) `b3e562b`
+
+### Web
+- Replace static hero background pattern with dynamic 3-row poster grid sourced from user library; brightness/blur overlays preserved; falls back to static image when fewer than 6 posters available `b3e562b`
+
+## May 14, 2026
+
+### API
 - Fix: history page and last-30-days graph now exclude in-progress items (completion_progress < 90, no playback_stopped_at), matching the existing filter on recently watched `60ee7b3`
 
 ## May 14, 2026

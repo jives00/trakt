@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import { getUpNext } from '../services/up-next.service';
 import { getSchedule } from '../services/schedule.service';
-import { getDashboardStats, getRecentItems } from '../services/stats-summary.service';
+import { getDashboardStats, getRecentItems, getDashboardArt } from '../services/stats-summary.service';
 import { backfillAirTimes } from '../services/shows.service';
 import { getShowRecommendations, getMovieRecommendations } from '../services/recommendations.service';
 
@@ -40,6 +40,10 @@ export async function dashboardRoutes(app: FastifyInstance) {
 
   app.get('/dashboard/recommendations/movies', auth, async (request: FastifyRequest) => {
     return getMovieRecommendations(userId(request));
+  });
+
+  app.get('/dashboard/art', auth, async (request: FastifyRequest) => {
+    return getDashboardArt(userId(request));
   });
 
   app.post('/dashboard/backfill-air-times', auth, async () => {
