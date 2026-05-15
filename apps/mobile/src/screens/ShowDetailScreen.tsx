@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Linking, Dimensions } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Linking, Dimensions, RefreshControl, Modal, FlatList } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { ShowDetail, ShowStatus, CastMember, SeasonSummary, ShowEpisodeSummary } from "../lib/api";
+import type { UserList } from "@trakt/types";
 
-type Props = NativeStackScreenProps<RootStackParamList, "ShowDetail">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "ShowDetail">;
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const SEASON_W = 90;
@@ -23,25 +24,36 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [rating, setRating] = useState(0);
+  const [listModal, setListModal] = useState(false);
+  const [lists, setLists] = useState<UserList[]>([]);
+  const [memberListIds, setMemberListIds] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
+  async function load() {
     if (!token) return;
-    Promise.all([
+    return Promise.all([
       api.getShow(tmdbId, token),
       api.getShowUpNext(tmdbId, token),
       api.getShowSeasons(tmdbId, token),
       api.getShowCast(tmdbId, token),
-    ])
-      .then(([showData, upNextData, seasonsData, castData]) => {
-        setShow(showData.show);
-        setStatus(showData.status);
-        setUpNext(upNextData.episode);
-        setSeasons(seasonsData.seasons);
-        setCast(castData.cast);
-      })
-      .finally(() => setLoading(false));
+    ]).then(([showData, upNextData, seasonsData, castData]) => {
+      setShow(showData.show);
+      setStatus(showData.status);
+      setUpNext(upNextData.episode);
+      setSeasons(seasonsData.seasons);
+      setCast(castData.cast);
+    });
+  }
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
   }, [tmdbId, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   async function handleWatchlist() {
     if (!token || !status) return;
@@ -61,6 +73,28 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
     setStatus((s) => s && { ...s, inRewatch: res.inRewatch });
   }
 
+  async function openListPicker() {
+    if (!token || !show) return;
+    setListModal(true);
+    const [listsRes, membershipRes] = await Promise.allSettled([
+      api.getLists(token),
+      api.getListMembership("show", show.id, token),
+    ]);
+    if (listsRes.status === "fulfilled") setLists(listsRes.value);
+    if (membershipRes.status === "fulfilled") setMemberListIds(new Set(membershipRes.value.listIds));
+  }
+
+  async function toggleList(list: UserList) {
+    if (!token || !show) return;
+    if (memberListIds.has(list.id)) {
+      await api.removeListItem(list.id, "show", show.id, token).catch(() => {});
+      setMemberListIds((prev) => { const next = new Set(prev); next.delete(list.id); return next; });
+    } else {
+      await api.addListItem(list.id, "show", show.id, token).catch(() => {});
+      setMemberListIds((prev) => new Set([...prev, list.id]));
+    }
+  }
+
   async function handleRate(r: number) {
     if (!token) return;
     setRating(r);
@@ -78,7 +112,7 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
   const regulars = cast.filter((m) => m.isRegular).slice(0, 20);
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content}>
+    <ScrollView style={s.root} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
       {/* Hero */}
       <View style={s.hero}>
         {backdropUrl && (
@@ -129,7 +163,32 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
             {status.inRewatch ? "Rewatching" : "Rewatch"}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity style={s.actionBtn} onPress={openListPicker}>
+          <Text style={s.actionBtnIcon}>☰</Text>
+          <Text style={s.actionBtnText}>Lists</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* List picker modal */}
+      <Modal visible={listModal} transparent animationType="slide" onRequestClose={() => setListModal(false)}>
+        <TouchableOpacity style={s.modalBackdrop} activeOpacity={1} onPress={() => setListModal(false)} />
+        <View style={s.modalSheet}>
+          <View style={s.modalHandle} />
+          <Text style={s.modalTitle}>Add to List</Text>
+          <FlatList
+            data={lists}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={s.listRow} onPress={() => toggleList(item)}>
+                <Text style={s.listRowName}>{item.name}</Text>
+                <View style={[s.listCheck, memberListIds.has(item.id) && s.listCheckActive]}>
+                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>✓</Text>}
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </Modal>
 
       {/* Metadata */}
       <View style={s.metaGrid}>
@@ -322,4 +381,14 @@ const s = StyleSheet.create({
   linkRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16 },
   linkBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "#1a1c1c" },
   linkText: { fontSize: 11, fontWeight: "700", color: "rgba(226,226,226,0.55)", letterSpacing: 0.5 },
+
+  modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
+  modalSheet: { backgroundColor: "#1a1c1c", borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, maxHeight: "70%" },
+  modalHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.2)", alignSelf: "center", marginTop: 10, marginBottom: 4 },
+  modalTitle: { fontSize: 15, fontWeight: "800", color: "#e2e2e2", paddingHorizontal: 20, paddingVertical: 14 },
+  listRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.06)" },
+  listRowName: { fontSize: 15, color: "#e2e2e2", flex: 1 },
+  listCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
+  listCheckActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
+  listCheckMark: { fontSize: 13, color: "#fff", fontWeight: "700" },
 });

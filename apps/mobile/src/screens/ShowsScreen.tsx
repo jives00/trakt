@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { ProgressItem } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const COLS = 3;
@@ -21,13 +21,21 @@ export default function ShowsScreen() {
   const nav = useNavigation<Nav>();
   const [shows, setShows] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getProgress(token, "all").then(setShows);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getProgress(token, "all")
-      .then(setShows)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>;
@@ -37,6 +45,7 @@ export default function ShowsScreen() {
     <FlatList
       style={s.root}
       data={shows}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
       keyExtractor={(item) => String(item.showId)}
       numColumns={COLS}
       contentContainerStyle={{ padding: GAP, gap: GAP, paddingBottom: 40 }}

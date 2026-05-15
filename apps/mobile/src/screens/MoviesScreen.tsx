@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { HistoryItem } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const COLS = 3;
@@ -38,6 +38,7 @@ export default function MoviesScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   async function loadPage(p: number, reset = false) {
     if (!token) return;
@@ -55,6 +56,11 @@ export default function MoviesScreen() {
   useEffect(() => {
     loadPage(1, true);
   }, [token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await loadPage(1, true); setPage(1); } finally { setRefreshing(false); }
+  }
 
   async function loadMore() {
     if (loadingMore || !hasMore) return;
@@ -76,6 +82,7 @@ export default function MoviesScreen() {
       numColumns={COLS}
       contentContainerStyle={{ padding: GAP, gap: GAP, paddingBottom: 40 }}
       columnWrapperStyle={{ gap: GAP }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
       onEndReached={loadMore}
       onEndReachedThreshold={0.3}
       ListEmptyComponent={<View style={s.center}><Text style={s.emptyText}>No movies watched yet.</Text></View>}

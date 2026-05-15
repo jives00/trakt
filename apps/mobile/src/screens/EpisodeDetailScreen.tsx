@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { EpisodeDetail, CastMember } from "../lib/api";
 
-type Props = NativeStackScreenProps<RootStackParamList, "EpisodeDetail">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "EpisodeDetail">;
 
 export default function EpisodeDetailScreen({ route }: Props) {
   const { tmdbId, seasonNumber, episodeNumber, showName } = route.params;
@@ -17,21 +17,29 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const [watched, setWatched] = useState(false);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [toggling, setToggling] = useState(false);
 
-  useEffect(() => {
+  async function load() {
     if (!token) return;
-    Promise.all([
+    return Promise.all([
       api.getEpisode(tmdbId, seasonNumber, episodeNumber, token),
       api.getEpisodeCast(tmdbId, seasonNumber, episodeNumber, token),
-    ])
-      .then(([epData, castData]) => {
-        setEpisode(epData.episode);
-        setWatched(epData.watched);
-        setCast(castData.cast.slice(0, 12));
-      })
-      .finally(() => setLoading(false));
+    ]).then(([epData, castData]) => {
+      setEpisode(epData.episode);
+      setWatched(epData.watched);
+      setCast(castData.cast.slice(0, 12));
+    });
+  }
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
   }, [tmdbId, seasonNumber, episodeNumber, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   async function handleToggle() {
     if (!token || toggling) return;
@@ -54,7 +62,7 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const stillUrl = episode.stillPath ? `${TMDB_IMG}w780${episode.stillPath}` : null;
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content}>
+    <ScrollView style={s.root} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
       {/* Still */}
       <View style={s.stillContainer}>
         {stillUrl ? (

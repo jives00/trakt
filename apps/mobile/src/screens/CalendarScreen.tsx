@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -7,10 +7,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { groupByDate } from "../lib/format";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { ScheduleItem } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 type RangeOption = { label: string; days: number };
 const RANGE_OPTIONS: RangeOption[] = [
@@ -25,14 +25,22 @@ export default function CalendarScreen() {
   const [items, setItems] = useState<ScheduleItem[]>([]);
   const [range, setRange] = useState(14);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load(r: number) {
+    if (!token) return;
+    return api.getSchedule(token, r).then(setItems);
+  }
 
   useEffect(() => {
-    if (!token) return;
     setLoading(true);
-    api.getSchedule(token, range)
-      .then(setItems)
-      .finally(() => setLoading(false));
+    load(range).finally(() => setLoading(false));
   }, [token, range]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(range); } finally { setRefreshing(false); }
+  }
 
   const sections = groupByDate(items);
 
@@ -53,14 +61,14 @@ export default function CalendarScreen() {
 
       {loading ? (
         <View style={s.center}><ActivityIndicator color="#e8002d" /></View>
-      ) : sections.length === 0 ? (
-        <View style={s.center}><Text style={s.emptyText}>No upcoming episodes.</Text></View>
       ) : (
         <SectionList
           sections={sections}
           keyExtractor={(item) => `${item.showTmdbId ?? item.movieTmdbId}-${item.seasonNumber}-${item.episodeNumber}`}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={{ paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
+          ListEmptyComponent={<View style={s.center}><Text style={s.emptyText}>No upcoming episodes.</Text></View>}
           renderSectionHeader={({ section }) => (
             <View style={s.dayHeader}>
               <Text style={s.dayTitle}>{section.title}</Text>

@@ -12,7 +12,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.d.ts",
-    "expo-env.d.ts",
     "global.css",
     "nativewind-env.d.ts"
   ]

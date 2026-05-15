@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { RatingItem } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 type FilterType = "all" | "movie" | "show" | "episode";
 
 export default function RatingsScreen() {
@@ -21,6 +21,7 @@ export default function RatingsScreen() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   async function load(f: FilterType, p: number, reset = false) {
     if (!token) return;
@@ -39,6 +40,11 @@ export default function RatingsScreen() {
     setPage(1);
     load(filter, 1, true);
   }, [filter, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(filter, 1, true); setPage(1); } finally { setRefreshing(false); }
+  }
 
   async function loadMore() {
     if (loadingMore || items.length >= total) return;
@@ -84,13 +90,13 @@ export default function RatingsScreen() {
 
       {loading ? (
         <View style={s.center}><ActivityIndicator color="#e8002d" /></View>
-      ) : items.length === 0 ? (
-        <View style={s.center}><Text style={s.emptyText}>No ratings yet.</Text></View>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={{ paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
+          ListEmptyComponent={<View style={s.center}><Text style={s.emptyText}>No ratings yet.</Text></View>}
           onEndReached={loadMore}
           onEndReachedThreshold={0.3}
           ListFooterComponent={loadingMore ? <View style={s.footer}><ActivityIndicator color="#e8002d" /></View> : null}

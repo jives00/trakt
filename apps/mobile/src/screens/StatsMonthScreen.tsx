@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { StatsMonth } from "@trakt/types";
 
-type Props = NativeStackScreenProps<RootStackParamList, "StatsMonth">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "StatsMonth">;
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -24,13 +24,21 @@ export default function StatsMonthScreen({ route }: Props) {
   const { token } = useAuth();
   const [stats, setStats] = useState<StatsMonth | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getStatsMonth(year, month, token).then(setStats);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getStatsMonth(year, month, token)
-      .then(setStats)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [year, month, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>;
@@ -43,7 +51,7 @@ export default function StatsMonthScreen({ route }: Props) {
   const daysInMonth = new Date(year, month, 0).getDate();
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
       <View style={s.titleRow}>
         <Text style={s.monthTitle}>{MONTH_NAMES[month - 1]} {year}</Text>
       </View>

@@ -1,7 +1,6 @@
 import { api, ApiError } from "../api";
 
-// Jest replaces module-level constants so API_BASE resolves to the test default
-const BASE = "https://jives.duckdns.org";
+const BASE = "https://berek.xyz";
 
 function mockFetch(status: number, body: unknown, ok = status >= 200 && status < 300) {
   const text = body === undefined || status === 204 ? "" : JSON.stringify(body);

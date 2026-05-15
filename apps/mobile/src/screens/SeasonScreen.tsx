@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { EpisodeItem } from "../lib/api";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Season">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "Season">;
 
 export default function SeasonScreen({ route, navigation }: Props) {
   const { tmdbId, seasonNumber, showName } = route.params;
@@ -16,17 +16,25 @@ export default function SeasonScreen({ route, navigation }: Props) {
   const [episodes, setEpisodes] = useState<EpisodeItem[]>([]);
   const [watchedIds, setWatchedIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [toggling, setToggling] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
+  async function load() {
     if (!token) return;
-    api.getSeason(tmdbId, seasonNumber, token)
-      .then((data) => {
-        setEpisodes(data.episodes);
-        setWatchedIds(new Set(data.watchedEpisodeIds));
-      })
-      .finally(() => setLoading(false));
+    return api.getSeason(tmdbId, seasonNumber, token).then((data) => {
+      setEpisodes(data.episodes);
+      setWatchedIds(new Set(data.watchedEpisodeIds));
+    });
+  }
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
   }, [tmdbId, seasonNumber, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   async function handleToggle(ep: EpisodeItem) {
     if (!token || toggling.has(ep.id)) return;
@@ -57,6 +65,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
         data={episodes}
         keyExtractor={(ep) => String(ep.id)}
         contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
         ListHeaderComponent={
           <View style={s.header}>
             <Text style={s.headerTitle}>{showName}</Text>

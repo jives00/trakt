@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, RefreshControl } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import ManualScrobbleModal from "../components/ManualScrobbleModal";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -8,10 +9,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { formatWatchedAt, groupByDay } from "../lib/format";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { HistoryItem } from "../lib/api";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 type FilterType = "all" | "movie" | "episode";
 
 export default function HistoryScreen() {
@@ -23,6 +24,7 @@ export default function HistoryScreen() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [scrobbleOpen, setScrobbleOpen] = useState(false);
 
   const load = useCallback(async (f: FilterType, p: number, reset = false) => {
@@ -42,6 +44,11 @@ export default function HistoryScreen() {
     setPage(1);
     load(filter, 1, true);
   }, [filter, load]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(filter, 1, true); setPage(1); } finally { setRefreshing(false); }
+  }
 
   async function handleDelete(id: number) {
     if (!token) return;
@@ -78,7 +85,7 @@ export default function HistoryScreen() {
   const hasMore = items.length < total;
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root} edges={["top"]}>
       {/* Filter pills */}
       <View style={s.filters}>
         {(["all", "movie", "episode"] as FilterType[]).map((f) => (
@@ -106,6 +113,7 @@ export default function HistoryScreen() {
           keyExtractor={(item) => String(item.id)}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={{ paddingBottom: 80 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
           renderSectionHeader={({ section }) => (
             <View style={s.dayHeader}>
               <Text style={s.dayTitle}>{section.title}</Text>
@@ -140,7 +148,7 @@ export default function HistoryScreen() {
       </TouchableOpacity>
 
       <ManualScrobbleModal visible={scrobbleOpen} onClose={() => setScrobbleOpen(false)} />
-    </View>
+    </SafeAreaView>
   );
 }
 

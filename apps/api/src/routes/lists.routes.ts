@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import {
   getLists, createList, getListDetail, getListByType, deleteList,
-  addListItem, removeListItem, updateList, setListStremioCatalog,
+  addListItem, removeListItem, updateList, setListStremioCatalog, getListMembershipIds,
 } from '../services/lists.service';
 import { ListType, ListSort } from '@trakt/types';
 
@@ -19,6 +19,16 @@ export async function listsRoutes(app: FastifyInstance) {
 
   app.get('/lists', auth, async (request: FastifyRequest) => {
     return getLists(userId(request));
+  });
+
+  app.get('/lists/membership', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    const { mediaType, mediaId } = request.query as any;
+    const id = Number(mediaId);
+    if (!VALID_MEDIA_TYPES.includes(mediaType) || !Number.isInteger(id) || id <= 0) {
+      return reply.status(400).send({ error: 'Invalid mediaType or mediaId' });
+    }
+    const listIds = await getListMembershipIds(userId(request), mediaType, id);
+    return { listIds };
   });
 
   app.get('/lists/by-type/:type', auth, async (request: FastifyRequest, reply: FastifyReply) => {

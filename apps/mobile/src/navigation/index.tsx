@@ -2,8 +2,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text } from "react-native";
+import { useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import type { RootStackParamList, MainTabParamList, MoreStackParamList } from "./types";
+import type {
+  RootStackParamList, MainTabParamList,
+  DashboardStackParamList, HistoryStackParamList, DiscoverStackParamList, MoreStackParamList,
+} from "./types";
 
 import LoginScreen from "../screens/LoginScreen";
 import DashboardScreen from "../screens/DashboardScreen";
@@ -17,8 +21,6 @@ import ListDetailScreen from "../screens/ListDetailScreen";
 import StatsYearScreen from "../screens/StatsYearScreen";
 import StatsMonthScreen from "../screens/StatsMonthScreen";
 import MoreMenuScreen from "../screens/MoreMenuScreen";
-import ShowsScreen from "../screens/ShowsScreen";
-import MoviesScreen from "../screens/MoviesScreen";
 import ListsScreen from "../screens/ListsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 import RatingsScreen from "../screens/RatingsScreen";
@@ -28,6 +30,9 @@ import SettingsScreen from "../screens/SettingsScreen";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
+const HistoryStack = createNativeStackNavigator<HistoryStackParamList>();
+const DiscoverStack = createNativeStackNavigator<DiscoverStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 
 const NAV_BG = "#1d1d1d";
@@ -36,30 +41,96 @@ const ACCENT = "#e8002d";
 const ON_SURFACE = "#e2e2e2";
 const ON_SURFACE_VARIANT = "#cccccc";
 
+const DETAIL_SCREEN_OPTIONS = {
+  headerStyle: { backgroundColor: SURFACE_LOW },
+  headerTintColor: ON_SURFACE,
+  headerTitleStyle: { fontWeight: "700" as const },
+  contentStyle: { backgroundColor: NAV_BG },
+};
+
+function DetailScreens({ Stack }: { Stack: ReturnType<typeof createNativeStackNavigator<any>> }) {
+  return (
+    <>
+      <Stack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ title: "" }} />
+      <Stack.Screen name="Season" component={SeasonScreen} options={{ title: "" }} />
+      <Stack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ title: "" }} />
+      <Stack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ title: "" }} />
+      <Stack.Screen name="ListDetail" component={ListDetailScreen} options={{ title: "" }} />
+      <Stack.Screen name="StatsYear" component={StatsYearScreen} options={{ title: "" }} />
+      <Stack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ title: "" }} />
+    </>
+  );
+}
+
+function DashboardNavigator() {
+  return (
+    <DashboardStack.Navigator screenOptions={{ headerShown: false, ...DETAIL_SCREEN_OPTIONS, contentStyle: { backgroundColor: NAV_BG } }}>
+      <DashboardStack.Screen name="DashboardHome" component={DashboardScreen} />
+      <DashboardStack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="Season" component={SeasonScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="ListDetail" component={ListDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="StatsYear" component={StatsYearScreen} options={{ headerShown: true, title: "" }} />
+      <DashboardStack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ headerShown: true, title: "" }} />
+    </DashboardStack.Navigator>
+  );
+}
+
+function HistoryNavigator() {
+  return (
+    <HistoryStack.Navigator screenOptions={{ headerShown: false, ...DETAIL_SCREEN_OPTIONS, contentStyle: { backgroundColor: NAV_BG } }}>
+      <HistoryStack.Screen name="HistoryHome" component={HistoryScreen} />
+      <HistoryStack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="Season" component={SeasonScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="ListDetail" component={ListDetailScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="StatsYear" component={StatsYearScreen} options={{ headerShown: true, title: "" }} />
+      <HistoryStack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ headerShown: true, title: "" }} />
+    </HistoryStack.Navigator>
+  );
+}
+
+function DiscoverNavigator() {
+  return (
+    <DiscoverStack.Navigator screenOptions={{ headerShown: false, ...DETAIL_SCREEN_OPTIONS, contentStyle: { backgroundColor: NAV_BG } }}>
+      <DiscoverStack.Screen name="DiscoverHome" component={SearchScreen} />
+      <DiscoverStack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="Season" component={SeasonScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="ListDetail" component={ListDetailScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="StatsYear" component={StatsYearScreen} options={{ headerShown: true, title: "" }} />
+      <DiscoverStack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ headerShown: true, title: "" }} />
+    </DiscoverStack.Navigator>
+  );
+}
+
 function MoreNavigator() {
   return (
-    <MoreStack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: SURFACE_LOW },
-        headerTintColor: ON_SURFACE,
-        headerTitleStyle: { fontWeight: "700" },
-        contentStyle: { backgroundColor: NAV_BG },
-      }}
-    >
+    <MoreStack.Navigator screenOptions={{ ...DETAIL_SCREEN_OPTIONS }}>
       <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} options={{ title: "More" }} />
-      <MoreStack.Screen name="Shows" component={ShowsScreen} options={{ title: "Shows" }} />
-      <MoreStack.Screen name="Movies" component={MoviesScreen} options={{ title: "Movies" }} />
       <MoreStack.Screen name="Lists" component={ListsScreen} options={{ title: "Lists" }} />
       <MoreStack.Screen name="Progress" component={ProgressScreen} options={{ title: "Progress" }} />
       <MoreStack.Screen name="Ratings" component={RatingsScreen} options={{ title: "Ratings" }} />
       <MoreStack.Screen name="Calendar" component={CalendarScreen} options={{ title: "Calendar" }} />
       <MoreStack.Screen name="Stats" component={StatsScreen} options={{ title: "Stats" }} />
       <MoreStack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
+      <MoreStack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="Season" component={SeasonScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="ListDetail" component={ListDetailScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="StatsYear" component={StatsYearScreen} options={{ title: "" }} />
+      <MoreStack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ title: "" }} />
     </MoreStack.Navigator>
   );
 }
 
 function MainTabs() {
+  const prevTabRef = useRef<keyof MainTabParamList>("Dashboard");
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -72,23 +143,34 @@ function MainTabs() {
     >
       <Tab.Screen
         name="Dashboard"
-        component={DashboardScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⊞</Text> }}
+        component={DashboardNavigator}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>⊞</Text> }}
+        listeners={{ tabPress: () => { prevTabRef.current = "Dashboard"; } }}
       />
       <Tab.Screen
         name="History"
-        component={HistoryScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>◷</Text> }}
+        component={HistoryNavigator}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 26, lineHeight: 26, includeFontPadding: false, marginTop: -2 }}>⏱</Text> }}
+        listeners={{ tabPress: () => { prevTabRef.current = "History"; } }}
       />
       <Tab.Screen
-        name="Search"
-        component={SearchScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⌕</Text> }}
+        name="Discover"
+        component={DiscoverNavigator}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 30, lineHeight: 30, includeFontPadding: false }}>⌕</Text> }}
+        listeners={{ tabPress: () => { prevTabRef.current = "Discover"; } }}
       />
       <Tab.Screen
         name="More"
         component={MoreNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>≡</Text> }}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 32, lineHeight: 32, includeFontPadding: false }}>≡</Text> }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            if (navigation.isFocused()) {
+              e.preventDefault();
+              navigation.navigate(prevTabRef.current);
+            }
+          },
+        })}
       />
     </Tab.Navigator>
   );
@@ -101,27 +183,11 @@ export default function Navigation() {
 
   return (
     <NavigationContainer>
-      <RootStack.Navigator
-        screenOptions={{
-          headerStyle: { backgroundColor: SURFACE_LOW },
-          headerTintColor: ON_SURFACE,
-          headerTitleStyle: { fontWeight: "700" },
-          contentStyle: { backgroundColor: NAV_BG },
-        }}
-      >
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {!token ? (
-          <RootStack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+          <RootStack.Screen name="Login" component={LoginScreen} />
         ) : (
-          <>
-            <RootStack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
-            <RootStack.Screen name="ShowDetail" component={ShowDetailScreen} options={{ title: "" }} />
-            <RootStack.Screen name="Season" component={SeasonScreen} options={{ title: "" }} />
-            <RootStack.Screen name="EpisodeDetail" component={EpisodeDetailScreen} options={{ title: "" }} />
-            <RootStack.Screen name="MovieDetail" component={MovieDetailScreen} options={{ title: "" }} />
-            <RootStack.Screen name="ListDetail" component={ListDetailScreen} options={{ title: "" }} />
-            <RootStack.Screen name="StatsYear" component={StatsYearScreen} options={{ title: "" }} />
-            <RootStack.Screen name="StatsMonth" component={StatsMonthScreen} options={{ title: "" }} />
-          </>
+          <RootStack.Screen name="Main" component={MainTabs} />
         )}
       </RootStack.Navigator>
     </NavigationContainer>

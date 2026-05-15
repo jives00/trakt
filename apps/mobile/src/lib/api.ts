@@ -219,6 +219,8 @@ export const api = {
   // Lists
   getLists: (token: string) =>
     request<UserList[]>("/api/lists", { token }),
+  getListMembership: (mediaType: string, mediaId: number, token: string) =>
+    request<{ listIds: number[] }>(`/api/lists/membership?mediaType=${mediaType}&mediaId=${mediaId}`, { token }),
   getList: (id: number, token: string) =>
     request<ListDetail>(`/api/lists/${id}`, { token }),
   getListByType: (type: ListType, token: string) =>
@@ -238,7 +240,7 @@ export const api = {
   deleteList: (id: number, token: string) =>
     request<{ deleted: boolean }>(`/api/lists/${id}`, { method: "DELETE", token }),
   addListItem: (id: number, mediaType: string, mediaId: number, token: string) =>
-    request<{ id: number }>(`/api/lists/${id}/items`, {
+    request<{ added: boolean }>(`/api/lists/${id}/items`, {
       method: "POST",
       body: JSON.stringify({ mediaType, mediaId }),
       token,
@@ -280,7 +282,7 @@ export const api = {
   rotateExportToken: (token: string) =>
     request<{ exportToken: string }>("/api/settings/export-token/rotate", { method: "POST", token }),
   getExclusions: (token: string, integration: string) =>
-    request<{ exclusions: Array<{ id: number; title: string; integration: string }> }>(
+    request<Array<{ id: number; title: string; integration: string }>>(
       `/api/settings/exclusions?integration=${integration}`, { token },
     ),
   addExclusion: (title: string, integration: string, token: string) =>
@@ -291,4 +293,5 @@ export const api = {
     }),
   deleteExclusion: (id: number, token: string) =>
     request<{ deleted: boolean }>(`/api/settings/exclusions/${id}`, { method: "DELETE", token }),
+
 };

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { StatsYear } from "@trakt/types";
 
-type Props = NativeStackScreenProps<RootStackParamList, "StatsYear">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "StatsYear">;
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -24,13 +24,21 @@ export default function StatsYearScreen({ route, navigation }: Props) {
   const { token } = useAuth();
   const [stats, setStats] = useState<StatsYear | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getStatsYear(year, token).then(setStats);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getStatsYear(year, token)
-      .then(setStats)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [year, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>;
@@ -42,7 +50,7 @@ export default function StatsYearScreen({ route, navigation }: Props) {
   const maxHours = Math.max(...stats.monthlyBreakdown.map((m) => m.hours), 1);
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
       {/* Summary */}
       <View style={s.chipGrid}>
         <StatChip label="Time Watched" value={formatMinutes(stats.totalMinutes)} accent />

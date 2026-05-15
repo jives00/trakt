@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { StatsAllTime } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
@@ -26,13 +26,21 @@ export default function StatsScreen() {
   const nav = useNavigation<Nav>();
   const [stats, setStats] = useState<StatsAllTime | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getStatsAllTime(token).then(setStats);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getStatsAllTime(token)
-      .then(setStats)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>;
@@ -42,7 +50,7 @@ export default function StatsScreen() {
   }
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={s.root} contentContainerStyle={{ paddingBottom: 40 }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
       {/* All-time summary chips */}
       <View style={s.chipGrid}>
         <StatChip label="Total Time" value={formatMinutes(stats.totalMinutes)} accent />

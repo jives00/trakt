@@ -3,9 +3,16 @@
 ## May 15, 2026
 
 ### Mobile
+- Per-tab nested stack navigators (Dashboard/History/Discover/More) so bottom tab bar stays visible on detail pages `100e30d`
+- Lists button on show/movie detail pages opens bottom-sheet modal to add/remove item from any user list with checkmark indicators `100e30d`
+- Renamed Search tab to Discover with shows/movies filter toggle; auto-loads trending on open `100e30d`
+- Settings page: inline display name editor, color theme selector (with note), removed unused API key/export token sections `100e30d`
+- SafeAreaView and pull-to-refresh on all main tab screens `100e30d`
+- Fixed default API URL from jives.duckdns.org to berek.xyz `100e30d`
 - Initial React Native + Expo SDK 54 app (Android): full feature parity with web across Dashboard, History, Shows, Movies, Search, Lists, Progress, Ratings, Calendar, Stats, and Settings screens; manual scrobble modal; bottom tab + nested stack navigation `526d47b`
 
 ### API
+- Add `GET /api/lists/membership?mediaType=X&mediaId=Y` returning list IDs that contain a given item `100e30d`
 - Auth routes return `refreshToken` in response body for mobile SecureStore; `/refresh` and `/logout` accept token from request body in addition to HttpOnly cookie `526d47b`
 
 ## May 14, 2026

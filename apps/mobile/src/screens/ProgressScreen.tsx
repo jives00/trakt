@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { ProgressItem } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 type StatusFilter = "all" | "watching" | "completed" | "dropped";
 const STATUS_FILTERS: StatusFilter[] = ["all", "watching", "completed", "dropped"];
 
@@ -19,13 +19,21 @@ export default function ProgressScreen() {
   const [items, setItems] = useState<ProgressItem[]>([]);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load(f: StatusFilter) {
+    if (!token) return;
+    return api.getProgress(token, f).then(setItems);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getProgress(token, filter)
-      .then(setItems)
-      .finally(() => setLoading(false));
+    load(filter).finally(() => setLoading(false));
   }, [token, filter]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(filter); } finally { setRefreshing(false); }
+  }
 
   function handleFilterChange(f: StatusFilter) {
     setFilter(f);
@@ -51,13 +59,13 @@ export default function ProgressScreen() {
 
       {loading ? (
         <View style={s.center}><ActivityIndicator color="#e8002d" /></View>
-      ) : items.length === 0 ? (
-        <View style={s.center}><Text style={s.emptyText}>No shows in progress.</Text></View>
       ) : (
         <FlatList
           data={items}
           keyExtractor={(item) => String(item.showId)}
           contentContainerStyle={{ paddingBottom: 32 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
+          ListEmptyComponent={<View style={s.center}><Text style={s.emptyText}>No shows in progress.</Text></View>}
           renderItem={({ item }) => {
             const pct = item.totalEpisodes > 0 ? item.watchedEpisodes / item.totalEpisodes : 0;
             return (

@@ -1,27 +1,35 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { ListDetail, ListItemEntry } from "@trakt/types";
 
-type Props = NativeStackScreenProps<RootStackParamList, "ListDetail">;
+type Props = NativeStackScreenProps<SharedDetailParamList, "ListDetail">;
 
 export default function ListDetailScreen({ route, navigation }: Props) {
   const { listId, listName } = route.params;
   const { token } = useAuth();
   const [list, setList] = useState<ListDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getList(listId, token).then(setList);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getList(listId, token)
-      .then(setList)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [listId, token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   async function handleRemove(item: ListItemEntry) {
     if (!token || !list) return;
@@ -60,6 +68,7 @@ export default function ListDetailScreen({ route, navigation }: Props) {
       data={list.items}
       keyExtractor={(item) => String(item.id)}
       contentContainerStyle={{ paddingBottom: 40 }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
       ListHeaderComponent={
         <View style={s.header}>
           {list.description ? <Text style={s.headerDesc}>{list.description}</Text> : null}

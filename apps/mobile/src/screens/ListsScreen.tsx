@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { UserList } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 const TYPE_LABEL: Record<string, string> = {
   watchlist: "Watchlist",
@@ -23,13 +23,21 @@ export default function ListsScreen() {
   const nav = useNavigation<Nav>();
   const [lists, setLists] = useState<UserList[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    if (!token) return;
+    return api.getLists(token).then(setLists);
+  }
 
   useEffect(() => {
-    if (!token) return;
-    api.getLists(token)
-      .then(setLists)
-      .finally(() => setLoading(false));
+    load().finally(() => setLoading(false));
   }, [token]);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await load(); } finally { setRefreshing(false); }
+  }
 
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>;
@@ -39,6 +47,7 @@ export default function ListsScreen() {
     <FlatList
       style={s.root}
       data={lists}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
       keyExtractor={(l) => String(l.id)}
       contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 40 }}
       ListEmptyComponent={<View style={s.center}><Text style={s.emptyText}>No lists yet.</Text></View>}
@@ -60,7 +69,7 @@ export default function ListsScreen() {
                 <View style={s.typeBadge}>
                   <Text style={s.typeText}>{TYPE_LABEL[list.listType] ?? list.listType}</Text>
                 </View>
-                {list.isPublic && <View style={s.publicBadge}><Text style={s.publicText}>PUBLIC</Text></View>}
+                {!!list.isPublic && <View style={s.publicBadge}><Text style={s.publicText}>PUBLIC</Text></View>}
               </View>
               <Text style={s.cardTitle}>{list.name}</Text>
               {list.description ? <Text style={s.cardDesc} numberOfLines={1}>{list.description}</Text> : null}

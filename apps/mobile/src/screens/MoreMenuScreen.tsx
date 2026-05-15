@@ -5,8 +5,6 @@ import type { MoreStackParamList } from "../navigation/types";
 type Props = NativeStackScreenProps<MoreStackParamList, "MoreMenu">;
 
 const ITEMS: { label: string; screen: keyof MoreStackParamList }[] = [
-  { label: "Shows", screen: "Shows" },
-  { label: "Movies", screen: "Movies" },
   { label: "Lists", screen: "Lists" },
   { label: "Progress", screen: "Progress" },
   { label: "Ratings", screen: "Ratings" },

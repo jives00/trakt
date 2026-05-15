@@ -230,3 +230,18 @@ export async function removeListItem(
   );
   return result.affectedRows > 0;
 }
+
+export async function getListMembershipIds(
+  userId: number,
+  mediaType: string,
+  mediaId: number,
+): Promise<number[]> {
+  const [rows] = await getPool().query<RowDataPacket[]>(
+    `SELECT li.list_id AS listId
+     FROM list_items li
+     INNER JOIN lists l ON l.id = li.list_id
+     WHERE l.user_id=? AND li.media_type=? AND li.media_id=?`,
+    [userId, mediaType, mediaId],
+  );
+  return rows.map((r) => r.listId as number);
+}

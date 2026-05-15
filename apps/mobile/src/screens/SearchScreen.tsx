@@ -1,21 +1,23 @@
-import { useState, useRef } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, Keyboard } from "react-native";
+import { useState, useRef, useEffect } from "react";
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, Keyboard, RefreshControl } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
-import type { RootStackParamList } from "../navigation/types";
+import type { SharedDetailParamList } from "../navigation/types";
 import type { SearchResult } from "@trakt/types";
 
-type Nav = NativeStackNavigationProp<RootStackParamList>;
+type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
 const { width: SCREEN_W } = Dimensions.get("window");
 const CARD_W = (SCREEN_W - 16 * 2 - 10) / 2;
 const CARD_H = CARD_W * 1.5;
 
 type DiscoverTab = "Trending" | "Popular" | "Top Rated" | "New";
+type MediaFilter = "shows" | "movies";
 const DISCOVER_TABS: DiscoverTab[] = ["Trending", "Popular", "Top Rated", "New"];
 
 export default function SearchScreen() {
@@ -27,8 +29,10 @@ export default function SearchScreen() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [discoverTab, setDiscoverTab] = useState<DiscoverTab>("Trending");
+  const [mediaFilter, setMediaFilter] = useState<MediaFilter>("shows");
   const [discoverItems, setDiscoverItems] = useState<SearchResult[]>([]);
   const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   async function runSearch(q: string) {
     if (!q.trim() || !token) return;
@@ -43,36 +47,36 @@ export default function SearchScreen() {
     }
   }
 
-  async function loadDiscover(tab: DiscoverTab) {
+  async function loadDiscover(tab: DiscoverTab, filter: MediaFilter) {
     if (!token) return;
     setDiscoverTab(tab);
     setDiscoverLoading(true);
     try {
       const showCatMap: Record<DiscoverTab, Parameters<typeof api.getShowDiscover>[0]> = {
-        Trending: "trending",
-        Popular: "popular",
-        "Top Rated": "top_rated",
-        New: "on_the_air",
+        Trending: "trending", Popular: "popular", "Top Rated": "top_rated", New: "on_the_air",
       };
       const movieCatMap: Record<DiscoverTab, Parameters<typeof api.getMovieDiscover>[0]> = {
-        Trending: "trending",
-        Popular: "popular",
-        "Top Rated": "top_rated",
-        New: "upcoming",
+        Trending: "trending", Popular: "popular", "Top Rated": "top_rated", New: "upcoming",
       };
-      const [shows, movies] = await Promise.all([
-        api.getShowDiscover(showCatMap[tab], token),
-        api.getMovieDiscover(movieCatMap[tab], token),
-      ]);
-      const combined: SearchResult[] = [
-        ...shows.items.map((r) => ({ ...r, mediaType: "show" as const, overview: r.overview ?? "" })),
-        ...movies.items.map((r) => ({ ...r, mediaType: "movie" as const, overview: r.overview ?? "" })),
-      ];
-      combined.sort(() => Math.random() - 0.5);
-      setDiscoverItems(combined.slice(0, 40));
+      if (filter === "shows") {
+        const data = await api.getShowDiscover(showCatMap[tab], token);
+        setDiscoverItems(data.items.map((r) => ({ ...r, mediaType: "show" as const, overview: r.overview ?? "" })));
+      } else {
+        const data = await api.getMovieDiscover(movieCatMap[tab], token);
+        setDiscoverItems(data.items.map((r) => ({ ...r, mediaType: "movie" as const, overview: r.overview ?? "" })));
+      }
     } finally {
       setDiscoverLoading(false);
     }
+  }
+
+  useEffect(() => {
+    loadDiscover("Trending", "shows");
+  }, []);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    try { await loadDiscover(discoverTab, mediaFilter); } finally { setRefreshing(false); }
   }
 
   function clearSearch() {
@@ -93,7 +97,7 @@ export default function SearchScreen() {
   const isShowingSearch = searched || loading;
 
   return (
-    <View style={s.root}>
+    <SafeAreaView style={s.root} edges={["top"]}>
       {/* Search bar */}
       <View style={s.searchRow}>
         <View style={s.searchBar}>
@@ -123,14 +127,29 @@ export default function SearchScreen() {
         )}
       </View>
 
-      {/* Discover tabs (shown when not searching) */}
+      {/* Media filter — always visible */}
+      <View style={s.mediaFilterRow}>
+        {(["shows", "movies"] as MediaFilter[]).map((f) => (
+          <TouchableOpacity
+            key={f}
+            style={[s.mediaFilterBtn, mediaFilter === f && s.mediaFilterBtnActive]}
+            onPress={() => { setMediaFilter(f); if (!isShowingSearch) loadDiscover(discoverTab, f); }}
+          >
+            <Text style={[s.mediaFilterText, mediaFilter === f && s.mediaFilterTextActive]}>
+              {f.charAt(0).toUpperCase() + f.slice(1)}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Discover category tabs (hidden while searching) */}
       {!isShowingSearch && (
         <View style={s.tabRow}>
           {DISCOVER_TABS.map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[s.tab, discoverTab === tab && s.tabActive]}
-              onPress={() => loadDiscover(tab)}
+              onPress={() => loadDiscover(tab, mediaFilter)}
             >
               <Text style={[s.tabText, discoverTab === tab && s.tabTextActive]}>{tab}</Text>
             </TouchableOpacity>
@@ -156,12 +175,8 @@ export default function SearchScreen() {
             <MediaCard item={item} onPress={() => handleItemPress(item)} />
           )}
         />
-      ) : !isShowingSearch && discoverItems.length === 0 ? (
-        <View style={s.center}>
-          <TouchableOpacity style={s.discoverBtn} onPress={() => loadDiscover("Trending")}>
-            <Text style={s.discoverBtnText}>Load Discover</Text>
-          </TouchableOpacity>
-        </View>
+      ) : discoverLoading && discoverItems.length === 0 ? (
+        <View style={s.center}><ActivityIndicator color="#e8002d" size="large" /></View>
       ) : (
         <FlatList
           data={discoverItems}
@@ -169,13 +184,14 @@ export default function SearchScreen() {
           numColumns={2}
           contentContainerStyle={s.grid}
           columnWrapperStyle={s.gridRow}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
           ListHeaderComponent={discoverLoading ? <ActivityIndicator color="#e8002d" style={{ marginVertical: 16 }} /> : null}
           renderItem={({ item }) => (
             <MediaCard item={item} onPress={() => handleItemPress(item)} />
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -221,6 +237,12 @@ const s = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10,
   },
   searchBtnText: { color: "#fff", fontSize: 13, fontWeight: "700" },
+
+  mediaFilterRow: { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1a1c1c", borderRadius: 10, padding: 3 },
+  mediaFilterBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 8 },
+  mediaFilterBtnActive: { backgroundColor: "#e8002d" },
+  mediaFilterText: { fontSize: 13, fontWeight: "700", color: "rgba(226,226,226,0.4)" },
+  mediaFilterTextActive: { color: "#fff" },
 
   tabRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 12 },
   tab: {
