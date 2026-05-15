@@ -3,6 +3,7 @@
 ## May 15, 2026
 
 ### Mobile
+- EAS build: link Expo project ID, set `EXPO_PUBLIC_API_URL=https://berek.xyz` in build env `4eebcc3`
 - Fix More tab: reset to MoreMenu on re-tap instead of jumping to previous tab; add scene background color to prevent tab-switch flash `76cdd88`
 - List detail sort options (Date Added, A–Z, Last Updated, Random) with pill selector defaulting to list's default sort `76cdd88`
 - Episode detail: split cast into Series Regulars and Guest Cast sections; remove grey overlay from still image `76cdd88`

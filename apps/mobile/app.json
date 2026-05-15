@@ -24,11 +24,12 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "d1318aa8-a8b9-4b50-909c-ca9ddf805c0e"
       }
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "owner": "jives00"
   }
 }
