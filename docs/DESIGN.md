@@ -245,6 +245,101 @@ These are the main consistency gaps to address in implementation:
 - Normalize loading copy and visible ellipsis usage.
 - Convert one-off card treatments to the card/surface patterns above.
 
-## 15. Summary
+## 15. Mobile Design System (React Native / Expo)
+
+The Android app shares the same product aesthetic as the web — dark, cinematic, dense — but uses React Native's `StyleSheet.create` instead of Tailwind CSS variables. NativeWind 4 is installed but does not support CSS custom properties at runtime, so all colors are static hex values.
+
+### Color Tokens (Mobile)
+
+| Purpose | Hex | Web equivalent |
+|---|---|---|
+| App background | `#1d1d1d` | `background` |
+| Deep panels | `#0c0f0f` | `surface-container-lowest` |
+| Cards / inputs | `#1a1c1c` | `surface-container-low` |
+| Poster placeholders | `#282a2b` | `surface-container-high` |
+| Primary text | `#e2e2e2` | `on-surface` |
+| Secondary text | `rgba(226,226,226,0.5)` | `on-surface-variant` |
+| Muted labels | `rgba(226,226,226,0.35)` | `on-surface-variant/50` |
+| Accent / primary | `#e8002d` | `accent` |
+| Subtle border | `rgba(255,255,255,0.08)` | `border-white/10` |
+
+Light mode variants (`red-light`, `blue-light`) are not yet implemented on mobile.
+
+### Typography (Mobile)
+
+Use `fontWeight` strings, not numeric values. Canonical mobile type scale:
+
+| Role | fontSize | fontWeight | Notes |
+|---|---|---|---|
+| Hero / page title | 28 | `"900"` | `letterSpacing: 5` for brand mark |
+| Card / screen title | 22 | `"900"` | EpisodeDetail, MovieDetail |
+| Section heading | 16 | `"800"` | Dashboard section titles |
+| Body | 14–15 | `"400"` | Overview text, descriptions |
+| Metadata / labels | 11–13 | `"600"–"700"` | Episode codes, network, dates |
+| Micro badges | 9–10 | `"700"–"900"` | `letterSpacing: 1–2`, uppercase |
+
+### Navigation (Mobile)
+
+Bottom tab bar with 4 tabs: **Dashboard**, **History**, **Search**, **More**. Each tab has its own native stack for detail pages. The **More** tab contains a menu screen that navigates into Shows, Movies, Lists, Progress, Ratings, Calendar, Stats, and Settings stacks.
+
+### Touch Targets
+
+Minimum tappable area is 44×44 dp. Use `hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}` on small icon buttons (close/delete icons). FABs are 52×52 with `borderRadius: 26`.
+
+### Cards and Surfaces (Mobile)
+
+- **Poster card** (ShowsScreen, MoviesScreen): 3-column grid, `borderRadius: 6–8`
+- **History card**: horizontal layout, 60×90 poster thumbnail, `borderRadius: 8`, overflow hidden
+- **Schedule row**: 36×54 poster, flat row with bottom border separator
+- **Cast card**: 70×105 profile photo, 70px wide, `borderRadius: 6`
+- **Episode row** (SeasonScreen): 107×60 still, red overlay when watched
+- **FAB** (HistoryScreen): absolute positioned, bottom-right, red drop shadow
+
+### Hero Patterns (Mobile)
+
+- **Static hero** (Dashboard): 200dp tall, poster grid backdrop blurred at `blurRadius={2}`
+- **Now Playing hero**: 240dp tall, full episode/movie backdrop, progress bar at bottom
+- **Show/Movie detail hero**: `aspectRatio: 16/9` backdrop, gradient overlay, no fixed height
+
+All heroes use `StyleSheet.absoluteFill` for the overlay: `backgroundColor: "rgba(0,0,0,0.55)"`.
+
+### Filter Pills (Mobile)
+
+Follow the same semantic pattern as web: active = filled accent, inactive = dark surface with subtle border.
+
+```ts
+pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
+        backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+pillActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
+pillText: { fontSize: 13, color: "rgba(226,226,226,0.6)", fontWeight: "600" },
+pillTextActive: { color: "#fff" },
+```
+
+### Modal (Mobile)
+
+`ManualScrobbleModal` and future modals use `presentationStyle="pageSheet"` with `animationType="slide"`. Background: `#1d1d1d`. Header bar with close button (✕) and title.
+
+### Imagery (Mobile)
+
+Use `expo-image` (`<Image>` from `"expo-image"`) for all remote images — it handles caching and progressive loading. Always set `contentFit="cover"`. TMDB image size guidelines:
+
+| Context | Size param |
+|---|---|
+| Full-width hero backdrops | `original` |
+| Episode stills | `w780` |
+| Posters (detail) | `w185` |
+| Posters (grid 3-col) | `w185` |
+| Schedule/history thumbnails | `w92` |
+| Cast profiles | `w185` |
+
+Fallback for missing images: `<View style={[s.img, s.fallback]} />` where `fallback` sets `backgroundColor: "#282a2b"`. No text or icon needed.
+
+### Ratings UI (Mobile)
+
+10-star row rendered as: `"★".repeat(rating) + "☆".repeat(10 - rating)`. Active stars use accent color, inactive use muted text. Tapping a star calls `api.upsertRating`.
+
+---
+
+## 16. Summary
 
 Trakt should feel like a premium, dark, personal media library: dense enough to scan quickly, visual enough to feel cinematic, and consistent enough that every screen feels like part of the same tool.

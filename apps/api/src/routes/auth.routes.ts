@@ -39,11 +39,13 @@ export async function authRoutes(app: FastifyInstance) {
       path: '/',
     });
 
-    return { accessToken };
+    // refreshToken also returned in body for mobile clients (stored in SecureStore)
+    return { accessToken, refreshToken };
   });
 
   app.post('/refresh', async (request: FastifyRequest, reply: FastifyReply) => {
-    const token = request.cookies[COOKIE];
+    const body = request.body as { refreshToken?: string } | null;
+    const token = request.cookies[COOKIE] ?? body?.refreshToken;
     if (!token) return reply.status(401).send({ error: 'No refresh token' });
 
     const userId = await validateRefreshToken(token);
@@ -53,7 +55,8 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.post('/logout', async (request: FastifyRequest, reply: FastifyReply) => {
-    const token = request.cookies[COOKIE];
+    const body = request.body as { refreshToken?: string } | null;
+    const token = request.cookies[COOKIE] ?? body?.refreshToken;
     if (token) await deleteRefreshToken(token);
     reply.clearCookie(COOKIE, {
       path: '/',

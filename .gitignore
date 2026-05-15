@@ -16,3 +16,4 @@ plans/
 /docs/trakt-export-jives00.zip
 apps/web/.env.local
 apps/api/trakt-preview.json
+docs/ANDROID_BUILD.md

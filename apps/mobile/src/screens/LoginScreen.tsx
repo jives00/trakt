@@ -1,0 +1,92 @@
+import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { useAuth } from "../contexts/AuthContext";
+
+export default function LoginScreen() {
+  const { login } = useAuth();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleLogin() {
+    if (!username || !password) return;
+    setLoading(true);
+    setError("");
+    try {
+      await login(username, password);
+    } catch {
+      setError("Invalid username or password");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <KeyboardAvoidingView style={s.root} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <View style={s.inner}>
+        <Text style={s.title}>TRAKT</Text>
+        <Text style={s.subtitle}>Personal Media Tracker</Text>
+
+        <View style={s.form}>
+          <TextInput
+            style={s.input}
+            placeholder="Username"
+            placeholderTextColor="#888"
+            autoCapitalize="none"
+            autoCorrect={false}
+            value={username}
+            onChangeText={setUsername}
+          />
+          <TextInput
+            style={s.input}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            onSubmitEditing={handleLogin}
+          />
+
+          {error ? <Text style={s.error}>{error}</Text> : null}
+
+          <TouchableOpacity style={[s.button, loading && s.buttonDisabled]} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={s.buttonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#0c0f0f" },
+  inner: { flex: 1, justifyContent: "center", paddingHorizontal: 32 },
+  title: { fontSize: 36, fontWeight: "900", color: "#e2e2e2", letterSpacing: 6, textAlign: "center", marginBottom: 6 },
+  subtitle: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 48, letterSpacing: 1 },
+  form: { gap: 12 },
+  input: {
+    backgroundColor: "#1a1c1c",
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    color: "#e2e2e2",
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+  button: {
+    backgroundColor: "#e8002d",
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 8,
+  },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  error: { color: "#ffb4ab", fontSize: 13, textAlign: "center" },
+});

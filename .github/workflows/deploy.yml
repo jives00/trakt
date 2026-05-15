@@ -31,7 +31,9 @@ jobs:
             # Install pnpm globally
             npm install -g pnpm
 
-            # Pull latest code
+            # Pull latest code (sparse checkout excludes apps/mobile — not needed on EC2)
+            git sparse-checkout init --cone 2>/dev/null || true
+            git sparse-checkout set apps/api apps/web packages docs
             git pull origin main
 
             # Load env vars (assumes .env exists in project root)

@@ -1,5 +1,13 @@
 # Changelog
 
+## May 15, 2026
+
+### Mobile
+- Initial React Native + Expo SDK 54 app (Android): full feature parity with web across Dashboard, History, Shows, Movies, Search, Lists, Progress, Ratings, Calendar, Stats, and Settings screens; manual scrobble modal; bottom tab + nested stack navigation `526d47b`
+
+### API
+- Auth routes return `refreshToken` in response body for mobile SecureStore; `/refresh` and `/logout` accept token from request body in addition to HttpOnly cookie `526d47b`
+
 ## May 14, 2026
 
 ### API

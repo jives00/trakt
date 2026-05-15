@@ -32,6 +32,9 @@ apps/web/**/__tests__
 **/vitest.config.*
 **/vitest.setup.*
 
+# Mobile app (not deployed to EC2)
+apps/mobile
+
 # Misc
 *.log
 docker-compose.yml

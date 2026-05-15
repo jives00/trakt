@@ -15,7 +15,7 @@ apps/api/             Fastify API server (Node 24, TypeScript)
   - migrations/       SQL migration files
   - scripts/          migrate.ts — CLI migration runner
 apps/web/             Next.js 14 (App Router, Tailwind, shadcn/ui)
-apps/mobile/          React Native + Expo — future initiative, not yet implemented
+apps/mobile/          React Native + Expo SDK 54 (Android) — full feature parity + manual scrobble
 packages/types/       Shared TypeScript types and Zod schemas
 docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 ```
@@ -28,7 +28,7 @@ docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 |---|---|
 | Backend API | Node.js 24 + Fastify + TypeScript |
 | Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
-| Mobile | React Native + Expo SDK 51 — future initiative |
+| Mobile | React Native + Expo SDK 54 + NativeWind 4 (Android) |
 | Database | MySQL 8 on EC2 (not Docker) |
 | Monorepo | pnpm workspaces |
 | Infra | Docker Compose on EC2; API on `network_mode: host` |
@@ -120,6 +120,24 @@ pnpm dev:web                      # Next.js web
 pnpm test                         # All tests
 pnpm --filter api run migrate     # Run DB migrations
 ```
+
+### Mobile (Android)
+
+```bash
+# Local builds (preserves EAS tokens)
+cd apps/mobile
+npx expo run:android              # debug APK, installs to connected device/emulator
+npx expo run:android --variant release   # release APK locally
+
+# EAS cloud builds (use sparingly — limited tokens)
+eas build --platform android --profile preview     # test APK
+eas build --platform android --profile production  # release AAB
+
+# Dev server only (no build)
+npx expo start
+```
+
+EC2 deploy: `apps/mobile/` is excluded via git sparse checkout in `deploy.yml` — it never lands on the server.
 
 ---
 
