@@ -32,6 +32,7 @@ export async function getHistory(
      LEFT JOIN seasons seas ON e.season_id=seas.id
      LEFT JOIN tv_shows ts ON e.show_id=ts.id
      WHERE wh.user_id=?${typeWhere}${dateWhere}
+       AND (wh.completion_progress >= 90 OR wh.playback_stopped_at IS NOT NULL)
      ORDER BY wh.watched_at DESC
      LIMIT ? OFFSET ?`,
     [userId, ...typeParam, ...dateParam, limit, offset],
@@ -39,7 +40,7 @@ export async function getHistory(
 
   const dateWhereFull = date ? ' AND DATE(watched_at) = ?' : '';
   const [[countRow]] = await pool.query<RowDataPacket[]>(
-    `SELECT COUNT(*) AS total FROM watch_history WHERE user_id=?${typeWhere}${dateWhereFull}`,
+    `SELECT COUNT(*) AS total FROM watch_history WHERE user_id=?${typeWhere}${dateWhereFull} AND (completion_progress >= 90 OR playback_stopped_at IS NOT NULL)`,
     [userId, ...typeParam, ...dateParam],
   );
 

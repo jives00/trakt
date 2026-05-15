@@ -262,8 +262,8 @@ describe('GET /api/dashboard/stats', () => {
   it('returns daily hours for recent watch history', async () => {
     const pool = getPool();
     await pool.query(
-      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source)
-       VALUES (1, 'movie', 1, NOW(), 100, 'manual')`,
+      `INSERT INTO watch_history (user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress)
+       VALUES (1, 'movie', 1, NOW(), 100, 'manual', 100)`,
     );
     const token = await getToken();
     const res = await supertest(app.server)

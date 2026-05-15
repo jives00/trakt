@@ -13,7 +13,7 @@ beforeEach(async () => {
     `INSERT INTO watch_history (id, user_id, media_type, media_id, watched_at, progress_pct, source, completion_progress) VALUES
      (1, 1, 'movie',   1, DATE_SUB(NOW(), INTERVAL 5 DAY), 100, 'manual', 100),
      (2, 1, 'episode', 1, DATE_SUB(NOW(), INTERVAL 4 DAY), 100, 'emby', 100),
-     (3, 1, 'episode', 2, DATE_SUB(NOW(), INTERVAL 3 DAY),  80, 'kodi', 80),
+     (3, 1, 'episode', 2, DATE_SUB(NOW(), INTERVAL 3 DAY),  90, 'kodi', 90),
      (4, 1, 'movie',   2, DATE_SUB(NOW(), INTERVAL 1 DAY), 100, 'manual', 100)`,
   );
 });

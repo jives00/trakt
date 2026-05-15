@@ -2,6 +2,11 @@
 
 ## May 14, 2026
 
+### API
+- Fix: history page and last-30-days graph now exclude in-progress items (completion_progress < 90, no playback_stopped_at), matching the existing filter on recently watched `60ee7b3`
+
+## May 14, 2026
+
 ### Web
 - Light mode theme support: added red-light and blue-light themes with CSS variable overrides; glass panels use white-backed glass-bg in light themes; replaced hardcoded dark opacity classes (text-white/*, border-white/*, bg-white/*) with semantic tokens across all pages and components; dashboard hero always uses dark overlay so text stays white across themes `a7f49f8`
 
