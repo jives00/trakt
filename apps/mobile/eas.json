@@ -9,7 +9,8 @@
       },
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://berek.xyz"
+        "EXPO_PUBLIC_API_URL": "https://berek.xyz",
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "1"
       }
     },
     "production": {
