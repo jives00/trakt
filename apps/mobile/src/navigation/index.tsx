@@ -2,7 +2,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text } from "react-native";
-import { useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import type {
   RootStackParamList, MainTabParamList,
@@ -23,7 +22,6 @@ import StatsMonthScreen from "../screens/StatsMonthScreen";
 import MoreMenuScreen from "../screens/MoreMenuScreen";
 import ListsScreen from "../screens/ListsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
-import RatingsScreen from "../screens/RatingsScreen";
 import CalendarScreen from "../screens/CalendarScreen";
 import StatsScreen from "../screens/StatsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
@@ -113,7 +111,6 @@ function MoreNavigator() {
       <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} options={{ title: "More" }} />
       <MoreStack.Screen name="Lists" component={ListsScreen} options={{ title: "Lists" }} />
       <MoreStack.Screen name="Progress" component={ProgressScreen} options={{ title: "Progress" }} />
-      <MoreStack.Screen name="Ratings" component={RatingsScreen} options={{ title: "Ratings" }} />
       <MoreStack.Screen name="Calendar" component={CalendarScreen} options={{ title: "Calendar" }} />
       <MoreStack.Screen name="Stats" component={StatsScreen} options={{ title: "Stats" }} />
       <MoreStack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
@@ -129,8 +126,6 @@ function MoreNavigator() {
 }
 
 function MainTabs() {
-  const prevTabRef = useRef<keyof MainTabParamList>("Dashboard");
-
   return (
     <Tab.Navigator
       screenOptions={{
@@ -139,35 +134,53 @@ function MainTabs() {
         tabBarActiveTintColor: ACCENT,
         tabBarInactiveTintColor: ON_SURFACE_VARIANT,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
+        sceneContainerStyle: { backgroundColor: NAV_BG },
       }}
     >
       <Tab.Screen
         name="Dashboard"
         component={DashboardNavigator}
         options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>⊞</Text> }}
-        listeners={{ tabPress: () => { prevTabRef.current = "Dashboard"; } }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            if (navigation.isFocused()) {
+              navigation.navigate("Dashboard", { screen: "DashboardHome" } as never);
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="History"
         component={HistoryNavigator}
         options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 26, lineHeight: 26, includeFontPadding: false, marginTop: -2 }}>⏱</Text> }}
-        listeners={{ tabPress: () => { prevTabRef.current = "History"; } }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            if (navigation.isFocused()) {
+              navigation.navigate("History", { screen: "HistoryHome" } as never);
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="Discover"
         component={DiscoverNavigator}
         options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 30, lineHeight: 30, includeFontPadding: false }}>⌕</Text> }}
-        listeners={{ tabPress: () => { prevTabRef.current = "Discover"; } }}
+        listeners={({ navigation }) => ({
+          tabPress: () => {
+            if (navigation.isFocused()) {
+              navigation.navigate("Discover", { screen: "DiscoverHome" } as never);
+            }
+          },
+        })}
       />
       <Tab.Screen
         name="More"
         component={MoreNavigator}
         options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 32, lineHeight: 32, includeFontPadding: false }}>≡</Text> }}
         listeners={({ navigation }) => ({
-          tabPress: (e) => {
+          tabPress: () => {
             if (navigation.isFocused()) {
-              e.preventDefault();
-              navigation.navigate(prevTabRef.current);
+              navigation.navigate("More", { screen: "MoreMenu" } as never);
             }
           },
         })}

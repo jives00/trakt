@@ -28,7 +28,6 @@ export type MoreStackParamList = {
   MoreMenu: undefined;
   Lists: undefined;
   Progress: undefined;
-  Ratings: undefined;
   Calendar: undefined;
   Stats: undefined;
   Settings: undefined;

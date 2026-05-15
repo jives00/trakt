@@ -15,7 +15,8 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const { token } = useAuth();
   const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
   const [watched, setWatched] = useState(false);
-  const [cast, setCast] = useState<CastMember[]>([]);
+  const [guestCast, setGuestCast] = useState<CastMember[]>([]);
+  const [regularCast, setRegularCast] = useState<CastMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toggling, setToggling] = useState(false);
@@ -28,7 +29,8 @@ export default function EpisodeDetailScreen({ route }: Props) {
     ]).then(([epData, castData]) => {
       setEpisode(epData.episode);
       setWatched(epData.watched);
-      setCast(castData.cast.slice(0, 12));
+      setRegularCast(castData.cast.filter((m) => m.isRegular).slice(0, 20));
+      setGuestCast(castData.cast.filter((m) => !m.isRegular).slice(0, 12));
     });
   }
 
@@ -70,7 +72,6 @@ export default function EpisodeDetailScreen({ route }: Props) {
         ) : (
           <View style={[s.still, s.stillFallback]} />
         )}
-        <View style={s.stillOverlay} />
       </View>
 
       <View style={s.body}>
@@ -124,12 +125,32 @@ export default function EpisodeDetailScreen({ route }: Props) {
           </View>
         )}
 
+        {/* Series regulars */}
+        {regularCast.length > 0 && (
+          <View style={s.castSection}>
+            <Text style={s.castHeading}>SERIES REGULARS</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+              {regularCast.map((m) => (
+                <View key={m.tmdbId} style={s.castCard}>
+                  {m.profilePath ? (
+                    <Image source={{ uri: `${TMDB_IMG}w185${m.profilePath}` }} style={s.castPhoto} contentFit="cover" />
+                  ) : (
+                    <View style={[s.castPhoto, s.stillFallback]} />
+                  )}
+                  <Text style={s.castName} numberOfLines={2}>{m.name}</Text>
+                  <Text style={s.castChar} numberOfLines={1}>{m.character}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Guest cast */}
-        {cast.length > 0 && (
+        {guestCast.length > 0 && (
           <View style={s.castSection}>
             <Text style={s.castHeading}>GUEST CAST</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-              {cast.map((m) => (
+              {guestCast.map((m) => (
                 <View key={m.tmdbId} style={s.castCard}>
                   {m.profilePath ? (
                     <Image source={{ uri: `${TMDB_IMG}w185${m.profilePath}` }} style={s.castPhoto} contentFit="cover" />
@@ -157,7 +178,6 @@ const s = StyleSheet.create({
   stillContainer: { position: "relative" },
   still: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#282a2b" },
   stillFallback: { backgroundColor: "#282a2b" },
-  stillOverlay: { position: "absolute", bottom: 0, left: 0, right: 0, height: 40, backgroundColor: "rgba(29,29,29,0.5)" },
 
   body: { padding: 20 },
   showName: { fontSize: 13, color: "rgba(226,226,226,0.5)", fontWeight: "600", marginBottom: 4 },

@@ -7,7 +7,6 @@ type Props = NativeStackScreenProps<MoreStackParamList, "MoreMenu">;
 const ITEMS: { label: string; screen: keyof MoreStackParamList }[] = [
   { label: "Lists", screen: "Lists" },
   { label: "Progress", screen: "Progress" },
-  { label: "Ratings", screen: "Ratings" },
   { label: "Calendar", screen: "Calendar" },
   { label: "Stats", screen: "Stats" },
   { label: "Settings", screen: "Settings" },

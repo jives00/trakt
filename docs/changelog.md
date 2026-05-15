@@ -3,6 +3,11 @@
 ## May 15, 2026
 
 ### Mobile
+- Fix More tab: reset to MoreMenu on re-tap instead of jumping to previous tab; add scene background color to prevent tab-switch flash `76cdd88`
+- List detail sort options (Date Added, A–Z, Last Updated, Random) with pill selector defaulting to list's default sort `76cdd88`
+- Episode detail: split cast into Series Regulars and Guest Cast sections; remove grey overlay from still image `76cdd88`
+- Reduce hero overlay darkness on movie/show detail pages `76cdd88`
+- Remove Ratings from More menu `76cdd88`
 - Per-tab nested stack navigators (Dashboard/History/Discover/More) so bottom tab bar stays visible on detail pages `100e30d`
 - Lists button on show/movie detail pages opens bottom-sheet modal to add/remove item from any user list with checkmark indicators `100e30d`
 - Renamed Search tab to Discover with shows/movies filter toggle; auto-loads trending on open `100e30d`
