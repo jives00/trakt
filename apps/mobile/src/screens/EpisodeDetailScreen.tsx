@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -77,8 +77,8 @@ export default function EpisodeDetailScreen({ route }: Props) {
       <View style={s.body}>
         <Text style={s.showName}>{showName}</Text>
         <Text style={s.epCode}>
-          S{String(seasonNumber).padStart(2, "0")} · E{String(episodeNumber).padStart(2, "0")}
-          {episode.runtimeMin ? ` · ${episode.runtimeMin}m` : ""}
+          S{String(seasonNumber).padStart(2, "0")} Â· E{String(episodeNumber).padStart(2, "0")}
+          {episode.runtimeMin ? ` Â· ${episode.runtimeMin}m` : ""}
         </Text>
         <Text style={s.epTitle}>{episode.title ?? `Episode ${episodeNumber}`}</Text>
 
@@ -102,7 +102,7 @@ export default function EpisodeDetailScreen({ route }: Props) {
             <ActivityIndicator size="small" color={watched ? "#fff" : "#e8002d"} />
           ) : (
             <Text style={[s.watchedBtnText, watched && s.watchedBtnTextActive]}>
-              {watched ? "✓ Watched" : "Mark as Watched"}
+              {watched ? "âœ“ Watched" : "Mark as Watched"}
             </Text>
           )}
         </TouchableOpacity>
@@ -170,21 +170,21 @@ export default function EpisodeDetailScreen({ route }: Props) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { flexGrow: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
-  errorText: { color: "rgba(226,226,226,0.5)", fontSize: 15 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
+  errorText: { color: "rgba(240,240,246,0.5)", fontSize: 15 },
 
   stillContainer: { position: "relative" },
-  still: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#282a2b" },
-  stillFallback: { backgroundColor: "#282a2b" },
+  still: { width: "100%", aspectRatio: 16 / 9, backgroundColor: "#323440" },
+  stillFallback: { backgroundColor: "#323440" },
 
   body: { padding: 20 },
-  showName: { fontSize: 13, color: "rgba(226,226,226,0.5)", fontWeight: "600", marginBottom: 4 },
+  showName: { fontSize: 13, color: "rgba(240,240,246,0.5)", fontWeight: "600", marginBottom: 4 },
   epCode: { fontSize: 12, color: "#e8002d", fontWeight: "700", letterSpacing: 0.5, marginBottom: 8 },
-  epTitle: { fontSize: 22, fontWeight: "900", color: "#e2e2e2", marginBottom: 6 },
-  airDate: { fontSize: 12, color: "rgba(226,226,226,0.4)", marginBottom: 16 },
-  overview: { fontSize: 14, color: "rgba(226,226,226,0.75)", lineHeight: 22, marginBottom: 24 },
+  epTitle: { fontSize: 22, fontWeight: "900", color: "#f0f0f6", marginBottom: 6 },
+  airDate: { fontSize: 12, color: "rgba(240,240,246,0.4)", marginBottom: 16 },
+  overview: { fontSize: 14, color: "rgba(240,240,246,0.75)", lineHeight: 22, marginBottom: 24 },
 
   watchedBtn: {
     paddingVertical: 14, borderRadius: 10, alignItems: "center",
@@ -195,14 +195,14 @@ const s = StyleSheet.create({
   watchedBtnTextActive: { color: "#fff" },
 
   ratingsRow: { flexDirection: "row", gap: 12, marginBottom: 24 },
-  ratingChip: { alignItems: "center", backgroundColor: "#1a1c1c", borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
-  ratingLabel: { fontSize: 9, color: "rgba(226,226,226,0.35)", fontWeight: "800", letterSpacing: 1.5 },
-  ratingValue: { fontSize: 18, color: "#e2e2e2", fontWeight: "900" },
+  ratingChip: { alignItems: "center", backgroundColor: "#1e2029", borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  ratingLabel: { fontSize: 9, color: "rgba(240,240,246,0.35)", fontWeight: "800", letterSpacing: 1.5 },
+  ratingValue: { fontSize: 18, color: "#f0f0f6", fontWeight: "900" },
 
   castSection: { marginTop: 8 },
-  castHeading: { fontSize: 10, fontWeight: "900", color: "rgba(226,226,226,0.35)", letterSpacing: 2, marginBottom: 12 },
+  castHeading: { fontSize: 10, fontWeight: "900", color: "rgba(240,240,246,0.35)", letterSpacing: 2, marginBottom: 12 },
   castCard: { width: 70 },
-  castPhoto: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#282a2b" },
-  castName: { fontSize: 10, color: "#cccccc", marginTop: 4, lineHeight: 13 },
+  castPhoto: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#323440" },
+  castName: { fontSize: 10, color: "#d7d8e2", marginTop: 4, lineHeight: 13 },
   castChar: { fontSize: 9, color: "#888", marginTop: 1 },
 });

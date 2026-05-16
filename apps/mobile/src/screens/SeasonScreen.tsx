@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -69,7 +69,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
         ListHeaderComponent={
           <View style={s.header}>
             <Text style={s.headerTitle}>{showName}</Text>
-            <Text style={s.headerSub}>Season {seasonNumber} · {watchedCount}/{total} watched</Text>
+            <Text style={s.headerSub}>Season {seasonNumber} Â· {watchedCount}/{total} watched</Text>
             {total > 0 && (
               <View style={s.progressTrack}>
                 <View style={[s.progressFill, { width: `${(watchedCount / total) * 100}%` }]} />
@@ -94,7 +94,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
                 ) : (
                   <View style={[s.still, s.stillFallback]} />
                 )}
-                {watched && <View style={s.watchedOverlay}><Text style={s.watchedCheck}>✓</Text></View>}
+                {watched && <View style={s.watchedOverlay}><Text style={s.watchedCheck}>âœ“</Text></View>}
               </View>
               <View style={s.epInfo}>
                 <Text style={s.epCode}>E{String(ep.episodeNumber).padStart(2, "0")}</Text>
@@ -111,7 +111,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
                 {loading ? (
                   <ActivityIndicator size="small" color={watched ? "#fff" : "#e8002d"} />
                 ) : (
-                  <Text style={[s.watchBtnText, watched && s.watchBtnTextWatched]}>{watched ? "✓" : "+"}</Text>
+                  <Text style={[s.watchBtnText, watched && s.watchBtnTextWatched]}>{watched ? "âœ“" : "+"}</Text>
                 )}
               </TouchableOpacity>
             </TouchableOpacity>
@@ -123,22 +123,22 @@ export default function SeasonScreen({ route, navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
 
   header: { padding: 16, paddingBottom: 8 },
-  headerTitle: { fontSize: 18, fontWeight: "900", color: "#e2e2e2" },
-  headerSub: { fontSize: 12, color: "rgba(226,226,226,0.45)", marginTop: 4, marginBottom: 10 },
+  headerTitle: { fontSize: 18, fontWeight: "900", color: "#f0f0f6" },
+  headerSub: { fontSize: 12, color: "rgba(240,240,246,0.45)", marginTop: 4, marginBottom: 10 },
   progressTrack: { height: 3, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" },
   progressFill: { height: 3, backgroundColor: "#e8002d", borderRadius: 2 },
 
   epRow: {
     flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 10,
-    backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden",
+    backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden",
   },
   stillContainer: { position: "relative" },
   still: { width: 107, height: 60 },
-  stillFallback: { backgroundColor: "#282a2b" },
+  stillFallback: { backgroundColor: "#323440" },
   watchedOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(232,0,45,0.7)",
@@ -147,8 +147,8 @@ const s = StyleSheet.create({
   watchedCheck: { fontSize: 22, color: "#fff", fontWeight: "900" },
   epInfo: { flex: 1, padding: 10 },
   epCode: { fontSize: 11, fontWeight: "700", color: "#e8002d", marginBottom: 2 },
-  epTitle: { fontSize: 13, fontWeight: "600", color: "#e2e2e2", lineHeight: 17 },
-  epMeta: { fontSize: 10, color: "rgba(226,226,226,0.4)", marginTop: 3 },
+  epTitle: { fontSize: 13, fontWeight: "600", color: "#f0f0f6", lineHeight: 17 },
+  epMeta: { fontSize: 10, color: "rgba(240,240,246,0.4)", marginTop: 3 },
   watchBtn: {
     width: 36, height: 36, borderRadius: 18, marginRight: 10,
     borderWidth: 2, borderColor: "#e8002d",

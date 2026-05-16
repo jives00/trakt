@@ -5,14 +5,14 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#1d1d1d",
-        "surface-lowest": "#0c0f0f",
-        "surface-low": "#1a1c1c",
-        surface: "#1e2020",
-        "surface-high": "#282a2b",
-        "surface-highest": "#333535",
-        "on-surface": "#e2e2e2",
-        "on-surface-variant": "#cccccc",
+        background: "#1c1e26",
+        "surface-lowest": "#12141b",
+        "surface-low": "#1e2029",
+        surface: "#262832",
+        "surface-high": "#323440",
+        "surface-highest": "#404352",
+        "on-surface": "#f0f0f6",
+        "on-surface-variant": "#d7d8e2",
         accent: "#e8002d",
         "accent-hover": "#d40026",
         "accent-light": "#ff1a4a",

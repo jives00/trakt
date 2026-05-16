@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -148,39 +148,39 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, padding: 16 },
-  chip: { flex: 1, minWidth: "40%", backgroundColor: "#1a1c1c", borderRadius: 10, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  chipValue: { fontSize: 20, fontWeight: "900", color: "#e2e2e2", marginBottom: 3 },
+  chip: { flex: 1, minWidth: "40%", backgroundColor: "#1e2029", borderRadius: 10, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  chipValue: { fontSize: 20, fontWeight: "900", color: "#f0f0f6", marginBottom: 3 },
   chipValueAccent: { color: "#e8002d" },
-  chipLabel: { fontSize: 9, color: "rgba(226,226,226,0.4)", fontWeight: "700", letterSpacing: 1.5 },
+  chipLabel: { fontSize: 9, color: "rgba(240,240,246,0.4)", fontWeight: "700", letterSpacing: 1.5 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   sectionAccent: { width: 3, height: 18, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#e2e2e2" },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#f0f0f6" },
 
   barChart: { flexDirection: "row", paddingHorizontal: 16, gap: 4, height: 120, alignItems: "flex-end" },
   barCol: { flex: 1, alignItems: "center", height: "100%" },
   barValue: { fontSize: 7, color: "#e8002d", marginBottom: 2, height: 10 },
   barTrack: { flex: 1, width: "70%", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden", justifyContent: "flex-end" },
   barFill: { width: "100%", backgroundColor: "#e8002d", borderRadius: 2 },
-  barLabel: { fontSize: 8, color: "rgba(226,226,226,0.4)", marginTop: 4 },
+  barLabel: { fontSize: 8, color: "rgba(240,240,246,0.4)", marginTop: 4 },
 
   showCard: { width: 80 },
-  showPoster: { width: 80, height: 120, borderRadius: 6, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
-  showTitle: { fontSize: 10, color: "#cccccc", marginTop: 5, lineHeight: 13 },
+  showPoster: { width: 80, height: 120, borderRadius: 6, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
+  showTitle: { fontSize: 10, color: "#d7d8e2", marginTop: 5, lineHeight: 13 },
   showEps: { fontSize: 9, color: "#888", marginTop: 2 },
 
   genreList: { paddingHorizontal: 16, gap: 10 },
   genreRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 6 },
   genreRank: { width: 20, fontSize: 12, fontWeight: "700", color: "#e8002d", textAlign: "right" },
   genreBarContainer: { flex: 1 },
-  genreName: { fontSize: 12, color: "#e2e2e2", marginBottom: 4 },
+  genreName: { fontSize: 12, color: "#f0f0f6", marginBottom: 4 },
   genreBarTrack: { height: 4, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" },
   genreBarFill: { height: 4, backgroundColor: "#e8002d", borderRadius: 2 },
-  genreCount: { fontSize: 11, fontWeight: "700", color: "rgba(226,226,226,0.4)", width: 32, textAlign: "right" },
+  genreCount: { fontSize: 11, fontWeight: "700", color: "rgba(240,240,246,0.4)", width: 32, textAlign: "right" },
 });

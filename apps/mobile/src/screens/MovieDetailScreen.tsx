@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Linking, RefreshControl, Modal, FlatList } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -134,7 +134,7 @@ export default function MovieDetailScreen({ route }: Props) {
             <ActivityIndicator size="small" color={status.watched ? "#fff" : "#e8002d"} />
           ) : (
             <>
-              <Text style={s.actionBtnIcon}>{status.watched ? "✓" : "▷"}</Text>
+              <Text style={s.actionBtnIcon}>{status.watched ? "âœ“" : "â–·"}</Text>
               <Text style={[s.actionBtnText, status.watched && s.actionBtnTextActive]}>
                 {status.watched ? "Watched" : "Watch"}
               </Text>
@@ -145,13 +145,13 @@ export default function MovieDetailScreen({ route }: Props) {
           style={[s.actionBtn, status.inWatchlist && s.actionBtnActive]}
           onPress={handleWatchlist}
         >
-          <Text style={s.actionBtnIcon}>🔖</Text>
+          <Text style={s.actionBtnIcon}>ðŸ”–</Text>
           <Text style={[s.actionBtnText, status.inWatchlist && s.actionBtnTextActive]}>
             {status.inWatchlist ? "Watchlisted" : "Watchlist"}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={openListPicker}>
-          <Text style={s.actionBtnIcon}>☰</Text>
+          <Text style={s.actionBtnIcon}>â˜°</Text>
           <Text style={s.actionBtnText}>Lists</Text>
         </TouchableOpacity>
       </View>
@@ -169,7 +169,7 @@ export default function MovieDetailScreen({ route }: Props) {
               <TouchableOpacity style={s.listRow} onPress={() => toggleList(item)}>
                 <Text style={s.listRowName}>{item.name}</Text>
                 <View style={[s.listCheck, memberListIds.has(item.id) && s.listCheckActive]}>
-                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>✓</Text>}
+                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>âœ“</Text>}
                 </View>
               </TouchableOpacity>
             )}
@@ -195,7 +195,7 @@ export default function MovieDetailScreen({ route }: Props) {
         <View style={s.ratingRow}>
           {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
             <TouchableOpacity key={star} onPress={() => handleRate(star)} style={s.starBtn}>
-              <Text style={[s.star, star <= rating && s.starActive]}>★</Text>
+              <Text style={[s.star, star <= rating && s.starActive]}>â˜…</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -264,12 +264,12 @@ function MetaItem({ label, value }: { label: string; value: string }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { flexGrow: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
-  errorText: { color: "rgba(226,226,226,0.5)", fontSize: 15 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
+  errorText: { color: "rgba(240,240,246,0.5)", fontSize: 15 },
 
-  hero: { height: 280, backgroundColor: "#0c0f0f", justifyContent: "flex-end" },
+  hero: { height: 280, backgroundColor: "#12141b", justifyContent: "flex-end" },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
   heroContent: { padding: 20, paddingBottom: 24 },
   genreRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
@@ -282,46 +282,46 @@ const s = StyleSheet.create({
   actionBtn: {
     flex: 1, flexDirection: "column", alignItems: "center", gap: 4,
     paddingVertical: 12, borderRadius: 10,
-    backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
   actionBtnActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
   actionBtnIcon: { fontSize: 18 },
-  actionBtnText: { fontSize: 10, fontWeight: "700", color: "rgba(226,226,226,0.6)", textTransform: "uppercase", letterSpacing: 0.5 },
+  actionBtnText: { fontSize: 10, fontWeight: "700", color: "rgba(240,240,246,0.6)", textTransform: "uppercase", letterSpacing: 0.5 },
   actionBtnTextActive: { color: "#fff" },
 
   metaGrid: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 16, gap: 16, paddingBottom: 8 },
   metaItem: { minWidth: "40%" },
-  metaLabel: { fontSize: 9, fontWeight: "900", color: "rgba(226,226,226,0.35)", letterSpacing: 1.5, marginBottom: 3 },
-  metaValue: { fontSize: 14, color: "#e2e2e2", fontWeight: "600" },
+  metaLabel: { fontSize: 9, fontWeight: "900", color: "rgba(240,240,246,0.35)", letterSpacing: 1.5, marginBottom: 3 },
+  metaValue: { fontSize: 14, color: "#f0f0f6", fontWeight: "600" },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 12 },
   sectionAccent: { width: 3, height: 18, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#e2e2e2", letterSpacing: -0.2 },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#f0f0f6", letterSpacing: -0.2 },
 
   ratingSection: { paddingTop: 24 },
   ratingRow: { flexDirection: "row", paddingHorizontal: 16, gap: 4 },
   starBtn: { padding: 4 },
-  star: { fontSize: 24, color: "rgba(226,226,226,0.2)" },
+  star: { fontSize: 24, color: "rgba(240,240,246,0.2)" },
   starActive: { color: "#e8002d" },
 
   castSection: { paddingTop: 24 },
   castCard: { width: 70 },
-  castPhoto: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#282a2b" },
-  castFallback: { backgroundColor: "#282a2b" },
-  castName: { fontSize: 10, color: "#cccccc", marginTop: 4, lineHeight: 13 },
+  castPhoto: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#323440" },
+  castFallback: { backgroundColor: "#323440" },
+  castName: { fontSize: 10, color: "#d7d8e2", marginTop: 4, lineHeight: 13 },
   castChar: { fontSize: 9, color: "#888", marginTop: 1 },
 
   linkSection: { paddingTop: 24 },
   linkRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16 },
-  linkBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "#1a1c1c" },
-  linkText: { fontSize: 11, fontWeight: "700", color: "rgba(226,226,226,0.55)", letterSpacing: 0.5 },
+  linkBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "#1e2029" },
+  linkText: { fontSize: 11, fontWeight: "700", color: "rgba(240,240,246,0.55)", letterSpacing: 0.5 },
 
   modalBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)" },
-  modalSheet: { backgroundColor: "#1a1c1c", borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, maxHeight: "70%" },
+  modalSheet: { backgroundColor: "#1e2029", borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 40, maxHeight: "70%" },
   modalHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.2)", alignSelf: "center", marginTop: 10, marginBottom: 4 },
-  modalTitle: { fontSize: 15, fontWeight: "800", color: "#e2e2e2", paddingHorizontal: 20, paddingVertical: 14 },
+  modalTitle: { fontSize: 15, fontWeight: "800", color: "#f0f0f6", paddingHorizontal: 20, paddingVertical: 14 },
   listRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.06)" },
-  listRowName: { fontSize: 15, color: "#e2e2e2", flex: 1 },
+  listRowName: { fontSize: 15, color: "#f0f0f6", flex: 1 },
   listCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
   listCheckActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
   listCheckMark: { fontSize: 13, color: "#fff", fontWeight: "700" },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -70,7 +70,7 @@ export default function RatingsScreen() {
     }
   }
 
-  const stars = (rating: number) => "★".repeat(rating).padEnd(10, "☆");
+  const stars = (rating: number) => "â˜…".repeat(rating).padEnd(10, "â˜†");
 
   return (
     <View style={s.root}>
@@ -114,9 +114,9 @@ export default function RatingsScreen() {
                   <Text style={s.stars}>{stars(item.rating)}</Text>
                   <Text style={s.title} numberOfLines={1}>{displayTitle}</Text>
                   {isEpisode && item.seasonNumber != null && item.episodeNumber != null ? (
-                    <Text style={s.sub}>S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.title ? ` · ${item.title}` : ""}</Text>
+                    <Text style={s.sub}>S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.title ? ` Â· ${item.title}` : ""}</Text>
                   ) : (
-                    <Text style={s.sub}>{item.mediaType.toUpperCase()}{item.year ? ` · ${item.year}` : ""}</Text>
+                    <Text style={s.sub}>{item.mediaType.toUpperCase()}{item.year ? ` Â· ${item.year}` : ""}</Text>
                   )}
                 </View>
                 <TouchableOpacity
@@ -124,7 +124,7 @@ export default function RatingsScreen() {
                   onPress={() => handleDelete(item)}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={s.deleteBtnText}>✕</Text>
+                  <Text style={s.deleteBtnText}>âœ•</Text>
                 </TouchableOpacity>
               </TouchableOpacity>
             );
@@ -136,24 +136,24 @@ export default function RatingsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
   footer: { paddingVertical: 20, alignItems: "center" },
 
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingVertical: 14 },
-  pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   pillActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  pillText: { fontSize: 13, color: "rgba(226,226,226,0.6)", fontWeight: "600" },
+  pillText: { fontSize: 13, color: "rgba(240,240,246,0.6)", fontWeight: "600" },
   pillTextActive: { color: "#fff" },
 
-  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden" },
-  poster: { width: 50, height: 75, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
+  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden" },
+  poster: { width: 50, height: 75, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
   info: { flex: 1, padding: 10 },
   stars: { fontSize: 13, color: "#e8002d", letterSpacing: 1, marginBottom: 3 },
-  title: { fontSize: 13, fontWeight: "700", color: "#e2e2e2", marginBottom: 2 },
-  sub: { fontSize: 10, color: "rgba(226,226,226,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
+  title: { fontSize: 13, fontWeight: "700", color: "#f0f0f6", marginBottom: 2 },
+  sub: { fontSize: 10, color: "rgba(240,240,246,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
   deleteBtn: { paddingHorizontal: 14, paddingVertical: 10 },
-  deleteBtnText: { fontSize: 14, color: "rgba(226,226,226,0.25)" },
+  deleteBtnText: { fontSize: 14, color: "rgba(240,240,246,0.25)" },
 });

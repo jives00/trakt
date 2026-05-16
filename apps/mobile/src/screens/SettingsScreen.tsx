@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, TextInput, RefreshControl } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useAuth } from "../contexts/AuthContext";
@@ -6,8 +6,8 @@ import { api } from "../lib/api";
 
 type Theme = "red-dark" | "blue-dark" | "red-light" | "blue-light";
 const THEMES: { value: Theme; label: string; accent: string; bg: string }[] = [
-  { value: "red-dark",   label: "Red Dark",   accent: "#e8002d", bg: "#1d1d1d" },
-  { value: "blue-dark",  label: "Blue Dark",  accent: "#1a73e8", bg: "#1d1d1d" },
+  { value: "red-dark",   label: "Red Dark",   accent: "#e8002d", bg: "#1c1e26" },
+  { value: "blue-dark",  label: "Blue Dark",  accent: "#1a73e8", bg: "#1c1e26" },
   { value: "red-light",  label: "Red Light",  accent: "#e8002d", bg: "#f5f5f5" },
   { value: "blue-light", label: "Blue Light", accent: "#1a73e8", bg: "#f5f5f5" },
 ];
@@ -127,7 +127,7 @@ export default function SettingsScreen() {
               autoFocus
               returnKeyType="done"
               onSubmitEditing={handleSaveDisplayName}
-              placeholderTextColor="rgba(226,226,226,0.3)"
+              placeholderTextColor="rgba(240,240,246,0.3)"
             />
             <TouchableOpacity style={s.saveBtn} onPress={handleSaveDisplayName} disabled={savingDisplayName}>
               {savingDisplayName
@@ -135,12 +135,12 @@ export default function SettingsScreen() {
                 : <Text style={s.saveBtnText}>Save</Text>}
             </TouchableOpacity>
             <TouchableOpacity style={s.cancelBtn} onPress={() => setEditingDisplayName(false)}>
-              <Text style={s.cancelBtnText}>✕</Text>
+              <Text style={s.cancelBtnText}>âœ•</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity style={s.fieldValueRow} onPress={() => setEditingDisplayName(true)}>
-            <Text style={s.fieldValue}>{displayName || "—"}</Text>
+            <Text style={s.fieldValue}>{displayName || "â€”"}</Text>
             <Text style={s.fieldEdit}>Edit</Text>
           </TouchableOpacity>
         )}
@@ -148,16 +148,16 @@ export default function SettingsScreen() {
 
       <TouchableOpacity style={s.actionRow} onPress={handleChangeUsername}>
         <Text style={s.actionText}>Change Username</Text>
-        <Text style={s.actionChevron}>›</Text>
+        <Text style={s.actionChevron}>â€º</Text>
       </TouchableOpacity>
       <TouchableOpacity style={s.actionRow} onPress={handleChangePassword}>
         <Text style={s.actionText}>Change Password</Text>
-        <Text style={s.actionChevron}>›</Text>
+        <Text style={s.actionChevron}>â€º</Text>
       </TouchableOpacity>
 
       {/* Theme */}
       <SectionHeader title="Color Theme" />
-      <Text style={s.todoNote}>⚠ Theme selection is saved but not yet applied — needs ThemeContext wired through the app.</Text>
+      <Text style={s.todoNote}>âš  Theme selection is saved but not yet applied â€” needs ThemeContext wired through the app.</Text>
       <View style={s.themeGrid}>
         {THEMES.map((t) => (
           <TouchableOpacity
@@ -199,39 +199,39 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 28, marginBottom: 12 },
   sectionAccent: { width: 3, height: 18, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#e2e2e2" },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#f0f0f6" },
 
-  fieldRow: { backgroundColor: "#1a1c1c", borderRadius: 8, padding: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 8 },
-  fieldLabel: { fontSize: 11, color: "rgba(226,226,226,0.45)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
+  fieldRow: { backgroundColor: "#1e2029", borderRadius: 8, padding: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 8 },
+  fieldLabel: { fontSize: 11, color: "rgba(240,240,246,0.45)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 },
   fieldValueRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  fieldValue: { fontSize: 15, color: "#e2e2e2" },
+  fieldValue: { fontSize: 15, color: "#f0f0f6" },
   fieldEdit: { fontSize: 13, color: "#e8002d", fontWeight: "600" },
   fieldEditRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  fieldInput: { flex: 1, fontSize: 15, color: "#e2e2e2", borderBottomWidth: 1, borderBottomColor: "rgba(232,0,45,0.5)", paddingVertical: 2 },
+  fieldInput: { flex: 1, fontSize: 15, color: "#f0f0f6", borderBottomWidth: 1, borderBottomColor: "rgba(232,0,45,0.5)", paddingVertical: 2 },
   saveBtn: { backgroundColor: "#e8002d", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 },
   saveBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   cancelBtn: { paddingHorizontal: 4 },
-  cancelBtnText: { color: "rgba(226,226,226,0.4)", fontSize: 16 },
+  cancelBtnText: { color: "rgba(240,240,246,0.4)", fontSize: 16 },
 
-  actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#1a1c1c", borderRadius: 8, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 8 },
-  actionText: { fontSize: 14, color: "#e2e2e2" },
-  actionChevron: { fontSize: 20, color: "rgba(226,226,226,0.3)" },
+  actionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: "#1e2029", borderRadius: 8, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", marginBottom: 8 },
+  actionText: { fontSize: 14, color: "#f0f0f6" },
+  actionChevron: { fontSize: 20, color: "rgba(240,240,246,0.3)" },
 
   themeGrid: { flexDirection: "row", gap: 10, marginBottom: 8 },
   themeOption: { flex: 1, alignItems: "center", gap: 6 },
   themeOptionActive: {},
   themeSwatch: { width: "100%", height: 44, borderRadius: 8, borderWidth: 2, justifyContent: "center", alignItems: "center" },
   themeAccentDot: { width: 16, height: 16, borderRadius: 8 },
-  themeLabel: { fontSize: 10, color: "rgba(226,226,226,0.45)", textAlign: "center" },
-  themeLabelActive: { color: "#e2e2e2", fontWeight: "700" },
+  themeLabel: { fontSize: 10, color: "rgba(240,240,246,0.45)", textAlign: "center" },
+  themeLabelActive: { color: "#f0f0f6", fontWeight: "700" },
 
   todoNote: { fontSize: 11, color: "#e8a000", backgroundColor: "rgba(232,160,0,0.08)", borderRadius: 6, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: "rgba(232,160,0,0.2)" },
 
-  logoutBtn: { backgroundColor: "#1a1c1c", borderRadius: 8, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(232,0,45,0.3)" },
+  logoutBtn: { backgroundColor: "#1e2029", borderRadius: 8, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(232,0,45,0.3)" },
   logoutText: { color: "#e8002d", fontWeight: "700", fontSize: 14 },
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, RefreshControl, ScrollView } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<SharedDetailParamList, "ListDetail">;
 
 const SORT_OPTIONS: { id: ListSort; label: string }[] = [
   { id: "added_date", label: "Date Added" },
-  { id: "alpha", label: "A–Z" },
+  { id: "alpha", label: "Aâ€“Z" },
   { id: "last_updated", label: "Last Updated" },
   { id: "random", label: "Random" },
 ];
@@ -134,7 +134,7 @@ export default function ListDetailScreen({ route, navigation }: Props) {
           <View style={s.info}>
             <Text style={s.title} numberOfLines={1}>{item.title ?? "Unknown"}</Text>
             <Text style={s.sub}>
-              {item.mediaType.toUpperCase()}{item.year ? ` · ${item.year}` : ""}
+              {item.mediaType.toUpperCase()}{item.year ? ` Â· ${item.year}` : ""}
             </Text>
           </View>
           {!list.isSystem && (
@@ -143,7 +143,7 @@ export default function ListDetailScreen({ route, navigation }: Props) {
               onPress={() => handleRemove(item)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={s.removeBtnText}>✕</Text>
+              <Text style={s.removeBtnText}>âœ•</Text>
             </TouchableOpacity>
           )}
         </TouchableOpacity>
@@ -153,30 +153,30 @@ export default function ListDetailScreen({ route, navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 40 },
-  errorText: { color: "rgba(226,226,226,0.5)", fontSize: 15 },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  errorText: { color: "rgba(240,240,246,0.5)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   header: { padding: 16, paddingBottom: 8 },
-  headerDesc: { fontSize: 13, color: "rgba(226,226,226,0.55)", marginBottom: 6 },
-  headerCount: { fontSize: 12, color: "rgba(226,226,226,0.35)", fontWeight: "600" },
+  headerDesc: { fontSize: 13, color: "rgba(240,240,246,0.55)", marginBottom: 6 },
+  headerCount: { fontSize: 12, color: "rgba(240,240,246,0.35)", fontWeight: "600" },
 
   sortRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 12 },
   sortPill: {
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
   sortPillActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  sortPillText: { fontSize: 12, color: "rgba(226,226,226,0.55)", fontWeight: "600" },
+  sortPillText: { fontSize: 12, color: "rgba(240,240,246,0.55)", fontWeight: "600" },
   sortPillTextActive: { color: "#fff" },
 
-  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden" },
-  poster: { width: 46, height: 69, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
+  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden" },
+  poster: { width: 46, height: 69, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
   info: { flex: 1, padding: 10 },
-  title: { fontSize: 13, fontWeight: "700", color: "#e2e2e2", marginBottom: 3 },
-  sub: { fontSize: 10, color: "rgba(226,226,226,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
+  title: { fontSize: 13, fontWeight: "700", color: "#f0f0f6", marginBottom: 3 },
+  sub: { fontSize: 10, color: "rgba(240,240,246,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
   removeBtn: { paddingHorizontal: 14, paddingVertical: 10 },
-  removeBtnText: { fontSize: 14, color: "rgba(226,226,226,0.25)" },
+  removeBtnText: { fontSize: 14, color: "rgba(240,240,246,0.25)" },
 });

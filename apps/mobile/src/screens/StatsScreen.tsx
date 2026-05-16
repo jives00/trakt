@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -70,7 +70,7 @@ export default function StatsScreen() {
             onPress={() => nav.navigate("StatsYear", { year: y })}
           >
             <Text style={s.yearBtnText}>{y}</Text>
-            <Text style={s.yearBtnChevron}>›</Text>
+            <Text style={s.yearBtnChevron}>â€º</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -146,37 +146,37 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   chipGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, padding: 16 },
-  chip: { flex: 1, minWidth: "40%", backgroundColor: "#1a1c1c", borderRadius: 10, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  chipValue: { fontSize: 22, fontWeight: "900", color: "#e2e2e2", marginBottom: 3 },
+  chip: { flex: 1, minWidth: "40%", backgroundColor: "#1e2029", borderRadius: 10, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  chipValue: { fontSize: 22, fontWeight: "900", color: "#f0f0f6", marginBottom: 3 },
   chipValueAccent: { color: "#e8002d" },
-  chipLabel: { fontSize: 9, color: "rgba(226,226,226,0.4)", fontWeight: "700", letterSpacing: 1.5 },
+  chipLabel: { fontSize: 9, color: "rgba(240,240,246,0.4)", fontWeight: "700", letterSpacing: 1.5 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   sectionAccent: { width: 3, height: 18, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#e2e2e2" },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#f0f0f6" },
 
   yearRow: { paddingHorizontal: 16, gap: 8 },
-  yearBtn: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16, backgroundColor: "#1a1c1c", borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  yearBtnText: { fontSize: 16, fontWeight: "700", color: "#e2e2e2" },
+  yearBtn: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 14, paddingHorizontal: 16, backgroundColor: "#1e2029", borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  yearBtnText: { fontSize: 16, fontWeight: "700", color: "#f0f0f6" },
   yearBtnChevron: { fontSize: 20, color: "#e8002d" },
 
   topShowCard: { width: 80 },
-  topShowPoster: { width: 80, height: 120, borderRadius: 6, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
-  topShowTitle: { fontSize: 10, color: "#cccccc", marginTop: 5, lineHeight: 13 },
+  topShowPoster: { width: 80, height: 120, borderRadius: 6, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
+  topShowTitle: { fontSize: 10, color: "#d7d8e2", marginTop: 5, lineHeight: 13 },
   topShowEps: { fontSize: 9, color: "#888", marginTop: 2 },
 
   genreList: { paddingHorizontal: 16, gap: 10 },
   genreRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 6 },
   genreRank: { width: 20, fontSize: 12, fontWeight: "700", color: "#e8002d", textAlign: "right" },
   genreBarContainer: { flex: 1 },
-  genreName: { fontSize: 12, color: "#e2e2e2", marginBottom: 4 },
+  genreName: { fontSize: 12, color: "#f0f0f6", marginBottom: 4 },
   genreBarTrack: { height: 4, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" },
   genreBarFill: { height: 4, backgroundColor: "#e8002d", borderRadius: 2 },
-  genreCount: { fontSize: 11, fontWeight: "700", color: "rgba(226,226,226,0.4)", width: 32, textAlign: "right" },
+  genreCount: { fontSize: 11, fontWeight: "700", color: "rgba(240,240,246,0.4)", width: 32, textAlign: "right" },
 });

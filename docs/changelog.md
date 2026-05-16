@@ -2,6 +2,12 @@
 
 ## May 16, 2026
 
+### Web
+- Dark theme: lifted surface scale, cool blue-slate tint, improved text contrast on all surface layers `ad6b656`
+
+### Mobile
+- Dark theme: matched web surface/text color updates across all 22 screens and tailwind config `ad6b656`
+
 ### API
 - Stremio addon manifest version is now a hash of active catalog IDs so Stremio detects changes when lists are toggled `fd673ac`
 - Stremio catalog items sorted by configurable per-list sort (Date Added, A–Z, Random); unreleased movies excluded from catalogs `7cf017e`

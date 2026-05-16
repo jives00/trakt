@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -90,7 +90,7 @@ export default function CalendarScreen() {
                 <Text style={s.showTitle} numberOfLines={1}>{item.showTitle ?? item.movieTitle}</Text>
                 <Text style={s.epLine}>
                   S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}
-                  {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
+                  {item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}
                 </Text>
                 {item.network ? <Text style={s.network}>{item.network}</Text> : null}
               </View>
@@ -103,25 +103,25 @@ export default function CalendarScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   rangeRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 14 },
-  rangeBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  rangeBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   rangeBtnActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  rangeBtnText: { fontSize: 13, color: "rgba(226,226,226,0.6)", fontWeight: "600" },
+  rangeBtnText: { fontSize: 13, color: "rgba(240,240,246,0.6)", fontWeight: "600" },
   rangeBtnTextActive: { color: "#fff" },
 
   dayHeader: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 },
-  dayTitle: { fontSize: 13, fontWeight: "800", color: "#e2e2e2" },
+  dayTitle: { fontSize: 13, fontWeight: "800", color: "#f0f0f6" },
   dayDivider: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.05)" },
 
-  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 8, backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden" },
-  poster: { width: 40, height: 60, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
+  row: { flexDirection: "row", alignItems: "center", marginHorizontal: 16, marginBottom: 8, backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden" },
+  poster: { width: 40, height: 60, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
   info: { flex: 1, padding: 10 },
-  showTitle: { fontSize: 13, fontWeight: "700", color: "#e2e2e2", marginBottom: 2 },
+  showTitle: { fontSize: 13, fontWeight: "700", color: "#f0f0f6", marginBottom: 2 },
   epLine: { fontSize: 11, color: "#888", marginBottom: 2 },
-  network: { fontSize: 10, color: "rgba(226,226,226,0.35)", letterSpacing: 0.5 },
+  network: { fontSize: 10, color: "rgba(240,240,246,0.35)", letterSpacing: 0.5 },
 });

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -136,7 +136,7 @@ export default function DashboardScreen() {
                   <Text style={s.schedTitle} numberOfLines={1}>{title}</Text>
                   {!isMovie && item.seasonNumber != null && item.episodeNumber != null && (
                     <Text style={s.schedEp} numberOfLines={1}>
-                      S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
+                      S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}
                     </Text>
                   )}
                 </View>
@@ -257,7 +257,7 @@ function ActivityGraph({ daily }: { daily: { date: string; hours: number; episod
     <Section title="Last 14 Days">
       <View style={s.graphBox}>
         <Text style={s.graphSummary}>
-          {watchTime} watched · {totalEps} ep{totalEps !== 1 ? "s" : ""}{totalMovies > 0 ? ` · ${totalMovies} movie${totalMovies !== 1 ? "s" : ""}` : ""}
+          {watchTime} watched Â· {totalEps} ep{totalEps !== 1 ? "s" : ""}{totalMovies > 0 ? ` Â· ${totalMovies} movie${totalMovies !== 1 ? "s" : ""}` : ""}
         </Text>
         <View style={s.graphBars}>
           {chartData.map((bar, i) => (
@@ -285,7 +285,7 @@ function NowPlayingHero({ item, nav }: { item: NowPlayingItem; nav: Nav }) {
   const bgPath = isEpisode ? (item.showBackdropPath ?? item.stillPath) : item.backdropPath;
   const bgUri = bgPath ? `${TMDB_IMG}original${bgPath}` : null;
   const subLine = isEpisode && item.seasonNumber != null && item.episodeNumber != null
-    ? `S${String(item.seasonNumber).padStart(2, "0")} E${String(item.episodeNumber).padStart(2, "0")}${item.episodeTitle ? ` · ${item.episodeTitle}` : ""}`
+    ? `S${String(item.seasonNumber).padStart(2, "0")} E${String(item.episodeNumber).padStart(2, "0")}${item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}`
     : "";
 
   function handlePress() {
@@ -328,15 +328,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { flexGrow: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
 
-  hero: { height: 200, backgroundColor: "#0c0f0f", justifyContent: "flex-end" },
-  nowPlayingHero: { height: 240, backgroundColor: "#0c0f0f", justifyContent: "flex-end" },
+  hero: { height: 200, backgroundColor: "#12141b", justifyContent: "flex-end" },
+  nowPlayingHero: { height: 240, backgroundColor: "#12141b", justifyContent: "flex-end" },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
   heroContent: { padding: 20, paddingBottom: 24 },
-  heroGreeting: { fontSize: 24, fontWeight: "800", color: "#e2e2e2", marginBottom: 12 },
+  heroGreeting: { fontSize: 24, fontWeight: "800", color: "#f0f0f6", marginBottom: 12 },
   statsRow: { flexDirection: "row", gap: 20 },
   statChip: { alignItems: "center" },
   statValue: { fontSize: 22, fontWeight: "900", color: "#fff" },
@@ -354,12 +354,12 @@ const s = StyleSheet.create({
   section: { paddingTop: 24 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 12 },
   sectionAccent: { width: 3, height: 20, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 16, fontWeight: "800", color: "#e2e2e2", letterSpacing: -0.3 },
+  sectionTitle: { fontSize: 16, fontWeight: "800", color: "#f0f0f6", letterSpacing: -0.3 },
 
   posterCard: { width: POSTER_W },
-  posterImg: { width: POSTER_W, height: POSTER_H, borderRadius: 6, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
-  posterLabel: { fontSize: 12, color: "#cccccc", marginTop: 5, lineHeight: 15 },
+  posterImg: { width: POSTER_W, height: POSTER_H, borderRadius: 6, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
+  posterLabel: { fontSize: 12, color: "#d7d8e2", marginTop: 5, lineHeight: 15 },
   posterMeta: { fontSize: 11, color: "#888", marginTop: 2 },
 
   schedRow: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 8, gap: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.04)" },
@@ -367,14 +367,14 @@ const s = StyleSheet.create({
   schedDateText: { fontSize: 12, color: "#888", textAlign: "center" },
   schedPoster: { width: 36, height: 54, borderRadius: 4 },
   schedInfo: { flex: 1 },
-  schedTitle: { fontSize: 13, fontWeight: "700", color: "#e2e2e2" },
+  schedTitle: { fontSize: 13, fontWeight: "700", color: "#f0f0f6" },
   schedEp: { fontSize: 12, color: "#888", marginTop: 2 },
 
-  graphBox: { marginHorizontal: 16, backgroundColor: "#1a1c1c", borderRadius: 10, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  graphSummary: { fontSize: 12, color: "rgba(226,226,226,0.45)", marginBottom: 12 },
+  graphBox: { marginHorizontal: 16, backgroundColor: "#1e2029", borderRadius: 10, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  graphSummary: { fontSize: 12, color: "rgba(240,240,246,0.45)", marginBottom: 12 },
   graphBars: { flexDirection: "row", alignItems: "flex-end", gap: 3 },
   barCol: { flex: 1, alignItems: "center" },
   barTrack: { width: "100%", justifyContent: "flex-end" },
   barFill: { width: "100%", backgroundColor: "rgba(232,0,45,0.7)", borderRadius: 2 },
-  barLabel: { fontSize: 9, color: "rgba(226,226,226,0.3)", marginTop: 4 },
+  barLabel: { fontSize: 9, color: "rgba(240,240,246,0.3)", marginTop: 4 },
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -64,17 +64,17 @@ export default function LoginScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0c0f0f" },
+  root: { flex: 1, backgroundColor: "#12141b" },
   inner: { flex: 1, justifyContent: "center", paddingHorizontal: 32 },
-  title: { fontSize: 36, fontWeight: "900", color: "#e2e2e2", letterSpacing: 6, textAlign: "center", marginBottom: 6 },
+  title: { fontSize: 36, fontWeight: "900", color: "#f0f0f6", letterSpacing: 6, textAlign: "center", marginBottom: 6 },
   subtitle: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 48, letterSpacing: 1 },
   form: { gap: 12 },
   input: {
-    backgroundColor: "#1a1c1c",
+    backgroundColor: "#1e2029",
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    color: "#e2e2e2",
+    color: "#f0f0f6",
     fontSize: 15,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",

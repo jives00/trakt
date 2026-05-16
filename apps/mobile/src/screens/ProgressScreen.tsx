@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -86,7 +86,7 @@ export default function ProgressScreen() {
                   {item.nextEpisode && (
                     <Text style={s.nextEp} numberOfLines={1}>
                       Next: S{String(item.nextEpisode.seasonNumber).padStart(2, "0")} E{String(item.nextEpisode.episodeNumber).padStart(2, "0")}
-                      {item.nextEpisode.title ? ` · ${item.nextEpisode.title}` : ""}
+                      {item.nextEpisode.title ? ` Â· ${item.nextEpisode.title}` : ""}
                     </Text>
                   )}
                   <View style={s.progressTrack}>
@@ -104,28 +104,28 @@ export default function ProgressScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8, paddingHorizontal: 16, paddingVertical: 14 },
-  pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  pill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   pillActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  pillText: { fontSize: 13, color: "rgba(226,226,226,0.6)", fontWeight: "600" },
+  pillText: { fontSize: 13, color: "rgba(240,240,246,0.6)", fontWeight: "600" },
   pillTextActive: { color: "#fff" },
 
   row: {
     flexDirection: "row", marginHorizontal: 16, marginBottom: 10,
-    backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden",
+    backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden",
   },
-  poster: { width: 56, height: 84, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
+  poster: { width: 56, height: 84, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
   info: { flex: 1, padding: 10 },
-  title: { fontSize: 14, fontWeight: "700", color: "#e2e2e2", marginBottom: 2 },
-  meta: { fontSize: 11, color: "rgba(226,226,226,0.4)", marginBottom: 2 },
-  epCount: { fontSize: 11, color: "rgba(226,226,226,0.55)", marginBottom: 4 },
+  title: { fontSize: 14, fontWeight: "700", color: "#f0f0f6", marginBottom: 2 },
+  meta: { fontSize: 11, color: "rgba(240,240,246,0.4)", marginBottom: 2 },
+  epCount: { fontSize: 11, color: "rgba(240,240,246,0.55)", marginBottom: 4 },
   nextEp: { fontSize: 10, color: "#e8002d", marginBottom: 8 },
   progressTrack: { height: 3, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden", marginBottom: 3 },
   progressFill: { height: 3, backgroundColor: "#e8002d", borderRadius: 2 },
-  pctLabel: { fontSize: 9, color: "rgba(226,226,226,0.3)", textAlign: "right" },
+  pctLabel: { fontSize: 9, color: "rgba(240,240,246,0.3)", textAlign: "right" },
 });

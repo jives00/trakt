@@ -7,19 +7,19 @@
   --accent-hover-rgb: 212 0 38;
   --accent-light-rgb: 255 26 74;
   --on-accent-bg: #68000e;
-  --glass-bg: rgba(24, 24, 24, 0.7);
+  --glass-bg: rgba(28, 30, 38, 0.75);
 
-  --background-rgb: 29 29 29;
-  --surface-container-lowest-rgb: 12 15 15;
-  --surface-container-low-rgb: 26 28 28;
-  --surface-container-rgb: 30 32 32;
-  --surface-container-high-rgb: 40 42 43;
-  --surface-container-highest-rgb: 51 53 53;
-  --surface-variant-rgb: 51 53 53;
+  --background-rgb: 28 30 38;
+  --surface-container-lowest-rgb: 18 20 27;
+  --surface-container-low-rgb: 30 32 41;
+  --surface-container-rgb: 38 40 50;
+  --surface-container-high-rgb: 50 52 64;
+  --surface-container-highest-rgb: 64 67 82;
+  --surface-variant-rgb: 64 67 82;
 
-  --on-surface-rgb: 226 226 226;
-  --on-surface-variant-rgb: 204 204 204;
-  --on-background-rgb: 226 226 226;
+  --on-surface-rgb: 240 240 246;
+  --on-surface-variant-rgb: 215 216 226;
+  --on-background-rgb: 240 240 246;
 
   --outline-rgb: 175 135 133;
   --outline-variant-rgb: 94 63 61;
@@ -30,19 +30,19 @@
   --accent-hover-rgb: 0 82 204;
   --accent-light-rgb: 51 133 255;
   --on-accent-bg: #002b80;
-  --glass-bg: rgba(24, 24, 24, 0.7);
+  --glass-bg: rgba(28, 30, 38, 0.75);
 
-  --background-rgb: 29 29 29;
-  --surface-container-lowest-rgb: 12 15 15;
-  --surface-container-low-rgb: 26 28 28;
-  --surface-container-rgb: 30 32 32;
-  --surface-container-high-rgb: 40 42 43;
-  --surface-container-highest-rgb: 51 53 53;
-  --surface-variant-rgb: 51 53 53;
+  --background-rgb: 36 38 46;
+  --surface-container-lowest-rgb: 18 20 27;
+  --surface-container-low-rgb: 30 32 41;
+  --surface-container-rgb: 38 40 50;
+  --surface-container-high-rgb: 50 52 64;
+  --surface-container-highest-rgb: 64 67 82;
+  --surface-variant-rgb: 64 67 82;
 
-  --on-surface-rgb: 226 226 226;
-  --on-surface-variant-rgb: 204 204 204;
-  --on-background-rgb: 226 226 226;
+  --on-surface-rgb: 240 240 246;
+  --on-surface-variant-rgb: 215 216 226;
+  --on-background-rgb: 240 240 246;
 
   --outline-rgb: 175 135 133;
   --outline-variant-rgb: 94 63 61;

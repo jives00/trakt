@@ -1,4 +1,4 @@
-import { NavigationContainer } from "@react-navigation/native";
+﻿import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Text } from "react-native";
@@ -33,11 +33,11 @@ const HistoryStack = createNativeStackNavigator<HistoryStackParamList>();
 const DiscoverStack = createNativeStackNavigator<DiscoverStackParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 
-const NAV_BG = "#1d1d1d";
-const SURFACE_LOW = "#1a1c1c";
+const NAV_BG = "#1c1e26";
+const SURFACE_LOW = "#1e2029";
 const ACCENT = "#e8002d";
-const ON_SURFACE = "#e2e2e2";
-const ON_SURFACE_VARIANT = "#cccccc";
+const ON_SURFACE = "#f0f0f6";
+const ON_SURFACE_VARIANT = "#d7d8e2";
 
 const DETAIL_SCREEN_OPTIONS = {
   headerStyle: { backgroundColor: SURFACE_LOW },
@@ -140,7 +140,7 @@ function MainTabs() {
       <Tab.Screen
         name="Dashboard"
         component={DashboardNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>⊞</Text> }}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>âŠž</Text> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -152,7 +152,7 @@ function MainTabs() {
       <Tab.Screen
         name="History"
         component={HistoryNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 26, lineHeight: 26, includeFontPadding: false, marginTop: -2 }}>⏱</Text> }}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 26, lineHeight: 26, includeFontPadding: false, marginTop: -2 }}>â±</Text> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -164,7 +164,7 @@ function MainTabs() {
       <Tab.Screen
         name="Discover"
         component={DiscoverNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 30, lineHeight: 30, includeFontPadding: false }}>⌕</Text> }}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 30, lineHeight: 30, includeFontPadding: false }}>âŒ•</Text> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -176,7 +176,7 @@ function MainTabs() {
       <Tab.Screen
         name="More"
         component={MoreNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 32, lineHeight: 32, includeFontPadding: false }}>≡</Text> }}
+        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 32, lineHeight: 32, includeFontPadding: false }}>â‰¡</Text> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {

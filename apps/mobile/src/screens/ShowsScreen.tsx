@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -78,14 +78,14 @@ export default function ShowsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   card: { width: CARD_W },
-  poster: { width: CARD_W, height: CARD_W * 1.5, borderRadius: 6, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
+  poster: { width: CARD_W, height: CARD_W * 1.5, borderRadius: 6, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
   progressTrack: { height: 3, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 0, overflow: "hidden", marginTop: -3 },
   progressFill: { height: 3, backgroundColor: "#e8002d" },
-  title: { fontSize: 10, color: "#cccccc", marginTop: 5, lineHeight: 13 },
+  title: { fontSize: 10, color: "#d7d8e2", marginTop: 5, lineHeight: 13 },
 });

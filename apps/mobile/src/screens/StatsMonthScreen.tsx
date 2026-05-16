@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -140,29 +140,29 @@ function SectionHeader({ title }: { title: string }) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1d1d1d" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
   titleRow: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 },
-  monthTitle: { fontSize: 22, fontWeight: "900", color: "#e2e2e2" },
+  monthTitle: { fontSize: 22, fontWeight: "900", color: "#f0f0f6" },
 
   chipGrid: { flexDirection: "row", gap: 12, padding: 16 },
-  chip: { flex: 1, backgroundColor: "#1a1c1c", borderRadius: 10, padding: 12, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
-  chipValue: { fontSize: 18, fontWeight: "900", color: "#e2e2e2", marginBottom: 3 },
+  chip: { flex: 1, backgroundColor: "#1e2029", borderRadius: 10, padding: 12, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" },
+  chipValue: { fontSize: 18, fontWeight: "900", color: "#f0f0f6", marginBottom: 3 },
   chipValueAccent: { color: "#e8002d" },
-  chipLabel: { fontSize: 8, color: "rgba(226,226,226,0.4)", fontWeight: "700", letterSpacing: 1.5 },
+  chipLabel: { fontSize: 8, color: "rgba(240,240,246,0.4)", fontWeight: "700", letterSpacing: 1.5 },
 
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingTop: 20, paddingBottom: 12 },
   sectionAccent: { width: 3, height: 18, borderRadius: 2, backgroundColor: "#e8002d" },
-  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#e2e2e2" },
+  sectionTitle: { fontSize: 14, fontWeight: "800", color: "#f0f0f6" },
 
   dayCol: { alignItems: "center", width: 14 },
   dayBar: { width: 8, backgroundColor: "#e8002d", borderRadius: 2, marginBottom: 2 },
-  dayLabel: { fontSize: 7, color: "rgba(226,226,226,0.3)" },
+  dayLabel: { fontSize: 7, color: "rgba(240,240,246,0.3)" },
 
   showCard: { width: 70 },
-  showPoster: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#282a2b" },
-  posterFallback: { backgroundColor: "#282a2b" },
-  showTitle: { fontSize: 9, color: "#cccccc", marginTop: 4, lineHeight: 12 },
+  showPoster: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#323440" },
+  posterFallback: { backgroundColor: "#323440" },
+  showTitle: { fontSize: 9, color: "#d7d8e2", marginTop: 4, lineHeight: 12 },
   showEps: { fontSize: 8, color: "#888", marginTop: 2 },
 });

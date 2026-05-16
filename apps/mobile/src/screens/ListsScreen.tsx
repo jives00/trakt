@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, ImageBackground, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useNavigation } from "@react-navigation/native";
@@ -83,11 +83,11 @@ export default function ListsScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
-  card: { height: 110, borderRadius: 10, overflow: "hidden", backgroundColor: "#1a1c1c", justifyContent: "flex-end" },
+  card: { height: 110, borderRadius: 10, overflow: "hidden", backgroundColor: "#1e2029", justifyContent: "flex-end" },
   cardOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
   cardContent: { padding: 14 },
   cardTop: { flexDirection: "row", gap: 8, marginBottom: 6 },

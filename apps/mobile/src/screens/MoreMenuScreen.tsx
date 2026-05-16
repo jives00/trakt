@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+﻿import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MoreStackParamList } from "../navigation/types";
 
@@ -22,7 +22,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
           onPress={() => navigation.navigate(item.screen as never)}
         >
           <Text style={s.label}>{item.label}</Text>
-          <Text style={s.chevron}>›</Text>
+          <Text style={s.chevron}>â€º</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -30,7 +30,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { paddingTop: 16 },
   row: {
     flexDirection: "row",
@@ -41,6 +41,6 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255,255,255,0.06)",
   },
-  label: { color: "#e2e2e2", fontSize: 16 },
+  label: { color: "#f0f0f6", fontSize: 16 },
   chevron: { color: "#888", fontSize: 20 },
 });

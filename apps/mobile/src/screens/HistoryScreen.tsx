@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect } from "react";
 import { View, Text, SectionList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ManualScrobbleModal from "../components/ManualScrobbleModal";
@@ -178,7 +178,7 @@ function HistoryCard({
         {hasEpInfo ? (
           <View style={s.epRow}>
             <Text style={s.epCode}>
-              S{String(item.seasonNumber).padStart(2, "0")} · E{String(item.episodeNumber).padStart(2, "0")}
+              S{String(item.seasonNumber).padStart(2, "0")} Â· E{String(item.episodeNumber).padStart(2, "0")}
             </Text>
             {item.title && isEpisode && (
               <Text style={s.epName} numberOfLines={1}>{item.title}</Text>
@@ -189,7 +189,7 @@ function HistoryCard({
         )}
         <View style={s.cardFooter}>
           <TouchableOpacity onPress={onDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={s.deleteBtn}>✕</Text>
+            <Text style={s.deleteBtn}>âœ•</Text>
           </TouchableOpacity>
           <Text style={s.watchedAt}>{formatWatchedAt(item.watchedAt)}</Text>
         </View>
@@ -199,50 +199,50 @@ function HistoryCard({
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   filters: { flexDirection: "row", gap: 8, paddingHorizontal: 16, paddingVertical: 14 },
   pill: {
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
   pillActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  pillText: { fontSize: 13, color: "rgba(226,226,226,0.6)", fontWeight: "600" },
+  pillText: { fontSize: 13, color: "rgba(240,240,246,0.6)", fontWeight: "600" },
   pillTextActive: { color: "#fff" },
 
   dayHeader: {
     flexDirection: "row", alignItems: "center", gap: 12,
     paddingHorizontal: 16, paddingTop: 20, paddingBottom: 10,
   },
-  dayTitle: { fontSize: 15, fontWeight: "800", color: "#e2e2e2" },
+  dayTitle: { fontSize: 15, fontWeight: "800", color: "#f0f0f6" },
   dayDivider: { flex: 1, height: 1, backgroundColor: "rgba(255,255,255,0.05)" },
   dayCount: { fontSize: 10, fontWeight: "900", color: "#e8002d", letterSpacing: 1.5 },
 
   card: {
     flexDirection: "row", marginHorizontal: 16, marginBottom: 10,
-    backgroundColor: "#1a1c1c", borderRadius: 8, overflow: "hidden",
+    backgroundColor: "#1e2029", borderRadius: 8, overflow: "hidden",
   },
   cardPoster: { width: 60, height: 90 },
-  posterFallback: { backgroundColor: "#282a2b" },
+  posterFallback: { backgroundColor: "#323440" },
   cardBody: { flex: 1, padding: 12, justifyContent: "space-between" },
-  cardTitle: { fontSize: 14, fontWeight: "700", color: "#e2e2e2" },
+  cardTitle: { fontSize: 14, fontWeight: "700", color: "#f0f0f6" },
   epRow: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 },
   epCode: { fontSize: 12, fontWeight: "700", color: "#e8002d" },
-  epName: { fontSize: 12, color: "rgba(226,226,226,0.5)", flex: 1 },
-  mediaTypeBadge: { fontSize: 10, fontWeight: "700", color: "rgba(226,226,226,0.4)", letterSpacing: 1, marginTop: 3 },
+  epName: { fontSize: 12, color: "rgba(240,240,246,0.5)", flex: 1 },
+  mediaTypeBadge: { fontSize: 10, fontWeight: "700", color: "rgba(240,240,246,0.4)", letterSpacing: 1, marginTop: 3 },
   cardFooter: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 },
-  deleteBtn: { fontSize: 13, color: "rgba(226,226,226,0.3)" },
-  watchedAt: { fontSize: 11, color: "rgba(226,226,226,0.45)" },
+  deleteBtn: { fontSize: 13, color: "rgba(240,240,246,0.3)" },
+  watchedAt: { fontSize: 11, color: "rgba(240,240,246,0.45)" },
 
   footerLoader: { paddingVertical: 20, alignItems: "center" },
   loadMoreBtn: {
     marginHorizontal: 16, marginVertical: 16, paddingVertical: 14,
-    backgroundColor: "#1a1c1c", borderRadius: 8, borderWidth: 1,
+    backgroundColor: "#1e2029", borderRadius: 8, borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)", alignItems: "center",
   },
-  loadMoreText: { fontSize: 12, fontWeight: "800", color: "rgba(226,226,226,0.5)", letterSpacing: 1.5 },
+  loadMoreText: { fontSize: 12, fontWeight: "800", color: "rgba(240,240,246,0.5)", letterSpacing: 1.5 },
 
   fab: {
     position: "absolute", bottom: 24, right: 20,

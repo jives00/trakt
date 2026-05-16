@@ -253,10 +253,10 @@ The Android app shares the same product aesthetic as the web — dark, cinematic
 
 | Purpose | Hex | Web equivalent |
 |---|---|---|
-| App background | `#1d1d1d` | `background` |
-| Deep panels | `#0c0f0f` | `surface-container-lowest` |
-| Cards / inputs | `#1a1c1c` | `surface-container-low` |
-| Poster placeholders | `#282a2b` | `surface-container-high` |
+| App background | `#24262e` | `background` |
+| Deep panels | `#12141b` | `surface-container-lowest` |
+| Cards / inputs | `#1e2029` | `surface-container-low` |
+| Poster placeholders | `#323440` | `surface-container-high` |
 | Primary text | `#e2e2e2` | `on-surface` |
 | Secondary text | `rgba(226,226,226,0.5)` | `on-surface-variant` |
 | Muted labels | `rgba(226,226,226,0.35)` | `on-surface-variant/50` |

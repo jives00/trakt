@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, Keyboard, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -101,12 +101,12 @@ export default function SearchScreen() {
       {/* Search bar */}
       <View style={s.searchRow}>
         <View style={s.searchBar}>
-          <Text style={s.searchIcon}>⌕</Text>
+          <Text style={s.searchIcon}>âŒ•</Text>
           <TextInput
             ref={inputRef}
             style={s.searchInput}
-            placeholder="Search movies and shows…"
-            placeholderTextColor="rgba(226,226,226,0.3)"
+            placeholder="Search movies and showsâ€¦"
+            placeholderTextColor="rgba(240,240,246,0.3)"
             value={query}
             onChangeText={setQuery}
             onSubmitEditing={() => runSearch(query)}
@@ -116,7 +116,7 @@ export default function SearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={s.clearBtn}>✕</Text>
+              <Text style={s.clearBtn}>âœ•</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -127,7 +127,7 @@ export default function SearchScreen() {
         )}
       </View>
 
-      {/* Media filter — always visible */}
+      {/* Media filter â€” always visible */}
       <View style={s.mediaFilterRow}>
         {(["shows", "movies"] as MediaFilter[]).map((f) => (
           <TouchableOpacity
@@ -208,7 +208,7 @@ function MediaCard({ item, onPress }: { item: SearchResult; onPress: () => void 
         </View>
       )}
       <View style={s.yearBadge}>
-        <Text style={s.yearText}>{item.year ?? "–"}</Text>
+        <Text style={s.yearText}>{item.year ?? "â€“"}</Text>
       </View>
       <View style={s.cardInfo}>
         <Text style={s.cardTitle} numberOfLines={2}>{item.title}</Text>
@@ -219,55 +219,55 @@ function MediaCard({ item, onPress }: { item: SearchResult; onPress: () => void 
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#1d1d1d" },
+  root: { flex: 1, backgroundColor: "#1c1e26" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyText: { color: "rgba(226,226,226,0.4)", fontSize: 15 },
+  emptyText: { color: "rgba(240,240,246,0.4)", fontSize: 15 },
 
   searchRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12 },
   searchBar: {
     flex: 1, flexDirection: "row", alignItems: "center", gap: 8,
-    backgroundColor: "#1a1c1c", borderRadius: 24, paddingHorizontal: 14, paddingVertical: 10,
+    backgroundColor: "#1e2029", borderRadius: 24, paddingHorizontal: 14, paddingVertical: 10,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
-  searchIcon: { fontSize: 18, color: "rgba(226,226,226,0.4)" },
-  searchInput: { flex: 1, fontSize: 14, color: "#e2e2e2", padding: 0 },
-  clearBtn: { fontSize: 13, color: "rgba(226,226,226,0.3)" },
+  searchIcon: { fontSize: 18, color: "rgba(240,240,246,0.4)" },
+  searchInput: { flex: 1, fontSize: 14, color: "#f0f0f6", padding: 0 },
+  clearBtn: { fontSize: 13, color: "rgba(240,240,246,0.3)" },
   searchBtn: {
     backgroundColor: "#e8002d", borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 10,
   },
   searchBtnText: { color: "#fff", fontSize: 13, fontWeight: "700" },
 
-  mediaFilterRow: { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1a1c1c", borderRadius: 10, padding: 3 },
+  mediaFilterRow: { flexDirection: "row", marginHorizontal: 16, marginBottom: 10, backgroundColor: "#1e2029", borderRadius: 10, padding: 3 },
   mediaFilterBtn: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 8 },
   mediaFilterBtnActive: { backgroundColor: "#e8002d" },
-  mediaFilterText: { fontSize: 13, fontWeight: "700", color: "rgba(226,226,226,0.4)" },
+  mediaFilterText: { fontSize: 13, fontWeight: "700", color: "rgba(240,240,246,0.4)" },
   mediaFilterTextActive: { color: "#fff" },
 
   tabRow: { flexDirection: "row", paddingHorizontal: 16, gap: 8, marginBottom: 12 },
   tab: {
     paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20,
-    backgroundColor: "#1a1c1c", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+    backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
   tabActive: { backgroundColor: "#e8002d", borderColor: "#e8002d" },
-  tabText: { fontSize: 12, color: "rgba(226,226,226,0.55)", fontWeight: "600" },
+  tabText: { fontSize: 12, color: "rgba(240,240,246,0.55)", fontWeight: "600" },
   tabTextActive: { color: "#fff" },
 
   grid: { padding: 16, paddingBottom: 32 },
   gridRow: { gap: 10, marginBottom: 10 },
 
   card: { width: CARD_W },
-  cardImg: { width: CARD_W, height: CARD_H, borderRadius: 8, backgroundColor: "#282a2b" },
+  cardImg: { width: CARD_W, height: CARD_H, borderRadius: 8, backgroundColor: "#323440" },
   cardImgFallback: { justifyContent: "center", alignItems: "center" },
-  fallbackLabel: { fontSize: 10, color: "rgba(226,226,226,0.3)", letterSpacing: 1 },
+  fallbackLabel: { fontSize: 10, color: "rgba(240,240,246,0.3)", letterSpacing: 1 },
   yearBadge: {
     position: "absolute", top: 6, right: 6,
     backgroundColor: "rgba(0,0,0,0.65)", borderRadius: 4, paddingHorizontal: 5, paddingVertical: 2,
   },
   yearText: { fontSize: 10, fontWeight: "800", color: "#e8002d" },
   cardInfo: { marginTop: 6 },
-  cardTitle: { fontSize: 12, fontWeight: "700", color: "#e2e2e2", lineHeight: 16 },
-  cardType: { fontSize: 9, color: "rgba(226,226,226,0.35)", letterSpacing: 1, marginTop: 2 },
+  cardTitle: { fontSize: 12, fontWeight: "700", color: "#f0f0f6", lineHeight: 16 },
+  cardType: { fontSize: 9, color: "rgba(240,240,246,0.35)", letterSpacing: 1, marginTop: 2 },
 
   discoverBtn: { paddingHorizontal: 24, paddingVertical: 14, borderRadius: 8, backgroundColor: "#e8002d" },
   discoverBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
