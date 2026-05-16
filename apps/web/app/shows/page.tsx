@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { DiscoverItem, DiscoverPeriod, ShowDiscoverCategory } from "@trakt/types";
@@ -29,7 +30,11 @@ const periods: { id: DiscoverPeriod; label: string }[] = [
 
 export default function ShowsPage() {
   const { token, isLoading } = useAuth();
-  const [category, setCategory] = useState<ShowDiscoverCategory>("trending");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category") as ShowDiscoverCategory | null;
+  const category: ShowDiscoverCategory =
+    categoryParam && categories.some((c) => c.id === categoryParam) ? categoryParam : "trending";
   const [period, setPeriod] = useState<DiscoverPeriod>("all_time");
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [page, setPage] = useState(1);
@@ -61,7 +66,9 @@ export default function ShowsPage() {
   }, [category, page, period, token, isLoading]);
 
   function changeCategory(next: ShowDiscoverCategory) {
-    setCategory(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("category", next);
+    router.replace(`/shows?${params.toString()}`);
     setPage(1);
   }
 

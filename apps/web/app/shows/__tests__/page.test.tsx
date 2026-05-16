@@ -15,6 +15,19 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
+const nav = vi.hoisted(() => {
+  let params = new URLSearchParams();
+  const replace = vi.fn((url: string) => {
+    params = new URLSearchParams(url.split("?")[1] ?? "");
+  });
+  return { replace, getParams: () => params, reset: () => { params = new URLSearchParams(); } };
+});
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: nav.replace }),
+  useSearchParams: () => nav.getParams(),
+}));
+
 vi.mock("next/image", () => ({
   default: (props: Record<string, unknown>) => (
     <img src={props.src as string} alt={props.alt as string} />
@@ -51,6 +64,7 @@ const response = {
 describe("ShowsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    nav.reset();
     mockGetShowDiscover.mockResolvedValue(response);
   });
 
@@ -62,10 +76,11 @@ describe("ShowsPage", () => {
   });
 
   it("requests a top-rated period when a period filter is selected", async () => {
-    render(<ShowsPage />);
+    const { rerender } = render(<ShowsPage />);
 
     await waitFor(() => expect(mockGetShowDiscover).toHaveBeenCalled());
     await userEvent.click(screen.getByRole("button", { name: /top rated/i }));
+    rerender(<ShowsPage />);
     await waitFor(() => expect(screen.getByRole("button", { name: /past year/i })).toBeInTheDocument());
     await userEvent.click(screen.getByRole("button", { name: /past year/i }));
 

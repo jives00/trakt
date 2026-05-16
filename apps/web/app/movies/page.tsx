@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
 import type { DiscoverItem, DiscoverPeriod, MovieDiscoverCategory } from "@trakt/types";
@@ -29,7 +30,11 @@ const periods: { id: DiscoverPeriod; label: string }[] = [
 
 export default function MoviesPage() {
   const { token, isLoading } = useAuth();
-  const [category, setCategory] = useState<MovieDiscoverCategory>("trending");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category") as MovieDiscoverCategory | null;
+  const category: MovieDiscoverCategory =
+    categoryParam && categories.some((c) => c.id === categoryParam) ? categoryParam : "trending";
   const [period, setPeriod] = useState<DiscoverPeriod>("all_time");
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [page, setPage] = useState(1);
@@ -61,7 +66,9 @@ export default function MoviesPage() {
   }, [category, page, period, token, isLoading]);
 
   function changeCategory(next: MovieDiscoverCategory) {
-    setCategory(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("category", next);
+    router.replace(`/movies?${params.toString()}`);
     setPage(1);
   }
 
