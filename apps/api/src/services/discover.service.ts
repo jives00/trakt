@@ -28,6 +28,12 @@ export const movieDiscoverCategories = Object.keys(MOVIE_CATEGORIES) as MovieDis
 export const showDiscoverCategories = Object.keys(SHOW_CATEGORIES) as ShowDiscoverCategory[];
 export const discoverPeriods: DiscoverPeriod[] = ['all_time', 'past_year', 'past_6_months', 'past_3_months', 'past_month'];
 
+export function isValidDiscoverYear(value: string): boolean {
+  const year = Number(value);
+  const currentYear = new Date().getFullYear();
+  return Number.isInteger(year) && year >= 1900 && year <= currentYear;
+}
+
 export function isMovieDiscoverCategory(value: string): value is MovieDiscoverCategory {
   return movieDiscoverCategories.includes(value as MovieDiscoverCategory);
 }
@@ -45,26 +51,35 @@ export async function getMovieDiscover(
   page = 1,
   region = 'US',
   period: DiscoverPeriod = 'all_time',
+  year: number | null = null,
+  englishOnly = false,
 ): Promise<DiscoverResponse> {
   const params: Record<string, string> = {
     page: String(page),
     region,
   };
-  const path = category === 'top_rated' && period !== 'all_time'
-    ? '/discover/movie'
-    : MOVIE_CATEGORIES[category];
+  const useDiscover = category === 'top_rated' && (year !== null || period !== 'all_time');
+  const path = useDiscover ? '/discover/movie' : MOVIE_CATEGORIES[category];
 
-  if (category === 'top_rated' && period !== 'all_time') {
+  if (useDiscover) {
     Object.assign(params, {
       sort_by: 'vote_average.desc',
-      'vote_count.gte': '100',
+      'vote_count.gte': '200',
       include_adult: 'false',
-      'primary_release_date.gte': dateFromPeriod(period),
-      'primary_release_date.lte': todayIso(),
     });
+    if (year !== null) {
+      params['primary_release_year'] = String(year);
+    } else if (period !== 'all_time') {
+      params['primary_release_date.gte'] = dateFromPeriod(period);
+      params['primary_release_date.lte'] = todayIso();
+    }
+    if (englishOnly) params['with_original_language'] = 'en';
   }
 
   const data = await get<TmdbListResponse>(path, params);
+  const results = (!useDiscover && englishOnly)
+    ? data.results.filter((r) => r['original_language'] === 'en')
+    : data.results;
 
   return {
     category,
@@ -72,7 +87,7 @@ export async function getMovieDiscover(
     page: data.page,
     totalPages: data.total_pages,
     totalResults: data.total_results,
-    items: data.results.map(transformMovieDiscoverItem),
+    items: results.map(transformMovieDiscoverItem),
   };
 }
 
@@ -80,24 +95,33 @@ export async function getShowDiscover(
   category: ShowDiscoverCategory,
   page = 1,
   period: DiscoverPeriod = 'all_time',
+  year: number | null = null,
+  englishOnly = false,
 ): Promise<DiscoverResponse> {
   const params: Record<string, string> = {
     page: String(page),
   };
-  const path = category === 'top_rated' && period !== 'all_time'
-    ? '/discover/tv'
-    : SHOW_CATEGORIES[category];
+  const useDiscover = category === 'top_rated' && (year !== null || period !== 'all_time');
+  const path = useDiscover ? '/discover/tv' : SHOW_CATEGORIES[category];
 
-  if (category === 'top_rated' && period !== 'all_time') {
+  if (useDiscover) {
     Object.assign(params, {
       sort_by: 'vote_average.desc',
-      'vote_count.gte': '50',
-      'first_air_date.gte': dateFromPeriod(period),
-      'first_air_date.lte': todayIso(),
+      'vote_count.gte': '200',
     });
+    if (year !== null) {
+      params['first_air_date_year'] = String(year);
+    } else if (period !== 'all_time') {
+      params['first_air_date.gte'] = dateFromPeriod(period);
+      params['first_air_date.lte'] = todayIso();
+    }
+    if (englishOnly) params['with_original_language'] = 'en';
   }
 
   const data = await get<TmdbListResponse>(path, params);
+  const results = (!useDiscover && englishOnly)
+    ? data.results.filter((r) => r['original_language'] === 'en')
+    : data.results;
 
   return {
     category,
@@ -105,7 +129,7 @@ export async function getShowDiscover(
     page: data.page,
     totalPages: data.total_pages,
     totalResults: data.total_results,
-    items: data.results.map(transformShowDiscoverItem),
+    items: results.map(transformShowDiscoverItem),
   };
 }
 
@@ -142,6 +166,7 @@ function transformShowDiscoverItem(raw: Record<string, any>): DiscoverItem {
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
 
 function dateFromPeriod(period: Exclude<DiscoverPeriod, 'all_time'>): string {
   const date = new Date();

@@ -116,14 +116,14 @@ export const api = {
     request<SearchResult[]>(`/api/search?q=${encodeURIComponent(query)}`, { token }),
 
   // Discover
-  getMovieDiscover: (category: MovieDiscoverCategory, token: string, page = 1, region = "US", period: DiscoverPeriod = "all_time") =>
+  getMovieDiscover: (category: MovieDiscoverCategory, token: string, page = 1, region = "US", period: DiscoverPeriod = "all_time", year: number | null = null, englishOnly = false) =>
     request<DiscoverResponse>(
-      `/api/discover/movies?category=${category}&page=${page}&region=${encodeURIComponent(region)}&period=${period}`,
+      `/api/discover/movies?category=${category}&page=${page}&region=${encodeURIComponent(region)}&period=${period}${year ? `&year=${year}` : ""}${englishOnly ? "&englishOnly=true" : ""}`,
       { token },
     ),
-  getShowDiscover: (category: ShowDiscoverCategory, token: string, page = 1, period: DiscoverPeriod = "all_time") =>
+  getShowDiscover: (category: ShowDiscoverCategory, token: string, page = 1, period: DiscoverPeriod = "all_time", year: number | null = null, englishOnly = false) =>
     request<DiscoverResponse>(
-      `/api/discover/shows?category=${category}&page=${page}&period=${period}`,
+      `/api/discover/shows?category=${category}&page=${page}&period=${period}${year ? `&year=${year}` : ""}${englishOnly ? "&englishOnly=true" : ""}`,
       { token },
     ),
 

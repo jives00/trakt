@@ -85,7 +85,7 @@ describe("MoviesPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /past year/i }));
 
     await waitFor(() => {
-      expect(mockGetMovieDiscover).toHaveBeenCalledWith("top_rated", "test-token", 1, "US", "past_year");
+      expect(mockGetMovieDiscover).toHaveBeenCalledWith("top_rated", "test-token", 1, "US", "past_year", null, true);
     });
   });
 });

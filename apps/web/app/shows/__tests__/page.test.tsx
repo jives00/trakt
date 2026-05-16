@@ -85,7 +85,7 @@ describe("ShowsPage", () => {
     await userEvent.click(screen.getByRole("button", { name: /past year/i }));
 
     await waitFor(() => {
-      expect(mockGetShowDiscover).toHaveBeenCalledWith("top_rated", "test-token", 1, "past_year");
+      expect(mockGetShowDiscover).toHaveBeenCalledWith("top_rated", "test-token", 1, "past_year", null, true);
     });
   });
 });

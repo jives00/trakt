@@ -28,6 +28,9 @@ const periods: { id: DiscoverPeriod; label: string }[] = [
   { id: "past_month", label: "Past Month" },
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: CURRENT_YEAR - 1899 }, (_, i) => CURRENT_YEAR - i);
+
 export default function ShowsPage() {
   const { token, isLoading } = useAuth();
   const router = useRouter();
@@ -36,6 +39,8 @@ export default function ShowsPage() {
   const category: ShowDiscoverCategory =
     categoryParam && categories.some((c) => c.id === categoryParam) ? categoryParam : "trending";
   const [period, setPeriod] = useState<DiscoverPeriod>("all_time");
+  const [year, setYear] = useState<number | null>(null);
+  const [englishOnly, setEnglishOnly] = useState(true);
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -53,7 +58,7 @@ export default function ShowsPage() {
     setFetching(true);
     setFetchError("");
 
-    api.getShowDiscover(category, token, page, period)
+    api.getShowDiscover(category, token, page, period, year, category === "top_rated" ? englishOnly : false)
       .then((response) => {
         setItems(response.items);
         setTotalPages(response.totalPages);
@@ -63,7 +68,7 @@ export default function ShowsPage() {
         setFetchError("Failed to load shows.");
       })
       .finally(() => setFetching(false));
-  }, [category, page, period, token, isLoading]);
+  }, [category, page, period, year, englishOnly, token, isLoading]);
 
   function changeCategory(next: ShowDiscoverCategory) {
     const params = new URLSearchParams(searchParams.toString());
@@ -135,17 +140,18 @@ export default function ShowsPage() {
             </div>
 
             {category === "top_rated" && (
-              <div className="mb-5 flex flex-wrap gap-2">
+              <div className="mb-5 flex flex-wrap items-center gap-2">
                 {periods.map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => {
                       setPeriod(item.id);
+                      setYear(null);
                       setPage(1);
                     }}
                     className={
-                      period === item.id
+                      period === item.id && year === null
                         ? "px-3 py-2 rounded-full bg-accent text-white text-sm"
                         : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
                     }
@@ -153,6 +159,30 @@ export default function ShowsPage() {
                     {item.label}
                   </button>
                 ))}
+                <select
+                  value={year ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setYear(val ? Number(val) : null);
+                    if (val) setPeriod("all_time");
+                    setPage(1);
+                  }}
+                  className={`px-3 py-2 rounded-full border text-sm bg-surface-container-low text-on-surface-variant/70 cursor-pointer hover:bg-surface-container hover:text-on-surface transition-colors focus:outline-none ${year !== null ? "border-accent/60 text-on-surface" : "border-outline-variant/40"}`}
+                >
+                  <option value="">By Year</option>
+                  {YEARS.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => { setEnglishOnly((v) => !v); setPage(1); }}
+                  className={englishOnly
+                    ? "px-3 py-2 rounded-full bg-accent text-white text-sm"
+                    : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"}
+                >
+                  English Only
+                </button>
               </div>
             )}
 
