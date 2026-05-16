@@ -12,13 +12,13 @@ const topNavLinks = [
   { href: "/", label: "Dashboard" },
   { href: "/movies", label: "Movies" },
   { href: "/shows", label: "Shows" },
+  { href: "/lists", label: "Lists" },
   { href: "/history", label: "History" },
   { href: "/calendar", label: "Schedule" },
 ];
 
 const avatarDropdownLinks = [
   { href: "/progress", label: "Progress" },
-  { href: "/lists", label: "Lists" },
   { href: "/stats", label: "Stats" },
   { href: "/settings", label: "Settings" },
 ];
@@ -153,7 +153,7 @@ export function TopNav() {
                   onChange={(e) => handleSearchInput(e.target.value)}
                   onKeyDown={handleSearchKeydown}
                   placeholder="Search movies and shows…"
-                  className="w-full rounded-full border border-outline-variant/40 bg-surface-container px-4 py-2 pr-10 text-on-surface placeholder:text-on-surface/40 focus:border-accent focus:outline-none transition-colors text-sm"
+                  className="w-full rounded-full border border-outline-variant/60 bg-surface-container-high px-4 py-2 pr-10 text-on-surface placeholder:text-on-surface/40 focus:border-accent focus:outline-none transition-colors text-sm"
                 />
                 {isSearchLoading && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-on-surface/20 border-t-on-surface rounded-full animate-spin" />

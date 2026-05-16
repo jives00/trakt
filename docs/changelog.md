@@ -6,6 +6,7 @@
 - Fetch YouTube trailer key from TMDB videos endpoint; store in `movies`/`tv_shows` via migration 028 `ba19bed`
 
 ### Web
+- Move Lists from avatar dropdown to top nav (between Shows and History); increase search bar contrast `84ad43e`
 - Reorder show detail sidebar buttons: Lists and Rewatch before Drop `4354271`
 - Discover tab selection persisted in URL; back navigation from a detail page restores the previously selected tab `32240d3`
 - Watch Trailer button on movie/show detail hero opens a YouTube embed modal when a trailer is available `ba19bed`
