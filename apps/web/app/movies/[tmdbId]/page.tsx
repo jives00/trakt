@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { api, type MovieDetail, type MovieStatus, type MovieCastMember, type CrewMember, type HistoryItem } from "@/lib/api";
 import { ImagePickerModal } from "@/components/image-picker-modal";
 import { RefreshButton } from "@/components/refresh-button";
+import { TrailerModal } from "@/components/trailer-modal";
 import { WatchDatePicker } from "@/components/watch-date-picker";
 import { AddToListDropdown } from "@/components/add-to-list-dropdown";
 
@@ -56,6 +57,7 @@ export default function MovieDetailPage() {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [error, setError] = useState("");
   const [picker, setPicker] = useState<"hero" | "poster" | null>(null);
+  const [trailerOpen, setTrailerOpen] = useState(false);
 
   useEffect(() => {
     if (!tmdbId) return;
@@ -204,7 +206,7 @@ export default function MovieDetailPage() {
             <span className="text-sm font-bold">Backdrop</span>
           </button>
 
-          <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
+          <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-6">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {movie.posterPath && (
                 <div className="relative group/poster hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
@@ -212,7 +214,7 @@ export default function MovieDetailPage() {
                   <EditImageButton onClick={() => setPicker("poster")} label="Change poster image" />
                 </div>
               )}
-              <div className="min-w-0">
+              <div className="min-w-0 flex flex-col justify-end items-start md:h-48 lg:h-60">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   {movie.genres.slice(0, 2).map((g) => (
                     <span key={g} className="bg-white/10 backdrop-blur-md text-white/80 px-3 py-1 rounded-full text-label-sm font-bold uppercase border border-white/10">{g}</span>
@@ -221,6 +223,15 @@ export default function MovieDetailPage() {
                 <h1 className="text-h1 font-black text-white mb-3 drop-shadow-2xl">{movie.title}</h1>
                 {movie.overview && (
                   <p className="text-body-sm text-white/70 line-clamp-3">{movie.overview}</p>
+                )}
+                {movie.trailerYoutubeKey && (
+                  <button
+                    onClick={() => setTrailerOpen(true)}
+                    className="mt-4 flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white backdrop-blur-sm rounded-full px-4 py-2 text-sm font-bold transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base leading-none" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+                    Watch Trailer
+                  </button>
                 )}
               </div>
             </div>
@@ -475,6 +486,10 @@ export default function MovieDetailPage() {
           mediaType="movie"
           onSaved={(path) => handleImageSaved(picker, path)}
         />
+      )}
+
+      {trailerOpen && movie.trailerYoutubeKey && (
+        <TrailerModal youtubeKey={movie.trailerYoutubeKey} onClose={() => setTrailerOpen(false)} />
       )}
     </div>
   );

@@ -15,7 +15,7 @@ interface ShowRow extends RowDataPacket {
   original_language: string | null; runtime_min: number | null;
   air_time: string | null; airs_day: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
-  tmdb_rating: number | null;
+  tmdb_rating: number | null; trailer_youtube_key: string | null;
   metadata_refreshed_at: Date | null;
 }
 
@@ -85,6 +85,7 @@ function rowToShow(row: ShowRow, seasonCount?: number, imdbId?: string | null): 
     rtAudienceScore: row.rt_audience_score,
     imdbId: imdbId ?? null,
     tmdbRating: row.tmdb_rating,
+    trailerYoutubeKey: row.trailer_youtube_key ?? null,
   };
 }
 
@@ -102,8 +103,8 @@ export async function getOrFetchShow(tmdbId: number) {
       const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
       const sc = row.season_count > 0 ? row.season_count : freshCount;
       await pool.query(
-        `UPDATE tv_shows SET backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
-        [fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, row.id],
+        `UPDATE tv_shows SET backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, season_count = ?, trailer_youtube_key = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
+        [fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, fresh.trailerYoutubeKey ?? null, row.id],
       );
       if (process.env.NODE_ENV !== 'test') {
         backfillShowImdbRating(row.id, tmdbId).catch(() => {});
@@ -125,8 +126,8 @@ export async function getOrFetchShow(tmdbId: number) {
       const { show: fresh, seasonCount: freshCount } = await fetchShowWithSeasonCount(tmdbId);
       const prevSeasonCount = row.season_count;
       await pool.query(
-        `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
-        [freshCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, row.id],
+        `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, trailer_youtube_key = ?, metadata_refreshed_at = NOW() WHERE id = ?`,
+        [freshCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, fresh.trailerYoutubeKey ?? null, row.id],
       );
       row.season_count = freshCount;
       row.status = fresh.status;
@@ -165,12 +166,12 @@ export async function getOrFetchShow(tmdbId: number) {
   const tmdbRating = show.tmdbRating ?? null;
 
   await pool.query(
-    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min, tmdb_rating, metadata_refreshed_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id, tmdb_rating = VALUES(tmdb_rating)`,
+    `INSERT INTO tv_shows (tmdb_id, title, year, overview, poster_path, backdrop_path, status, network, genres, season_count, first_air_date, origin_country, original_language, runtime_min, tmdb_rating, trailer_youtube_key, metadata_refreshed_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+     ON DUPLICATE KEY UPDATE tmdb_id = tmdb_id, tmdb_rating = VALUES(tmdb_rating), trailer_youtube_key = VALUES(trailer_youtube_key)`,
     [tmdbId, show.title, show.year || null, show.overview, show.posterPath,
      show.backdropPath, show.status, show.network, JSON.stringify(show.genres), seasonCount,
-     show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin, tmdbRating],
+     show.firstAirDate, show.originCountry, show.originalLanguage, show.runtimeMin, tmdbRating, show.trailerYoutubeKey ?? null],
   );
   const [inserted] = await pool.query<ShowRow[]>('SELECT * FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
   const imdbId = await getShowImdbId(inserted[0].id);
@@ -642,8 +643,8 @@ export async function forceRefreshShowMetadata(tmdbId: number): Promise<ShowDeta
   const [rows] = await pool.query<ShowRow[]>('SELECT season_count FROM tv_shows WHERE tmdb_id = ?', [tmdbId]);
   const prevSeasonCount = rows[0]?.season_count ?? 0;
   await pool.query(
-    `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, metadata_refreshed_at = NOW() WHERE tmdb_id = ?`,
-    [seasonCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, tmdbId],
+    `UPDATE tv_shows SET season_count = ?, status = ?, title = ?, overview = ?, poster_path = ?, backdrop_path = ?, first_air_date = ?, origin_country = ?, original_language = ?, runtime_min = ?, trailer_youtube_key = ?, metadata_refreshed_at = NOW() WHERE tmdb_id = ?`,
+    [seasonCount, fresh.status, fresh.title, fresh.overview, fresh.posterPath, fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, fresh.trailerYoutubeKey ?? null, tmdbId],
   );
   if (seasonCount > prevSeasonCount) {
     await prefetchAllSeasons(tmdbId);

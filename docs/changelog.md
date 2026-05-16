@@ -2,7 +2,11 @@
 
 ## May 16, 2026
 
+### API
+- Fetch YouTube trailer key from TMDB videos endpoint; store in `movies`/`tv_shows` via migration 028 `ba19bed`
+
 ### Web
+- Watch Trailer button on movie/show detail hero opens a YouTube embed modal when a trailer is available `ba19bed`
 - Dark theme: lifted surface scale, cool blue-slate tint, improved text contrast on all surface layers `ad6b656`
 
 ### Mobile

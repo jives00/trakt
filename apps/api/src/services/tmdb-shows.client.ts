@@ -8,6 +8,10 @@ function dateOrNull(value: any): string | null {
 export function transformShow(raw: Record<string, any>): TvShow {
   const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
   const firstAirDate = dateOrNull(raw['first_air_date']);
+  const videos = raw['videos']?.results as Record<string, any>[] | undefined;
+  const trailer = videos
+    ? (videos.find(v => v['site'] === 'YouTube' && v['type'] === 'Trailer') ?? videos.find(v => v['site'] === 'YouTube'))
+    : null;
   return {
     id: 0,
     tmdbId: raw['id'],
@@ -20,6 +24,7 @@ export function transformShow(raw: Record<string, any>): TvShow {
     network: raw['networks']?.[0]?.['name'] ?? null,
     genres: (raw['genres'] ?? []).map((g: Record<string, any>) => g['name']),
     tmdbRating,
+    trailerYoutubeKey: trailer?.['key'] ?? null,
   };
 }
 
@@ -49,7 +54,7 @@ export interface ShowFetchResult {
 }
 
 export async function fetchShowWithSeasonCount(tmdbId: number): Promise<ShowFetchResult> {
-  const raw = await get<Record<string, any>>(`/tv/${tmdbId}`);
+  const raw = await get<Record<string, any>>(`/tv/${tmdbId}`, { append_to_response: 'videos' });
   return {
     show: {
       ...transformShow(raw),

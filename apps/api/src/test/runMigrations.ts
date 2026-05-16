@@ -43,8 +43,8 @@ export async function runMigrations(dbName: string, dbConfig: DbConfig): Promise
         await conn.query('INSERT INTO migrations (name) VALUES (?)', [file]);
         console.log(`  applied: ${file}`);
       } catch (err: any) {
-        // Skip migrations that are already partially applied (duplicate column/key errors)
-        if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_DUP_KEYNAME') {
+        // Skip migrations that are already partially applied
+        if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_DUP_KEYNAME' || err.code === 'ER_DUP_ENTRY') {
           await conn.query('INSERT INTO migrations (name) VALUES (?)', [file]);
           console.log(`  skipped (already applied): ${file}`);
         } else {

@@ -10,7 +10,7 @@ interface MovieRow extends RowDataPacket {
   runtime_min: number | null; genres: string; release_date: string | null;
   origin_country: string | null; original_language: string | null; production_company: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
-  tmdb_rating: number | null;
+  tmdb_rating: number | null; trailer_youtube_key: string | null;
 }
 
 interface ExternalIdRow extends RowDataPacket { external_id: string }
@@ -44,6 +44,7 @@ function rowToMovie(row: MovieRow, imdbId?: string | null): MovieDetail & { id: 
     rtAudienceScore: row.rt_audience_score,
     imdbId: imdbId ?? null,
     tmdbRating: row.tmdb_rating,
+    trailerYoutubeKey: row.trailer_youtube_key ?? null,
   };
 }
 
@@ -128,12 +129,12 @@ export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { i
   const movieData = await fetchMovie(tmdbId);
   const tmdbRating = movieData.tmdbRating ?? null;
   await pool.query(
-    `INSERT INTO movies (tmdb_id, title, year, release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company, tmdb_rating)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company), tmdb_rating = VALUES(tmdb_rating)`,
+    `INSERT INTO movies (tmdb_id, title, year, release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company, tmdb_rating, trailer_youtube_key)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company), tmdb_rating = VALUES(tmdb_rating), trailer_youtube_key = VALUES(trailer_youtube_key)`,
     [tmdbId, movieData.title, movieData.year || null, movieData.releaseDate ?? null, movieData.overview,
      movieData.tagline ?? null, movieData.posterPath, movieData.backdropPath, movieData.runtimeMin, JSON.stringify(movieData.genres),
-     movieData.originCountry, movieData.originalLanguage, movieData.productionCompany, tmdbRating],
+     movieData.originCountry, movieData.originalLanguage, movieData.productionCompany, tmdbRating, movieData.trailerYoutubeKey ?? null],
   );
   const movie = movieData;
   const [inserted] = await pool.query<MovieRow[]>('SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId]);
@@ -279,8 +280,20 @@ export async function getOrFetchMovieCrew(tmdbId: number): Promise<CrewMember[]>
 
 export async function forceRefreshMovieMetadata(tmdbId: number): Promise<MovieDetail & { id: number }> {
   const pool = getPool();
-  await pool.query('DELETE FROM movies WHERE tmdb_id = ?', [tmdbId]);
-  return getOrFetchMovie(tmdbId);
+  const movieData = await fetchMovie(tmdbId);
+  await pool.query(
+    `UPDATE movies SET title = ?, year = ?, release_date = ?, overview = ?, tagline = ?, runtime_min = ?,
+     genres = ?, origin_country = ?, original_language = ?, production_company = ?, tmdb_rating = ?, trailer_youtube_key = ?
+     WHERE tmdb_id = ?`,
+    [movieData.title, movieData.year || null, movieData.releaseDate ?? null, movieData.overview,
+     movieData.tagline ?? null, movieData.runtimeMin, JSON.stringify(movieData.genres),
+     movieData.originCountry, movieData.originalLanguage, movieData.productionCompany,
+     movieData.tmdbRating ?? null, movieData.trailerYoutubeKey ?? null, tmdbId],
+  );
+  const [rows] = await pool.query<MovieRow[]>('SELECT * FROM movies WHERE tmdb_id = ?', [tmdbId]);
+  if (!rows.length) return getOrFetchMovie(tmdbId);
+  const imdbId = await getMovieImdbId(rows[0].id);
+  return rowToMovie(rows[0], imdbId);
 }
 
 export async function forceRefreshMovieCast(tmdbId: number): Promise<{ cast: MovieCastMember[]; crew: CrewMember[] }> {

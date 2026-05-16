@@ -15,6 +15,11 @@ export function transformMovie(raw: Record<string, any>): MovieDetail {
   const releaseDate = dateOrNull(usTheatrical) ?? dateOrNull(raw['release_date']);
   const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
 
+  const videos = raw['videos']?.results as Record<string, any>[] | undefined;
+  const trailer = videos
+    ? (videos.find(v => v['site'] === 'YouTube' && v['type'] === 'Trailer') ?? videos.find(v => v['site'] === 'YouTube'))
+    : null;
+
   return {
     id: 0,
     tmdbId: raw['id'],
@@ -31,12 +36,13 @@ export function transformMovie(raw: Record<string, any>): MovieDetail {
     originalLanguage: raw['original_language'] || null,
     productionCompany: (raw['production_companies'] as Record<string, any>[] | undefined)?.[0]?.name || null,
     tmdbRating,
+    trailerYoutubeKey: trailer?.['key'] ?? null,
   };
 }
 
 export async function fetchMovie(tmdbId: number): Promise<MovieDetail> {
   return transformMovie(
-    await get<Record<string, any>>(`/movie/${tmdbId}`, { append_to_response: 'release_dates' }),
+    await get<Record<string, any>>(`/movie/${tmdbId}`, { append_to_response: 'release_dates,videos' }),
   );
 }
 
