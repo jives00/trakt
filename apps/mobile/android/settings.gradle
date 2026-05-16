@@ -1,3 +1,5 @@
+import groovy.json.JsonSlurper
+
 pluginManagement {
   def reactNativeGradlePlugin = new File(
     providers.exec {
@@ -45,7 +47,6 @@ if (autolinkFile.exists()) {
   println "=== END AUTOLINKING JSON ==="
 
   // Debug: check if project dirs exist
-  import groovy.json.JsonSlurper
   def json = new JsonSlurper().parseText(content)
   json.dependencies?.each { name, dep ->
     def srcDir = dep?.platforms?.android?.sourceDir
