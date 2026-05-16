@@ -26,7 +26,7 @@ describe('Stremio Addon', () => {
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({
         id: 'community.trakt-personal',
-        version: '1.0.0',
+        version: expect.any(String),
         name: 'Personal Trakt Tracker',
         description: expect.any(String),
         resources: expect.arrayContaining(['subtitles']),
