@@ -482,15 +482,13 @@ export default function ShowDetailPage() {
                     <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: status.inWatchlist ? "'FILL' 1" : "'FILL' 0" }}>bookmark</span>
                     {status.inWatchlist ? "Watchlisted" : "Watchlist"}
                   </button>
-                  <button
-                    onClick={handleDropped}
-                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
-                      status.inDropped ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">block</span>
-                    {status.inDropped ? "Dropped" : "Drop"}
-                  </button>
+                  {show && token && (
+                    <AddToListDropdown
+                      token={token}
+                      mediaType="show"
+                      mediaId={show.id}
+                    />
+                  )}
                   <button
                     onClick={handleRewatch}
                     className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
@@ -500,13 +498,15 @@ export default function ShowDetailPage() {
                     <span className="material-symbols-outlined text-sm">replay</span>
                     {status.inRewatch ? "Rewatching" : "Rewatch"}
                   </button>
-                  {show && token && (
-                    <AddToListDropdown
-                      token={token}
-                      mediaType="show"
-                      mediaId={show.id}
-                    />
-                  )}
+                  <button
+                    onClick={handleDropped}
+                    className={`py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${
+                      status.inDropped ? "bg-accent text-white" : "bg-surface-container border border-outline-variant/40 text-on-surface/80 hover:bg-surface-container-high"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm">block</span>
+                    {status.inDropped ? "Dropped" : "Drop"}
+                  </button>
                   <div className="col-span-2">
                     <WatchDatePicker
                       watched={watchedEpisodeCount === totalEpisodeCount && totalEpisodeCount > 0}
