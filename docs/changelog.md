@@ -1,5 +1,13 @@
 # Changelog
 
+## May 16, 2026
+
+### API
+- Stremio addon manifest version is now a hash of active catalog IDs so Stremio detects changes when lists are toggled `fd673ac`
+
+### Web
+- Proxy `/stremio-addon/*` through Next.js dev server so local manifest URL matches production `fd673ac`
+
 ## May 15, 2026
 
 ### Mobile

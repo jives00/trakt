@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { createHash } from 'crypto';
 import { startPollLoop, getTraktToken } from '../services/trakt-poll.service';
 import { getExportableLists, getExportableList } from '../services/export.service';
 import type { StremioCatalogEntry, StremioMetaObject } from '@trakt/types';
@@ -13,9 +14,11 @@ export async function stremioAddonRoutes(app: FastifyInstance) {
       if (list.movieCount > 0) catalogs.push({ type: 'movie',  id: `personal-${list.slug}-movie`,  name: `Trakt App - ${list.name}` });
       if (list.showCount  > 0) catalogs.push({ type: 'series', id: `personal-${list.slug}-series`, name: `Trakt App - ${list.name}` });
     }
+    const catalogKey = catalogs.map((c) => c.id).join(',');
+    const version = '1.0.' + parseInt(createHash('md5').update(catalogKey).digest('hex').slice(0, 8), 16);
     return reply.send({
       id: 'community.trakt-personal',
-      version: '1.0.0',
+      version,
       name: 'Personal Trakt Tracker',
       description: 'Tracks watch history and exposes personal lists as catalogs',
       resources: ['subtitles', 'catalog'],

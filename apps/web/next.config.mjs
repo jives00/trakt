@@ -11,6 +11,7 @@ const nextConfig = {
     return {
       beforeFiles: [
         { source: "/api/:path*", destination: "http://localhost:3002/api/:path*" },
+        { source: "/stremio-addon/:path*", destination: "http://localhost:3002/stremio-addon/:path*" },
       ],
     };
   },
