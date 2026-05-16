@@ -17,3 +17,5 @@ plans/
 apps/web/.env.local
 apps/api/trakt-preview.json
 docs/ANDROID_BUILD.md
+apps/mobile/android/build/
+apps/mobile/android/.gradle/

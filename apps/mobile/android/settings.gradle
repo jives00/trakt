@@ -28,6 +28,17 @@ plugins {
 // in the pnpm monorepo (without this, traversal can land on the monorepo root package.json)
 expoAutolinking.projectRoot = rootDir.parentFile
 
+// Force-delete any stale autolinking cache that contains Windows paths
+def staleAutolinkFile = new File("${rootDir}/build/generated/autolinking/autolinking.json")
+if (staleAutolinkFile.exists()) {
+  def staleContent = staleAutolinkFile.text
+  if (staleContent.contains(':\\\\') || staleContent.contains('C:\\') || staleContent.contains('D:\\')) {
+    println "=== AUTOLINKING: deleting stale Windows-path cache ==="
+    staleAutolinkFile.delete()
+    new File("${rootDir}/build/generated/autolinking/package.json.sha").delete()
+  }
+}
+
 println "=== DEBUG rnConfigCommand: ${expoAutolinking.rnConfigCommand} ==="
 println "=== DEBUG projectRoot: ${expoAutolinking.projectRoot} ==="
 println "=== DEBUG rootDir: ${rootDir} ==="
