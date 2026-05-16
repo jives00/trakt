@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import supertest from 'supertest';
 import { buildApp } from '../../app';
-import { closePool, resetDb } from '../../test/helpers';
+import { closePool, resetDb, getPool } from '../../test/helpers';
 
 const app = buildApp();
 
@@ -274,5 +274,60 @@ describe('GET /api/shows/:tmdbId/recent-episodes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.episodes).toHaveLength(0);
+  });
+});
+
+describe('Watchlist auto-removal', () => {
+  // Seed: show 91001 (Ended, 6 episodes S1E1-3 + S2E1-3), show 91002 (Returning Series, 2 episodes)
+  // Insert watchlist items directly to bypass POST /watchlist's prefetchAllSeasons side-effect,
+  // which adds TMDB mock seasons/episodes that would prevent the "all watched" condition.
+
+  it('removes ended show from watchlist when all episodes watched', async () => {
+    const pool = getPool();
+    const token = await getToken();
+    // Load show into DB so it has fresh metadata (status='Ended' from TMDB mock)
+    await supertest(app.server).get('/api/shows/91001').set('Authorization', `Bearer ${token}`);
+    const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 91001');
+    await pool.query('INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, "show", ?)', [shows[0].id]);
+
+    // Bulk-mark all episodes watched (awaits checkShowWatchlistCompletion before responding)
+    const watchRes = await supertest(app.server).post('/api/shows/91001/watched').set('Authorization', `Bearer ${token}`);
+    expect(watchRes.status).toBe(200);
+
+    const after = await supertest(app.server).get('/api/shows/91001').set('Authorization', `Bearer ${token}`);
+    expect(after.body.status.inWatchlist).toBe(false);
+    expect(after.body.status.watched).toBe(true);
+  });
+
+  it('does NOT remove ended show from watchlist when not all episodes watched', async () => {
+    const pool = getPool();
+    const token = await getToken();
+    await supertest(app.server).get('/api/shows/91001').set('Authorization', `Bearer ${token}`);
+    const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 91001');
+    await pool.query('INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, "show", ?)', [shows[0].id]);
+
+    // Mark 5 of 6 seed episodes (skip S2E3)
+    for (const [s, e] of [[1,1],[1,2],[1,3],[2,1],[2,2]]) {
+      await supertest(app.server)
+        .post(`/api/shows/91001/seasons/${s}/episodes/${e}/watched`)
+        .set('Authorization', `Bearer ${token}`);
+    }
+
+    const status = await supertest(app.server).get('/api/shows/91001').set('Authorization', `Bearer ${token}`);
+    expect(status.body.status.inWatchlist).toBe(true);
+  });
+
+  it('does NOT remove returning series from watchlist when all episodes watched', async () => {
+    const pool = getPool();
+    // Freeze metadata so getOrFetchShow won't overwrite 'Returning Series' with 'Ended' from TMDB mock
+    await pool.query('UPDATE tv_shows SET metadata_refreshed_at = NOW() WHERE tmdb_id = 91002');
+    const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 91002');
+    await pool.query('INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, "show", ?)', [shows[0].id]);
+
+    const token = await getToken();
+    await supertest(app.server).post('/api/shows/91002/watched').set('Authorization', `Bearer ${token}`);
+
+    const status = await supertest(app.server).get('/api/shows/91002').set('Authorization', `Bearer ${token}`);
+    expect(status.body.status.inWatchlist).toBe(true);
   });
 });

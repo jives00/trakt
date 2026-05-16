@@ -3,6 +3,7 @@ import { getPool } from '../db';
 import { isScrobbleExcluded, upsertWatchHistory, updateNowPlaying, clearNowPlaying } from './scrobble.service';
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
+import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 
 interface StoredToken {
   accessToken: string;
@@ -320,15 +321,17 @@ async function pollNow(): Promise<void> {
     const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
     if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
       await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
+      void checkMovieWatchlistCompletion(1, movie.id).catch(() => {});
     }
   } else if (data.type === 'episode' && data.show && data.episode) {
     const showTmdbId = data.show.ids.tmdb;
-    await getOrFetchShow(showTmdbId);
+    const show = await getOrFetchShow(showTmdbId);
     const episode = await getOrFetchEpisode(showTmdbId, data.episode.season, data.episode.number);
     await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
     const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
     if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
       await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
+      void checkShowWatchlistCompletion(1, show.id).catch(() => {});
     }
   }
 }
@@ -475,17 +478,19 @@ export async function startPollLoop(
         const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
         if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
           await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
+          void checkMovieWatchlistCompletion(1, movie.id).catch(() => {});
         }
       } else if (data.type === 'episode' && data.show && data.episode) {
         const showTmdbId = data.show.ids.tmdb;
         const seasonNumber = data.episode.season;
         const episodeNumber = data.episode.number;
-        await getOrFetchShow(showTmdbId);
+        const show = await getOrFetchShow(showTmdbId);
         const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
         await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
         const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
         if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
           await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
+          void checkShowWatchlistCompletion(1, show.id).catch(() => {});
         }
       }
 

@@ -3,6 +3,7 @@ import type { EmbyWebhookPayload, NowPlayingItem } from '@trakt/types';
 import { RowDataPacket } from 'mysql2/promise';
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
+import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 import { applyImageOverrides } from './image-overrides.service';
 
 const WATCH_THRESHOLD = { movie: 90, episode: 90 };
@@ -53,11 +54,13 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
     }
 
     let mediaIdDb: number;
+    let showDbId: number | null = null;
     if (mediaType === 'movie') {
       const movie = await getOrFetchMovie(tmdbId);
       mediaIdDb = movie.id;
     } else {
-      await getOrFetchShow(tmdbId);
+      const show = await getOrFetchShow(tmdbId);
+      showDbId = show.id;
       const episode = await getOrFetchEpisode(tmdbId, seasonNumber!, episodeNumber!);
       mediaIdDb = episode.episodeId;
     }
@@ -73,6 +76,11 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
       await clearNowPlaying();
       if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
         await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, true);
+        if (mediaType === 'movie') {
+          void checkMovieWatchlistCompletion(1, mediaIdDb).catch(() => {});
+        } else if (showDbId !== null) {
+          void checkShowWatchlistCompletion(1, showDbId).catch(() => {});
+        }
       }
     }
   } catch (err) {

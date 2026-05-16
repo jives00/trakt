@@ -3,6 +3,8 @@ import { getPool } from '../db';
 
 type MediaType = 'movie' | 'show';
 
+const ENDED_STATUSES = ['Ended', 'Canceled', 'Cancelled'];
+
 async function getSystemListId(userId: number, listType: 'watchlist' | 'dropped' | 'rewatch'): Promise<number> {
   const [[row]] = await getPool().query<RowDataPacket[]>(
     'SELECT id FROM lists WHERE user_id=? AND list_type=? AND is_system=TRUE',
@@ -200,6 +202,46 @@ export async function toggleRewatch(userId: number, showId: number) {
   }
 }
 
+export async function checkMovieWatchlistCompletion(userId: number, movieId: number) {
+  await getPool().query(
+    `DELETE li FROM list_items li
+     JOIN lists l ON l.id=li.list_id
+     WHERE l.user_id=? AND l.list_type='watchlist' AND li.media_type='movie' AND li.media_id=?`,
+    [userId, movieId],
+  );
+}
+
+export async function checkShowWatchlistCompletion(userId: number, showId: number) {
+  const pool = getPool();
+  const [[wlRow]] = await pool.query<RowDataPacket[]>(
+    `SELECT li.id FROM list_items li JOIN lists l ON l.id=li.list_id
+     WHERE l.user_id=? AND l.list_type='watchlist' AND li.media_type='show' AND li.media_id=?`,
+    [userId, showId],
+  );
+  if (!wlRow) return;
+
+  const [[showRow]] = await pool.query<RowDataPacket[]>(
+    'SELECT status FROM tv_shows WHERE id=?',
+    [showId],
+  );
+  if (!showRow || !ENDED_STATUSES.includes(showRow.status ?? '')) return;
+
+  const [[{ unwatched }]] = await pool.query<RowDataPacket[]>(
+    `SELECT COUNT(*) AS unwatched
+     FROM episodes e
+     JOIN seasons s ON s.id=e.season_id AND s.season_number > 0 AND (s.season_type IS NULL OR s.season_type != 'special')
+     WHERE e.show_id=? AND e.air_date <= CURDATE()
+     AND NOT EXISTS (
+       SELECT 1 FROM watch_history wh
+       WHERE wh.media_type='episode' AND wh.media_id=e.id AND wh.user_id=?
+     )`,
+    [showId, userId],
+  );
+  if (unwatched === 0) {
+    await pool.query('DELETE FROM list_items WHERE id=?', [wlRow.id]);
+  }
+}
+
 // Called after marking an episode watched — checks if a rewatch run is complete.
 export async function checkRewatchCompletion(userId: number, showId: number) {
   const pool = getPool();
@@ -248,6 +290,7 @@ export async function markShowWatched(userId: number, showId: number, watchedAt?
   }
 
   await getPool().query(sql, params);
+  await checkShowWatchlistCompletion(userId, showId);
 }
 
 export async function unmarkShowWatched(userId: number, showId: number) {
@@ -273,6 +316,7 @@ export async function markMovieWatched(userId: number, movieId: number, watchedA
       [userId, movieId],
     );
   }
+  await checkMovieWatchlistCompletion(userId, movieId);
 }
 
 export async function unmarkMovieWatched(userId: number, movieId: number) {

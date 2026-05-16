@@ -619,6 +619,59 @@ describe('POST /api/scrobble/emby', () => {
     });
   });
 
+  describe('Watchlist auto-removal via scrobble', () => {
+    it('removes movie from watchlist on Emby PlaybackStopped', async () => {
+      const pool = getPool();
+      // PlaybackProgress to get movie into DB (doesn't trigger removal)
+      const progressPayload: EmbyWebhookPayload = {
+        Event: 'PlaybackProgress',
+        Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
+        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+      };
+      await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(progressPayload);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      await pool.query('INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, "movie", ?)', [movieId]);
+
+      const [before] = await pool.query<any[]>('SELECT id FROM list_items WHERE list_id = 1 AND media_type = "movie" AND media_id = ?', [movieId]);
+      expect((before as any[]).length).toBe(1);
+
+      // PlaybackStopped triggers removal
+      const stoppedPayload: EmbyWebhookPayload = {
+        Event: 'PlaybackStopped',
+        Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
+        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+      };
+      await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(stoppedPayload);
+      // checkMovieWatchlistCompletion is fire-and-forget in scrobble handler; wait for it to settle
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const [after] = await pool.query<any[]>('SELECT id FROM list_items WHERE list_id = 1 AND media_type = "movie" AND media_id = ?', [movieId]);
+      expect((after as any[]).length).toBe(0);
+    });
+
+    it('does NOT remove movie from watchlist on PlaybackProgress', async () => {
+      const pool = getPool();
+      const progressPayload: EmbyWebhookPayload = {
+        Event: 'PlaybackProgress',
+        Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
+        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+      };
+      await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(progressPayload);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      await pool.query('INSERT INTO list_items (list_id, media_type, media_id) VALUES (1, "movie", ?)', [movieId]);
+
+      // Another PlaybackProgress — should NOT remove
+      await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(progressPayload);
+
+      const [items] = await pool.query<any[]>('SELECT id FROM list_items WHERE list_id = 1 AND media_type = "movie" AND media_id = ?', [movieId]);
+      expect((items as any[]).length).toBe(1);
+    });
+  });
+
   describe('Progress calculation', () => {
     it('correctly calculates progress for fractional values', async () => {
       const pool = getPool();

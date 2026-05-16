@@ -5,6 +5,7 @@
 ### API
 - Stremio addon manifest version is now a hash of active catalog IDs so Stremio detects changes when lists are toggled `fd673ac`
 - Stremio catalog items sorted by configurable per-list sort (Date Added, A–Z, Random); unreleased movies excluded from catalogs `7cf017e`
+- Auto-remove from watchlist: movies removed on watch; ended/cancelled shows removed when all aired episodes watched `f9b8b59`
 
 ### Web
 - Proxy `/stremio-addon/*` through Next.js dev server so local manifest URL matches production `fd673ac`

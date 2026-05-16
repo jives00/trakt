@@ -81,6 +81,18 @@ describe('GET /api/movies/:tmdbId', () => {
 });
 
 describe('POST /api/movies/:tmdbId/watched', () => {
+  it('removes movie from watchlist when marked watched', async () => {
+    const token = await getToken();
+    await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
+    await supertest(app.server).post('/api/movies/550/watchlist').set('Authorization', `Bearer ${token}`);
+    const before = await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
+    expect(before.body.status.inWatchlist).toBe(true);
+    await supertest(app.server).post('/api/movies/550/watched').set('Authorization', `Bearer ${token}`);
+    const after = await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);
+    expect(after.body.status.inWatchlist).toBe(false);
+    expect(after.body.status.watched).toBe(true);
+  });
+
   it('marks movie as watched and reflects in status', async () => {
     const token = await getToken();
     await supertest(app.server).get('/api/movies/550').set('Authorization', `Bearer ${token}`);

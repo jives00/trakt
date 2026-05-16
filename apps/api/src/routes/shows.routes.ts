@@ -5,7 +5,7 @@ import { getOrFetchShow, getOrFetchSeason, getOrFetchEpisode, prefetchAllSeasons
 import {
   getShowStatus, toggleWatchlist, removeFromWatchlist, toggleDropped, toggleRewatch,
   markEpisodeWatched, unmarkEpisodeWatched, getWatchedEpisodeIds,
-  markShowWatched, unmarkShowWatched, checkRewatchCompletion,
+  markShowWatched, unmarkShowWatched, checkRewatchCompletion, checkShowWatchlistCompletion,
 } from '../services/user-media.service';
 import { getAvailableImages, setImageOverride } from '../services/image-overrides.service';
 import { getPool } from '../db';
@@ -68,6 +68,7 @@ export async function showsRoutes(app: FastifyInstance) {
     const uid = userId(request);
     await markEpisodeWatched(uid, episodeId, watchedAt);
     void checkRewatchCompletion(uid, show.id).catch(() => {});
+    await checkShowWatchlistCompletion(uid, show.id).catch(() => {});
     return { watched: true, episodeId };
   });
 
