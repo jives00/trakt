@@ -141,7 +141,7 @@ export default function ListsPage() {
 }
 
 function ListArt({ backdrops }: { backdrops: string[] }) {
-  if (backdrops.length === 0) return (
+  if (!backdrops?.length) return (
     <div className="w-full h-full flex items-center justify-center bg-on-surface/5">
       <span className="material-symbols-outlined text-3xl text-on-surface/20">image</span>
     </div>
@@ -168,7 +168,7 @@ function SystemListCard({ list }: { list: UserList }) {
       <div className="px-4 py-3 flex flex-col gap-1 flex-1">
         <span className="text-sm text-on-surface/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>
         {list.description && (
-          <p className="text-xs text-on-surface/40 line-clamp-2">{list.description}</p>
+          <p className="text-sm text-on-surface/40 line-clamp-3">{list.description}</p>
         )}
       </div>
     </Link>
@@ -196,7 +196,7 @@ function CustomListCard({ list, onDelete }: { list: UserList; onDelete: () => vo
           </button>
         </div>
         {list.description && (
-          <p className="text-xs text-on-surface/40 line-clamp-2">{list.description}</p>
+          <p className="text-sm text-on-surface/40 line-clamp-3">{list.description}</p>
         )}
         <div className="flex items-center justify-between mt-auto pt-1">
           <span className="text-xs text-on-surface/40">{list.itemCount} item{list.itemCount !== 1 ? "s" : ""}</span>

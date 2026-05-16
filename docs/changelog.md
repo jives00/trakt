@@ -6,6 +6,7 @@
 - Fetch YouTube trailer key from TMDB videos endpoint; store in `movies`/`tv_shows` via migration 028 `ba19bed`
 
 ### Web
+- Fix ListArt crash when creating a new list (`previewBackdrops` undefined); increase list description to `text-sm` / `line-clamp-3` `054b200`
 - Year dropdown and English Only toggle on top-rated tab for movies and shows; year uses TMDB's dedicated year params, English Only post-filters /top_rated or passes with_original_language=en to /discover `63f2159`
 - Move Lists from avatar dropdown to top nav (between Shows and History); increase search bar contrast `84ad43e`
 - Reorder show detail sidebar buttons: Lists and Rewatch before Drop `4354271`
