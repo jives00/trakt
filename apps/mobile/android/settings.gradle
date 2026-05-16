@@ -29,6 +29,17 @@ expoAutolinking.projectRoot = rootDir.parentFile
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
 }
+
+// Debug: expose autolinking result
+def autolinkFile = new File("${rootDir}/build/generated/autolinking/autolinking.json")
+println "=== AUTOLINKING DEBUG: file exists=${autolinkFile.exists()} path=${autolinkFile.absolutePath} ==="
+if (autolinkFile.exists()) {
+  def content = autolinkFile.text
+  println "=== AUTOLINKING JSON (first 4000 chars) ==="
+  println content.take(4000)
+  println "=== END AUTOLINKING JSON ==="
+}
+
 expoAutolinking.useExpoModules()
 
 rootProject.name = 'Trakt'
