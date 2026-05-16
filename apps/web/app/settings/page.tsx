@@ -49,7 +49,7 @@ export default function SettingsPage() {
   const [exportToken, setExportToken] = useState<string | null>(null);
   const [showExportToken, setShowExportToken] = useState(false);
   const [rotatingToken, setRotatingToken] = useState(false);
-  const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean }[]>([]);
+  const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]>([]);
   const [traktConnected, setTraktConnected] = useState(false);
   const [exclusions, setExclusions] = useState<Exclusion[]>([]);
   const [sourceStats, setSourceStats] = useState<{ trakt: number; manual: number; stremio: number } | null>(null);
@@ -98,7 +98,7 @@ export default function SettingsPage() {
         if (listsRes.ok) {
           const data = await listsRes.json();
           setExportableLists(
-            (data as { id: number; slug: string; name: string; stremioCatalog: boolean }[]).filter((l) => l.slug)
+            (data as { id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]).filter((l) => l.slug)
           );
         }
 
@@ -567,8 +567,32 @@ export default function SettingsPage() {
                     <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio.</p>
                     <div className="space-y-2">
                       {exportableLists.map((list) => (
-                        <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40">
-                          <span className="text-sm text-on-surface">{list.name}</span>
+                        <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 gap-3">
+                          <span className="text-sm text-on-surface flex-grow">{list.name}</span>
+                          {!!list.stremioCatalog && (
+                            <select
+                              value={list.stremioSort ?? "added_date"}
+                              onChange={async (e) => {
+                                const sort = e.target.value;
+                                const res = await fetch(`/api/lists/${list.id}/stremio-catalog`, {
+                                  method: "PATCH",
+                                  credentials: "include",
+                                  headers: authHeaders,
+                                  body: JSON.stringify({ sort }),
+                                });
+                                if (res.ok) {
+                                  setExportableLists((prev) =>
+                                    prev.map((l) => l.id === list.id ? { ...l, stremioSort: sort } : l)
+                                  );
+                                }
+                              }}
+                              className="text-xs bg-surface-container-low border border-outline-variant/40 rounded-lg px-2 py-1 text-on-surface focus:outline-none focus:border-accent"
+                            >
+                              <option value="added_date">Date Added</option>
+                              <option value="alpha">A–Z</option>
+                              <option value="random">Random</option>
+                            </select>
+                          )}
                           <button
                             onClick={async () => {
                               const enabled = !list.stremioCatalog;
@@ -585,11 +609,11 @@ export default function SettingsPage() {
                               }
                             }}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                              list.stremioCatalog ? "bg-accent" : "bg-on-surface/20"
+                              !!list.stremioCatalog ? "bg-accent" : "bg-on-surface/20"
                             }`}
                           >
                             <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
-                              list.stremioCatalog ? "translate-x-6" : "translate-x-1"
+                              !!list.stremioCatalog ? "translate-x-6" : "translate-x-1"
                             }`} />
                           </button>
                         </div>

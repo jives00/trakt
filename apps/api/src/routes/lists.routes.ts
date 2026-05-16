@@ -88,11 +88,14 @@ export async function listsRoutes(app: FastifyInstance) {
   app.patch('/lists/:id/stremio-catalog', auth, async (request: FastifyRequest, reply: FastifyReply) => {
     const listId = Number((request.params as any).id);
     if (!Number.isInteger(listId) || listId <= 0) return reply.status(400).send({ error: 'Invalid id' });
-    const { enabled } = request.body as any;
-    if (typeof enabled !== 'boolean') return reply.status(400).send({ error: 'enabled must be a boolean' });
-    const updated = await setListStremioCatalog(userId(request), listId, enabled);
+    const { enabled, sort } = request.body as any;
+    if (enabled !== undefined && typeof enabled !== 'boolean') return reply.status(400).send({ error: 'enabled must be a boolean' });
+    const VALID_SORTS = ['added_date', 'alpha', 'random'];
+    if (sort !== undefined && !VALID_SORTS.includes(sort)) return reply.status(400).send({ error: 'Invalid sort' });
+    if (enabled === undefined && sort === undefined) return reply.status(400).send({ error: 'enabled or sort required' });
+    const updated = await setListStremioCatalog(userId(request), listId, enabled, sort);
     if (!updated) return reply.status(404).send({ error: 'List not found' });
-    return { stremioCatalog: enabled };
+    return { stremioCatalog: enabled, stremioSort: sort };
   });
 
   app.post('/lists/:id/items', auth, async (request: FastifyRequest, reply: FastifyReply) => {

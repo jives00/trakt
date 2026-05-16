@@ -1,6 +1,8 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { getPool } from '../db';
 
+export type StremioSort = 'added_date' | 'alpha' | 'random';
+
 export interface ExportableList {
   id: number;
   name: string;
@@ -8,6 +10,7 @@ export interface ExportableList {
   listType: string;
   movieCount: number;
   showCount: number;
+  stremioSort: StremioSort;
 }
 
 export interface ExportableItem {
@@ -24,7 +27,7 @@ export interface ExportableItem {
 
 export async function getExportableLists(userId: number): Promise<ExportableList[]> {
   const [rows] = await getPool().query<RowDataPacket[]>(
-    `SELECT l.id, l.name, l.slug, l.list_type AS listType,
+    `SELECT l.id, l.name, l.slug, l.list_type AS listType, l.stremio_sort AS stremioSort,
        SUM(li.media_type = 'movie') AS movieCount,
        SUM(li.media_type = 'show')  AS showCount
      FROM lists l
@@ -42,6 +45,7 @@ export async function getExportableLists(userId: number): Promise<ExportableList
     listType: r.listType as string,
     movieCount: Number(r.movieCount),
     showCount: Number(r.showCount),
+    stremioSort: (r.stremioSort as StremioSort) ?? 'added_date',
   }));
 }
 
@@ -54,7 +58,7 @@ export async function getExportableList(
   const whereClause = isNumeric ? 'l.id = ?' : 'l.slug = ?';
 
   const [[listRow]] = await pool.query<RowDataPacket[]>(
-    `SELECT l.id, l.name, l.slug, l.list_type AS listType,
+    `SELECT l.id, l.name, l.slug, l.list_type AS listType, l.stremio_sort AS stremioSort,
        SUM(li.media_type = 'movie') AS movieCount,
        SUM(li.media_type = 'show')  AS showCount
      FROM lists l
@@ -65,6 +69,12 @@ export async function getExportableList(
   );
   if (!listRow) return null;
 
+  const stremioSort: StremioSort = (listRow.stremioSort as StremioSort) ?? 'added_date';
+  const orderBy =
+    stremioSort === 'alpha'  ? 'COALESCE(m.title, ts.title) ASC' :
+    stremioSort === 'random' ? 'RAND()' :
+                               'li.added_at DESC';
+
   const list: ExportableList = {
     id: listRow.id as number,
     name: listRow.name as string,
@@ -72,6 +82,7 @@ export async function getExportableList(
     listType: listRow.listType as string,
     movieCount: Number(listRow.movieCount),
     showCount: Number(listRow.showCount),
+    stremioSort,
   };
 
   const [itemRows] = await pool.query<RowDataPacket[]>(
@@ -91,7 +102,8 @@ export async function getExportableList(
      LEFT JOIN external_ids tvdb_ext
        ON tvdb_ext.media_type = 'show' AND tvdb_ext.media_id = li.media_id AND tvdb_ext.source = 'tvdb'
      WHERE li.list_id = ? AND li.media_type != 'episode'
-     ORDER BY li.added_at DESC`,
+       AND (li.media_type != 'movie' OR m.release_date IS NULL OR m.release_date <= CURDATE())
+     ORDER BY ${orderBy}`,
     [list.id],
   );
 

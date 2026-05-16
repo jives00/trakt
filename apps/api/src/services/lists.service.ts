@@ -194,11 +194,18 @@ export async function deleteList(userId: number, listId: number): Promise<boolea
 export async function setListStremioCatalog(
   userId: number,
   listId: number,
-  enabled: boolean,
+  enabled?: boolean,
+  sort?: string,
 ): Promise<boolean> {
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (enabled !== undefined) { sets.push('stremio_catalog=?'); params.push(enabled); }
+  if (sort !== undefined)    { sets.push('stremio_sort=?');    params.push(sort); }
+  if (sets.length === 0) return false;
+  params.push(listId, userId);
   const [result] = await getPool().query<ResultSetHeader>(
-    'UPDATE lists SET stremio_catalog=? WHERE id=? AND user_id=?',
-    [enabled, listId, userId],
+    `UPDATE lists SET ${sets.join(', ')} WHERE id=? AND user_id=?`,
+    params,
   );
   return result.affectedRows > 0;
 }

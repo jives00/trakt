@@ -4,9 +4,11 @@
 
 ### API
 - Stremio addon manifest version is now a hash of active catalog IDs so Stremio detects changes when lists are toggled `fd673ac`
+- Stremio catalog items sorted by configurable per-list sort (Date Added, A–Z, Random); unreleased movies excluded from catalogs `7cf017e`
 
 ### Web
 - Proxy `/stremio-addon/*` through Next.js dev server so local manifest URL matches production `fd673ac`
+- Stremio Catalogs settings: sort dropdown per enabled list; fix MySQL TINYINT rendering as literal `0` `7cf017e`
 
 ## May 15, 2026
 
