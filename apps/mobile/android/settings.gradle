@@ -26,6 +26,11 @@ plugins {
 // in the pnpm monorepo (without this, traversal can land on the monorepo root package.json)
 expoAutolinking.projectRoot = rootDir.parentFile
 
+println "=== DEBUG rnConfigCommand: ${expoAutolinking.rnConfigCommand} ==="
+println "=== DEBUG projectRoot: ${expoAutolinking.projectRoot} ==="
+println "=== DEBUG rootDir: ${rootDir} ==="
+println "=== DEBUG node PATH: ${['node', '--version'].execute().text.trim()} ==="
+
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
   ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
 }
@@ -35,9 +40,21 @@ def autolinkFile = new File("${rootDir}/build/generated/autolinking/autolinking.
 println "=== AUTOLINKING DEBUG: file exists=${autolinkFile.exists()} path=${autolinkFile.absolutePath} ==="
 if (autolinkFile.exists()) {
   def content = autolinkFile.text
-  println "=== AUTOLINKING JSON (first 4000 chars) ==="
-  println content.take(4000)
+  println "=== AUTOLINKING JSON (first 5000 chars) ==="
+  println content.take(5000)
   println "=== END AUTOLINKING JSON ==="
+
+  // Debug: check if project dirs exist
+  import groovy.json.JsonSlurper
+  def json = new JsonSlurper().parseText(content)
+  json.dependencies?.each { name, dep ->
+    def srcDir = dep?.platforms?.android?.sourceDir
+    if (srcDir) {
+      def exists = new File(srcDir).exists()
+      def hasGradle = new File(srcDir, "build.gradle").exists()
+      println "=== DEP: ${name} sourceDir=${srcDir} dirExists=${exists} hasBuildGradle=${hasGradle} ==="
+    }
+  }
 }
 
 expoAutolinking.useExpoModules()
