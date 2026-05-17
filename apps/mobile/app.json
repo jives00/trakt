@@ -10,13 +10,13 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f0f0f"
+      "backgroundColor": "#24262E"
     },
     "android": {
       "package": "com.trakt.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0f0f0f"
+        "backgroundColor": "#24262E"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,

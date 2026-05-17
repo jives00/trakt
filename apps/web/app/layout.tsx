@@ -39,7 +39,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <footer className="bg-surface-container-lowest border-t border-outline-variant/30 mt-12">
                 <div className="max-w-page mx-auto px-margin-page py-10 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex flex-col items-center md:items-start gap-1">
-                    <span className="text-on-surface font-bold italic tracking-tighter">TRAKT</span>
+                    <div className="flex items-center gap-2">
+                      <img src="/logo-glyph.svg" alt="" width={22} height={22} className="shrink-0" />
+                      <span className="text-on-surface font-bold italic tracking-tighter">TRAKT</span>
+                    </div>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface/30">© {new Date().getFullYear()} Personal Media Tracker</p>
                   </div>
                 </div>

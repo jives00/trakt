@@ -2,6 +2,12 @@
 
 ## May 16, 2026
 
+### Web
+- Add favicon (icon.svg), glyph logo in top nav alongside wordmark, and glyph in footer `a967d5f`
+
+### Mobile
+- Replace app icon, adaptive icon, splash icon, and favicon with new brand glyph; set adaptive icon and splash background to `#24262E` `a967d5f`
+
 ### Docs
 - Correct CLAUDE.md, DESIGN.md, and SECURITY.md to match actual codebase: remove shadcn/ui references, fix mobile tab name (Search → Discover), update More menu items, correct helmet line numbers `1c2fc95`
 

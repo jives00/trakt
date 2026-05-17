@@ -138,11 +138,9 @@ export function TopNav() {
       <div className="flex h-full items-center justify-between px-8 gap-8">
         {/* Left: Logo + Search Bar */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
-          <Link
-            href="/"
-            className="text-2xl font-black italic tracking-tighter text-on-surface uppercase whitespace-nowrap"
-          >
-            TRAKT
+          <Link href="/" className="flex items-center gap-2 whitespace-nowrap">
+            <img src="/logo-glyph.svg" alt="" width={28} height={28} className="shrink-0" />
+            <span className="text-2xl font-black italic tracking-tighter text-on-surface uppercase">TRAKT</span>
           </Link>
           <div className="flex-1 min-w-0 relative" ref={searchContainerRef}>
             <form onSubmit={handleSubmit} className="flex-1 min-w-0">
