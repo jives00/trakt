@@ -11,8 +11,8 @@ const nextConfig = {
   rewrites: () => {
     return {
       beforeFiles: [
-        { source: "/api/:path*", destination: "http://localhost:3002/api/:path*" },
-        { source: "/stremio-addon/:path*", destination: "http://localhost:3002/stremio-addon/:path*" },
+        { source: "/api/:path*", destination: "http://localhost:3002/api/:path*", basePath: false },
+        { source: "/stremio-addon/:path*", destination: "http://localhost:3002/stremio-addon/:path*", basePath: false },
       ],
     };
   },

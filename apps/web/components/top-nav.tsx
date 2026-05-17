@@ -139,7 +139,7 @@ export function TopNav() {
         {/* Left: Logo + Search Bar */}
         <div className="flex items-center gap-6 flex-1 min-w-0">
           <Link href="/" className="flex items-center gap-2 whitespace-nowrap">
-            <img src="/logo-glyph.svg" alt="" width={28} height={28} className="shrink-0" />
+            <img src="/trakt/logo-glyph.svg" alt="" width={28} height={28} className="shrink-0" />
             <span className="text-2xl font-black italic tracking-tighter text-on-surface uppercase">TRAKT</span>
           </Link>
           <div className="flex-1 min-w-0 relative" ref={searchContainerRef}>
@@ -216,7 +216,7 @@ export function TopNav() {
             className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border border-outline-variant/40 hover:border-outline-variant/80 transition-colors bg-surface-container"
           >
             <Image
-              src="/avatar.jpg"
+              src="/trakt/avatar.jpg"
               alt="User avatar"
               width={40}
               height={40}

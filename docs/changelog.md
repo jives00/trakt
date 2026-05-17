@@ -7,6 +7,7 @@
 
 ### Web
 - Move web app to `/trakt` base path; root URL returns 404 `caf85cc`
+- Fix logo and avatar 404s by prefixing public asset paths with `/trakt`; add `basePath: false` to dev proxy rewrites `594397a`
 - Replace hardcoded server domain fallbacks with `http://localhost:3001` (SSR paths in settings page) `adfac9d`
 
 ### Mobile
