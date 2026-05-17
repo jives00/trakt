@@ -6,6 +6,7 @@
 - Add README.md with setup, deployment, scrobbling, and mobile build instructions; add CC BY-NC 4.0 LICENSE file `f6623cd`
 
 ### Web
+- Move web app to `/trakt` base path; root URL returns 404 `caf85cc`
 - Replace hardcoded server domain fallbacks with `http://localhost:3001` (SSR paths in settings page) `adfac9d`
 
 ### Mobile
