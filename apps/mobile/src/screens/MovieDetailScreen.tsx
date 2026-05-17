@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+﻿﻿﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Linking, RefreshControl, Modal, FlatList } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -108,20 +108,21 @@ export default function MovieDetailScreen({ route }: Props) {
         {backdropUrl && (
           <Image source={{ uri: backdropUrl }} style={StyleSheet.absoluteFill} contentFit="cover" />
         )}
-        <View style={s.heroOverlay} />
-        <View style={s.heroContent}>
-          <View style={s.genreRow}>
-            {movie.genres.slice(0, 3).map((g) => (
-              <View key={g} style={s.genreBadge}>
-                <Text style={s.genreText}>{g}</Text>
-              </View>
-            ))}
-          </View>
-          <Text style={s.heroTitle}>{movie.title}</Text>
-          {movie.overview ? (
-            <Text style={s.heroOverview} numberOfLines={3}>{movie.overview}</Text>
-          ) : null}
+      </View>
+
+      {/* Title / genre / overview */}
+      <View style={s.heroContent}>
+        <View style={s.genreRow}>
+          {movie.genres.slice(0, 3).map((g) => (
+            <View key={g} style={s.genreBadge}>
+              <Text style={s.genreText}>{g}</Text>
+            </View>
+          ))}
         </View>
+        <Text style={s.heroTitle}>{movie.title}</Text>
+        {movie.overview ? (
+          <Text style={s.heroOverview}>{movie.overview}</Text>
+        ) : null}
       </View>
 
       {/* Action buttons */}
@@ -146,13 +147,13 @@ export default function MovieDetailScreen({ route }: Props) {
           style={[s.actionBtn, status.inWatchlist && s.actionBtnActive]}
           onPress={handleWatchlist}
         >
-          <Text style={s.actionBtnIcon}>ðŸ”–</Text>
+          <Ionicons name={status.inWatchlist ? "bookmark" : "bookmark-outline"} size={18} color={status.inWatchlist ? "#fff" : "#f0f0f6"} />
           <Text style={[s.actionBtnText, status.inWatchlist && s.actionBtnTextActive]}>
             {status.inWatchlist ? "Watchlisted" : "Watchlist"}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={openListPicker}>
-          <Ionicons name="list-outline" size={18} color="rgba(240,240,246,0.6)" />
+          <Ionicons name="list-outline" size={18} color="#f0f0f6" />
           <Text style={s.actionBtnText}>Lists</Text>
         </TouchableOpacity>
       </View>
@@ -270,14 +271,13 @@ const s = StyleSheet.create({
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
   errorText: { color: "rgba(240,240,246,0.5)", fontSize: 15 },
 
-  hero: { height: 280, backgroundColor: "#12141b", justifyContent: "flex-end" },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
-  heroContent: { padding: 20, paddingBottom: 24 },
+  hero: { height: 280, backgroundColor: "#12141b" },
+  heroContent: { padding: 20, paddingBottom: 8, backgroundColor: "#12141b" },
   genreRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 },
   genreBadge: { backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   genreText: { fontSize: 10, color: "rgba(255,255,255,0.7)", fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 },
   heroTitle: { fontSize: 26, fontWeight: "900", color: "#fff", marginBottom: 8 },
-  heroOverview: { fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 19 },
+  heroOverview: { fontSize: 13, color: "rgba(240,240,246,0.75)", lineHeight: 20 },
 
   actionRow: { flexDirection: "row", gap: 10, padding: 16 },
   actionBtn: {

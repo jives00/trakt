@@ -16,6 +16,9 @@
 
 ### Mobile
 - Replace hardcoded server domain in `constants.ts` fallback and `api.test.ts` with `http://localhost:3001`; remove `EXPO_PUBLIC_API_URL` from committed `eas.json` (set via EAS secret instead) `adfac9d`
+- Fix black-on-black lists icon and replace corrupt emoji icons with Ionicons on show/movie action buttons `8fd891c`
+- Move hero title, genres, and overview below backdrop image on show and movie detail screens `8fd891c`
+- Add dashboard header with logo glyph and TRAKT wordmark `8fd891c`
 
 ## May 16, 2026
 

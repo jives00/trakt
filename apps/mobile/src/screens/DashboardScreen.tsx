@@ -55,6 +55,14 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={s.root} edges={["top"]}>
     <ScrollView style={s.root} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
+      {/* Header */}
+      <View style={s.header}>
+        <View style={s.logoRow}>
+          <Image source={require("../../assets/logo-glyph.svg")} style={s.logoGlyph} contentFit="contain" />
+          <Text style={s.wordmark}>TRAKT</Text>
+        </View>
+      </View>
+
       {upNext.length > 0 && (
         <Section title="Up Next">
           <FlatList
@@ -249,6 +257,10 @@ const s = StyleSheet.create({
   content: { flexGrow: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
 
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 22, paddingBottom: 14 },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  logoGlyph: { width: 26, height: 26 },
+  wordmark: { fontSize: 22, fontWeight: "900", fontStyle: "italic", color: "#f0f0f6", letterSpacing: -1 },
   section: { paddingTop: 24 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 12 },
   sectionAccent: { width: 3, height: 20, borderRadius: 2, backgroundColor: "#e8002d" },
