@@ -16,6 +16,7 @@
 
 ### Mobile
 - Add root `.easignore` to exclude build artifacts from EAS archive; reduces upload from 373 MB to 2.4 MB `afd0745`
+- Add `react-native.config.js` at monorepo root and `apps/mobile/` to fix RNGP autolinking; remove `EXPO_USE_COMMUNITY_AUTOLINKING` from `eas.json` `321dba4`
 - Replace hardcoded server domain in `constants.ts` fallback and `api.test.ts` with `http://localhost:3001`; remove `EXPO_PUBLIC_API_URL` from committed `eas.json` (set via EAS secret instead) `adfac9d`
 - Fix black-on-black lists icon and replace corrupt emoji icons with Ionicons on show/movie action buttons `8fd891c`
 - Move hero title, genres, and overview below backdrop image on show and movie detail screens `8fd891c`
