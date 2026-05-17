@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-    <!-- Clean, high-contrast blades for tiny sizes -->
-    <!-- Blade 1: Top Right (Active/Accent) -->
-    <path d="M 16 2 L 27 8 L 22 19 L 18 13 Z" fill="#0066FF" />
-    <!-- Remaining blades merged/simplified for legibility at 16x16 / 32x32 -->
-    <path d="M 27 8 L 24 26 L 12 23 L 15 16 Z" fill="#F0F0F6" opacity="0.85" />
-    <path d="M 12 23 L 5 14 L 16 2 L 15 11 Z" fill="#F0F0F6" opacity="0.5" />
-</svg>

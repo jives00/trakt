@@ -6,6 +6,7 @@
 - Add README.md with setup, deployment, scrobbling, and mobile build instructions; add CC BY-NC 4.0 LICENSE file `f6623cd`
 
 ### Web
+- Replace favicon SVG with custom PNG `e9a2817`
 - Move web app to `/trakt` base path; root URL returns 404 `caf85cc`
 - Fix logo and avatar 404s by prefixing public asset paths with `/trakt`; add `basePath: false` to dev proxy rewrites `594397a`
 - Replace hardcoded server domain fallbacks with `http://localhost:3001` (SSR paths in settings page) `adfac9d`
