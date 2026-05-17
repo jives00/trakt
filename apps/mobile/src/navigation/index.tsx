@@ -1,4 +1,5 @@
-﻿import { NavigationContainer } from "@react-navigation/native";
+﻿import React, { useRef } from "react";
+import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -38,6 +39,11 @@ const SURFACE_LOW = "#1e2029";
 const ACCENT = "#e8002d";
 const ON_SURFACE = "#f0f0f6";
 const ON_SURFACE_VARIANT = "#d7d8e2";
+
+const APP_THEME = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, background: NAV_BG },
+};
 
 const DETAIL_SCREEN_OPTIONS = {
   headerStyle: { backgroundColor: SURFACE_LOW },
@@ -105,9 +111,14 @@ function DiscoverNavigator() {
   );
 }
 
-function MoreNavigator() {
+function MoreNavigator({ navRef }: { navRef: React.MutableRefObject<any> }) {
   return (
-    <MoreStack.Navigator screenOptions={{ ...DETAIL_SCREEN_OPTIONS }}>
+    <MoreStack.Navigator
+      screenOptions={{ ...DETAIL_SCREEN_OPTIONS }}
+      screenListeners={({ navigation }) => ({
+        focus: () => { navRef.current = navigation; },
+      })}
+    >
       <MoreStack.Screen name="MoreMenu" component={MoreMenuScreen} options={{ title: "More" }} />
       <MoreStack.Screen name="Lists" component={ListsScreen} options={{ title: "Lists" }} />
       <MoreStack.Screen name="Progress" component={ProgressScreen} options={{ title: "Progress" }} />
@@ -126,6 +137,9 @@ function MoreNavigator() {
 }
 
 function MainTabs() {
+  const previousTabRef = useRef<string>("Dashboard");
+  const moreNavRef = useRef<any>(null);
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -136,6 +150,13 @@ function MainTabs() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         sceneContainerStyle: { backgroundColor: NAV_BG },
       }}
+      screenListeners={({ route }) => ({
+        focus: () => {
+          if (route.name !== "More") {
+            previousTabRef.current = route.name;
+          }
+        },
+      })}
     >
       <Tab.Screen
         name="Dashboard"
@@ -175,16 +196,26 @@ function MainTabs() {
       />
       <Tab.Screen
         name="More"
-        component={MoreNavigator}
         options={{ tabBarIcon: ({ color, size }) => <Ionicons name="menu-outline" color={color} size={size} /> }}
         listeners={({ navigation }) => ({
-          tabPress: () => {
+          tabPress: (e) => {
             if (navigation.isFocused()) {
-              navigation.navigate("More", { screen: "MoreMenu" } as never);
+              e.preventDefault();
+              const state = navigation.getState();
+              const moreRoute = state.routes.find((r: { name: string }) => r.name === "More");
+              const moreStackRoutes = (moreRoute?.state as { routes?: unknown[] } | undefined)?.routes;
+              const isAtMoreMenu = !moreStackRoutes || moreStackRoutes.length <= 1;
+              if (isAtMoreMenu) {
+                navigation.jumpTo(previousTabRef.current as never);
+              } else {
+                moreNavRef.current?.popToTop?.();
+              }
             }
           },
         })}
-      />
+      >
+        {() => <MoreNavigator navRef={moreNavRef} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -195,7 +226,7 @@ export default function Navigation() {
   if (isLoading) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={APP_THEME}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
         {!token ? (
           <RootStack.Screen name="Login" component={LoginScreen} />
