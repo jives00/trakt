@@ -2,6 +2,9 @@
 
 ## May 17, 2026
 
+### API
+- Fix schedule query sort order to include `seasonNumber, episodeNumber` so episodes within a show are ordered correctly `2b8d210`
+
 ### Docs
 - Add README.md with setup, deployment, scrobbling, and mobile build instructions; add CC BY-NC 4.0 LICENSE file `f6623cd`
 

@@ -86,7 +86,7 @@ export async function getSchedule(
      FROM movies m
      JOIN ${TRACKED_MOVIES} tracked_movies ON tracked_movies.media_id = m.id
      WHERE m.release_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
-     ORDER BY date, showTitle, movieTitle
+     ORDER BY date, showTitle, seasonNumber, episodeNumber, movieTitle
      LIMIT 100`,
     [userId, userId, startDays, startDays + range, userId, startDays, startDays + range],
   );
