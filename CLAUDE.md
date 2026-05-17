@@ -14,7 +14,7 @@ apps/api/             Fastify API server (Node 24, TypeScript)
   - src/services/     Business logic
   - migrations/       SQL migration files
   - scripts/          migrate.ts — CLI migration runner
-apps/web/             Next.js 14 (App Router, Tailwind, shadcn/ui)
+apps/web/             Next.js 14 (App Router, Tailwind, Material Symbols)
 apps/mobile/          React Native + Expo SDK 54 (Android) — full feature parity + manual scrobble
 packages/types/       Shared TypeScript types and Zod schemas
 docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
@@ -27,7 +27,7 @@ docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 | Layer | Technology |
 |---|---|
 | Backend API | Node.js 24 + Fastify + TypeScript |
-| Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui |
+| Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + Material Symbols |
 | Mobile | React Native + Expo SDK 54 + NativeWind 4 (Android) |
 | Database | MySQL 8 on EC2 (not Docker) |
 | Monorepo | pnpm workspaces |

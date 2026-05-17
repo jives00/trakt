@@ -2,7 +2,7 @@
 
 ## API
 
-**@fastify/helmet** (`apps/api/src/app.ts:27-36`): Security headers on all responses — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, HSTS, and CSP (self-only; allows unsafe-inline for styles and external images/data URIs).
+**@fastify/helmet** (`apps/api/src/app.ts:29-38`): Security headers on all responses — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, HSTS, and CSP (self-only; allows unsafe-inline for styles and external images/data URIs).
 
 **@fastify/rate-limit** (`apps/api/src/routes/auth.routes.ts:16-19`): `POST /api/auth/login` capped at 10 attempts per 15 minutes per IP.
 

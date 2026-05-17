@@ -280,7 +280,7 @@ Use `fontWeight` strings, not numeric values. Canonical mobile type scale:
 
 ### Navigation (Mobile)
 
-Bottom tab bar with 4 tabs: **Dashboard**, **History**, **Search**, **More**. Each tab has its own native stack for detail pages. The **More** tab contains a menu screen that navigates into Shows, Movies, Lists, Progress, Ratings, Calendar, Stats, and Settings stacks.
+Bottom tab bar with 4 tabs: **Dashboard**, **History**, **Discover**, **More**. Each tab has its own native stack for detail pages. The **More** tab contains a menu screen that navigates into Lists, Progress, Calendar, Stats, and Settings stacks.
 
 ### Touch Targets
 

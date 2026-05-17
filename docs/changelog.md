@@ -2,6 +2,9 @@
 
 ## May 16, 2026
 
+### Docs
+- Correct CLAUDE.md, DESIGN.md, and SECURITY.md to match actual codebase: remove shadcn/ui references, fix mobile tab name (Search → Discover), update More menu items, correct helmet line numbers `1c2fc95`
+
 ### API
 - Add composite indexes on `watch_history (user_id, media_type, media_id)` and `(user_id, watched_at)`; index on `credits (media_type, media_id)` via migration 029 `04309d2`
 - Replace N+1 per-show query loop in progress service with 2–4 batch `ROW_NUMBER()` window-function queries `04309d2`
