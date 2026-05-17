@@ -1,7 +1,7 @@
 ﻿import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../contexts/AuthContext";
 import type {
   RootStackParamList, MainTabParamList,
@@ -140,7 +140,7 @@ function MainTabs() {
       <Tab.Screen
         name="Dashboard"
         component={DashboardNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>âŠž</Text> }}
+        options={{ tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} /> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -152,7 +152,7 @@ function MainTabs() {
       <Tab.Screen
         name="History"
         component={HistoryNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 26, lineHeight: 26, includeFontPadding: false, marginTop: -2 }}>â±</Text> }}
+        options={{ tabBarIcon: ({ color, size }) => <Ionicons name="time-outline" color={color} size={size} /> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -164,7 +164,7 @@ function MainTabs() {
       <Tab.Screen
         name="Discover"
         component={DiscoverNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 30, lineHeight: 30, includeFontPadding: false }}>âŒ•</Text> }}
+        options={{ tabBarIcon: ({ color, size }) => <Ionicons name="search-outline" color={color} size={size} /> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {
@@ -176,7 +176,7 @@ function MainTabs() {
       <Tab.Screen
         name="More"
         component={MoreNavigator}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 32, lineHeight: 32, includeFontPadding: false }}>â‰¡</Text> }}
+        options={{ tabBarIcon: ({ color, size }) => <Ionicons name="menu-outline" color={color} size={size} /> }}
         listeners={({ navigation }) => ({
           tabPress: () => {
             if (navigation.isFocused()) {

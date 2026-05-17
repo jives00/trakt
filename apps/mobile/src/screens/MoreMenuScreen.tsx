@@ -1,4 +1,5 @@
-﻿import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+﻿import { Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { MoreStackParamList } from "../navigation/types";
 
@@ -22,7 +23,7 @@ export default function MoreMenuScreen({ navigation }: Props) {
           onPress={() => navigation.navigate(item.screen as never)}
         >
           <Text style={s.label}>{item.label}</Text>
-          <Text style={s.chevron}>â€º</Text>
+          <Ionicons name="chevron-forward" size={18} color="#888" />
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -42,5 +43,4 @@ const s = StyleSheet.create({
     borderBottomColor: "rgba(255,255,255,0.06)",
   },
   label: { color: "#f0f0f6", fontSize: 16 },
-  chevron: { color: "#888", fontSize: 20 },
 });

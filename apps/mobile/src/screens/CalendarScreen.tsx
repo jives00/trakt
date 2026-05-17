@@ -90,7 +90,7 @@ export default function CalendarScreen() {
                 <Text style={s.showTitle} numberOfLines={1}>{item.showTitle ?? item.movieTitle}</Text>
                 <Text style={s.epLine}>
                   S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}
-                  {item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}
+                  {item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
                 </Text>
                 {item.network ? <Text style={s.network}>{item.network}</Text> : null}
               </View>

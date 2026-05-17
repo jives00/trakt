@@ -69,7 +69,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
         ListHeaderComponent={
           <View style={s.header}>
             <Text style={s.headerTitle}>{showName}</Text>
-            <Text style={s.headerSub}>Season {seasonNumber} Â· {watchedCount}/{total} watched</Text>
+            <Text style={s.headerSub}>Season {seasonNumber} · {watchedCount}/{total} watched</Text>
             {total > 0 && (
               <View style={s.progressTrack}>
                 <View style={[s.progressFill, { width: `${(watchedCount / total) * 100}%` }]} />
@@ -94,7 +94,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
                 ) : (
                   <View style={[s.still, s.stillFallback]} />
                 )}
-                {watched && <View style={s.watchedOverlay}><Text style={s.watchedCheck}>âœ“</Text></View>}
+                {watched && <View style={s.watchedOverlay}><Text style={s.watchedCheck}>✓</Text></View>}
               </View>
               <View style={s.epInfo}>
                 <Text style={s.epCode}>E{String(ep.episodeNumber).padStart(2, "0")}</Text>
@@ -111,7 +111,7 @@ export default function SeasonScreen({ route, navigation }: Props) {
                 {loading ? (
                   <ActivityIndicator size="small" color={watched ? "#fff" : "#e8002d"} />
                 ) : (
-                  <Text style={[s.watchBtnText, watched && s.watchBtnTextWatched]}>{watched ? "âœ“" : "+"}</Text>
+                  <Text style={[s.watchBtnText, watched && s.watchBtnTextWatched]}>{watched ? "✓" : "+"}</Text>
                 )}
               </TouchableOpacity>
             </TouchableOpacity>

@@ -77,8 +77,8 @@ export default function EpisodeDetailScreen({ route }: Props) {
       <View style={s.body}>
         <Text style={s.showName}>{showName}</Text>
         <Text style={s.epCode}>
-          S{String(seasonNumber).padStart(2, "0")} Â· E{String(episodeNumber).padStart(2, "0")}
-          {episode.runtimeMin ? ` Â· ${episode.runtimeMin}m` : ""}
+          S{String(seasonNumber).padStart(2, "0")} · E{String(episodeNumber).padStart(2, "0")}
+          {episode.runtimeMin ? ` · ${episode.runtimeMin}m` : ""}
         </Text>
         <Text style={s.epTitle}>{episode.title ?? `Episode ${episodeNumber}`}</Text>
 

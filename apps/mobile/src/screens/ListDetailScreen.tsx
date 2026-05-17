@@ -7,12 +7,13 @@ import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { ListDetail, ListItemEntry, ListSort } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "ListDetail">;
 
 const SORT_OPTIONS: { id: ListSort; label: string }[] = [
   { id: "added_date", label: "Date Added" },
-  { id: "alpha", label: "Aâ€“Z" },
+  { id: "alpha", label: "A–Z" },
   { id: "last_updated", label: "Last Updated" },
   { id: "random", label: "Random" },
 ];
@@ -134,7 +135,7 @@ export default function ListDetailScreen({ route, navigation }: Props) {
           <View style={s.info}>
             <Text style={s.title} numberOfLines={1}>{item.title ?? "Unknown"}</Text>
             <Text style={s.sub}>
-              {item.mediaType.toUpperCase()}{item.year ? ` Â· ${item.year}` : ""}
+              {item.mediaType.toUpperCase()}{item.year ? ` · ${item.year}` : ""}
             </Text>
           </View>
           {!list.isSystem && (
@@ -143,7 +144,7 @@ export default function ListDetailScreen({ route, navigation }: Props) {
               onPress={() => handleRemove(item)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={s.removeBtnText}>âœ•</Text>
+              <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
             </TouchableOpacity>
           )}
         </TouchableOpacity>
@@ -178,5 +179,4 @@ const s = StyleSheet.create({
   title: { fontSize: 13, fontWeight: "700", color: "#f0f0f6", marginBottom: 3 },
   sub: { fontSize: 10, color: "rgba(240,240,246,0.4)", textTransform: "uppercase", letterSpacing: 0.5 },
   removeBtn: { paddingHorizontal: 14, paddingVertical: 10 },
-  removeBtnText: { fontSize: 14, color: "rgba(240,240,246,0.25)" },
 });

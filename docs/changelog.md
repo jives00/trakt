@@ -16,6 +16,7 @@
 
 ### Mobile
 - Dark theme: matched web surface/text color updates across all 22 screens and tailwind config `ad6b656`
+- Remove dashboard hero section (greeting + stats + now-playing); replace all garbled Unicode icon characters with Ionicons across nav bar, search, more menu, and all detail/list screens `3313f9d`
 
 ### API
 - Stremio addon manifest version is now a hash of active catalog IDs so Stremio detects changes when lists are toggled `fd673ac`

@@ -86,7 +86,7 @@ export default function ProgressScreen() {
                   {item.nextEpisode && (
                     <Text style={s.nextEp} numberOfLines={1}>
                       Next: S{String(item.nextEpisode.seasonNumber).padStart(2, "0")} E{String(item.nextEpisode.episodeNumber).padStart(2, "0")}
-                      {item.nextEpisode.title ? ` Â· ${item.nextEpisode.title}` : ""}
+                      {item.nextEpisode.title ? ` · ${item.nextEpisode.title}` : ""}
                     </Text>
                   )}
                   <View style={s.progressTrack}>

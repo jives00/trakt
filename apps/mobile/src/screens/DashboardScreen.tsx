@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -8,7 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
-import type { UpNextItem, ScheduleItem, DashboardStats, RecentItem, StatsAllTime, NowPlayingItem, UserProfile } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardStats, RecentItem } from "@trakt/types";
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
@@ -23,12 +23,8 @@ export default function DashboardScreen() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [dashStats, setDashStats] = useState<DashboardStats | null>(null);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
-  const [alltime, setAlltime] = useState<StatsAllTime | null>(null);
-  const [nowPlaying, setNowPlaying] = useState<NowPlayingItem | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function load() {
     if (!token) return;
@@ -37,11 +33,8 @@ export default function DashboardScreen() {
       api.getSchedule(token, 14),
       api.getDashboardStats(token),
       api.getRecentItems(token, 8),
-      api.getStatsAllTime(token),
-      api.getProfile(token),
-    ]).then(([up, sched, stats, recent, at, prof]) => {
-      setUpNext(up); setSchedule(sched); setDashStats(stats);
-      setRecentItems(recent); setAlltime(at); setProfile(prof);
+    ]).then(([up, sched, stats, recent]) => {
+      setUpNext(up); setSchedule(sched); setDashStats(stats); setRecentItems(recent);
     });
   }
 
@@ -55,14 +48,6 @@ export default function DashboardScreen() {
     try { await load(); } finally { setRefreshing(false); }
   }
 
-  useEffect(() => {
-    if (!token) return;
-    const poll = () => api.getNowPlaying(token).then((r) => setNowPlaying(r ?? null)).catch(() => {});
-    poll();
-    pollRef.current = setInterval(poll, 30_000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [token]);
-
   if (loading) {
     return <View style={s.center}><ActivityIndicator color="#e8002d" /></View>;
   }
@@ -70,12 +55,6 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={s.root} edges={["top"]}>
     <ScrollView style={s.root} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
-      {nowPlaying ? (
-        <NowPlayingHero item={nowPlaying} nav={nav} />
-      ) : (
-        <HeroSection alltime={alltime} profile={profile} />
-      )}
-
       {upNext.length > 0 && (
         <Section title="Up Next">
           <FlatList
@@ -136,7 +115,7 @@ export default function DashboardScreen() {
                   <Text style={s.schedTitle} numberOfLines={1}>{title}</Text>
                   {!isMovie && item.seasonNumber != null && item.episodeNumber != null && (
                     <Text style={s.schedEp} numberOfLines={1}>
-                      S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}
+                      S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.episodeTitle ? ` · ${item.episodeTitle}` : ""}
                     </Text>
                   )}
                 </View>
@@ -195,33 +174,6 @@ export default function DashboardScreen() {
   );
 }
 
-function HeroSection({ alltime, profile }: { alltime: StatsAllTime | null; profile: UserProfile | null }) {
-  const name = profile?.displayName ?? profile?.username ?? "there";
-  return (
-    <View style={s.hero}>
-      <View style={s.heroOverlay} />
-      <View style={s.heroContent}>
-        <Text style={s.heroGreeting}>Hello, {name}</Text>
-        {alltime && (
-          <View style={s.statsRow}>
-            <StatChip label="Movies" value={alltime.totalMovies} />
-            <StatChip label="Episodes" value={alltime.totalEpisodes} />
-            <StatChip label="Shows" value={alltime.totalShows} />
-          </View>
-        )}
-      </View>
-    </View>
-  );
-}
-
-function StatChip({ label, value }: { label: string; value: number }) {
-  return (
-    <View style={s.statChip}>
-      <Text style={s.statValue}>{value.toLocaleString()}</Text>
-      <Text style={s.statLabel}>{label}</Text>
-    </View>
-  );
-}
 
 function ActivityGraph({ daily }: { daily: { date: string; hours: number; episodes: number; movies: number }[] }) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Chicago" }).format(new Date());
@@ -257,7 +209,7 @@ function ActivityGraph({ daily }: { daily: { date: string; hours: number; episod
     <Section title="Last 14 Days">
       <View style={s.graphBox}>
         <Text style={s.graphSummary}>
-          {watchTime} watched Â· {totalEps} ep{totalEps !== 1 ? "s" : ""}{totalMovies > 0 ? ` Â· ${totalMovies} movie${totalMovies !== 1 ? "s" : ""}` : ""}
+          {watchTime} watched · {totalEps} ep{totalEps !== 1 ? "s" : ""}{totalMovies > 0 ? ` · ${totalMovies} movie${totalMovies !== 1 ? "s" : ""}` : ""}
         </Text>
         <View style={s.graphBars}>
           {chartData.map((bar, i) => (
@@ -279,41 +231,6 @@ function ActivityGraph({ daily }: { daily: { date: string; hours: number; episod
   );
 }
 
-function NowPlayingHero({ item, nav }: { item: NowPlayingItem; nav: Nav }) {
-  const isEpisode = item.mediaType === "episode";
-  const title = isEpisode ? item.showTitle : item.movieTitle;
-  const bgPath = isEpisode ? (item.showBackdropPath ?? item.stillPath) : item.backdropPath;
-  const bgUri = bgPath ? `${TMDB_IMG}original${bgPath}` : null;
-  const subLine = isEpisode && item.seasonNumber != null && item.episodeNumber != null
-    ? `S${String(item.seasonNumber).padStart(2, "0")} E${String(item.episodeNumber).padStart(2, "0")}${item.episodeTitle ? ` Â· ${item.episodeTitle}` : ""}`
-    : "";
-
-  function handlePress() {
-    if (isEpisode && item.showTmdbId) nav.navigate("ShowDetail", { tmdbId: item.showTmdbId });
-    else if (!isEpisode && item.movieTmdbId) nav.navigate("MovieDetail", { tmdbId: item.movieTmdbId });
-  }
-
-  return (
-    <TouchableOpacity activeOpacity={0.9} onPress={handlePress}>
-      <View style={s.nowPlayingHero}>
-        {bgUri && <Image source={{ uri: bgUri }} style={StyleSheet.absoluteFill} contentFit="cover" />}
-        <View style={s.heroOverlay} />
-        <View style={s.heroContent}>
-          <View style={s.nowPlayingBadge}>
-            <View style={s.nowPlayingDot} />
-            <Text style={s.nowPlayingBadgeText}>NOW PLAYING</Text>
-          </View>
-          <Text style={s.nowPlayingTitle} numberOfLines={2}>{title}</Text>
-          {subLine ? <Text style={s.nowPlayingSubline}>{subLine}</Text> : null}
-          <View style={s.progressBarTrack}>
-            <View style={[s.progressBarFill, { width: `${item.progressPct}%` }]} />
-          </View>
-          <Text style={s.progressPct}>{item.progressPct}%</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -331,25 +248,6 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { flexGrow: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
-
-  hero: { height: 200, backgroundColor: "#12141b", justifyContent: "flex-end" },
-  nowPlayingHero: { height: 240, backgroundColor: "#12141b", justifyContent: "flex-end" },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.55)" },
-  heroContent: { padding: 20, paddingBottom: 24 },
-  heroGreeting: { fontSize: 24, fontWeight: "800", color: "#f0f0f6", marginBottom: 12 },
-  statsRow: { flexDirection: "row", gap: 20 },
-  statChip: { alignItems: "center" },
-  statValue: { fontSize: 22, fontWeight: "900", color: "#fff" },
-  statLabel: { fontSize: 11, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase", marginTop: 2 },
-
-  nowPlayingBadge: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 },
-  nowPlayingDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#e8002d" },
-  nowPlayingBadgeText: { fontSize: 11, fontWeight: "900", color: "rgba(255,255,255,0.6)", letterSpacing: 2 },
-  nowPlayingTitle: { fontSize: 24, fontWeight: "900", color: "#fff", marginBottom: 4 },
-  nowPlayingSubline: { fontSize: 13, color: "rgba(255,255,255,0.55)", marginBottom: 12 },
-  progressBarTrack: { height: 3, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 2, overflow: "hidden", marginBottom: 4 },
-  progressBarFill: { height: 3, backgroundColor: "#e8002d", borderRadius: 2 },
-  progressPct: { fontSize: 12, fontWeight: "700", color: "#fff", textAlign: "right" },
 
   section: { paddingTop: 24 },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, marginBottom: 12 },

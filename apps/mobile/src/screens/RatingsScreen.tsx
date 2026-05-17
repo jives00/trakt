@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { RatingItem } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 type FilterType = "all" | "movie" | "show" | "episode";
@@ -114,9 +115,9 @@ export default function RatingsScreen() {
                   <Text style={s.stars}>{stars(item.rating)}</Text>
                   <Text style={s.title} numberOfLines={1}>{displayTitle}</Text>
                   {isEpisode && item.seasonNumber != null && item.episodeNumber != null ? (
-                    <Text style={s.sub}>S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.title ? ` Â· ${item.title}` : ""}</Text>
+                    <Text style={s.sub}>S{String(item.seasonNumber).padStart(2, "0")} E{String(item.episodeNumber).padStart(2, "0")}{item.title ? ` · ${item.title}` : ""}</Text>
                   ) : (
-                    <Text style={s.sub}>{item.mediaType.toUpperCase()}{item.year ? ` Â· ${item.year}` : ""}</Text>
+                    <Text style={s.sub}>{item.mediaType.toUpperCase()}{item.year ? ` · ${item.year}` : ""}</Text>
                   )}
                 </View>
                 <TouchableOpacity
@@ -124,7 +125,7 @@ export default function RatingsScreen() {
                   onPress={() => handleDelete(item)}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <Text style={s.deleteBtnText}>âœ•</Text>
+                  <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
                 </TouchableOpacity>
               </TouchableOpacity>
             );

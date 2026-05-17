@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { StatsAllTime } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
@@ -70,7 +71,7 @@ export default function StatsScreen() {
             onPress={() => nav.navigate("StatsYear", { year: y })}
           >
             <Text style={s.yearBtnText}>{y}</Text>
-            <Text style={s.yearBtnChevron}>â€º</Text>
+            <Ionicons name="chevron-forward" size={14} color="#888" />
           </TouchableOpacity>
         ))}
       </View>

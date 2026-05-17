@@ -8,6 +8,7 @@ import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { MovieDetail, MovieStatus, MovieCastMember } from "../lib/api";
 import type { UserList } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "MovieDetail">;
 
@@ -134,7 +135,7 @@ export default function MovieDetailScreen({ route }: Props) {
             <ActivityIndicator size="small" color={status.watched ? "#fff" : "#e8002d"} />
           ) : (
             <>
-              <Text style={s.actionBtnIcon}>{status.watched ? "âœ“" : "â–·"}</Text>
+              <Text style={s.actionBtnIcon}>{status.watched ? "✓" : "▷"}</Text>
               <Text style={[s.actionBtnText, status.watched && s.actionBtnTextActive]}>
                 {status.watched ? "Watched" : "Watch"}
               </Text>
@@ -151,7 +152,7 @@ export default function MovieDetailScreen({ route }: Props) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={openListPicker}>
-          <Text style={s.actionBtnIcon}>â˜°</Text>
+          <Ionicons name="list-outline" size={18} color="rgba(240,240,246,0.6)" />
           <Text style={s.actionBtnText}>Lists</Text>
         </TouchableOpacity>
       </View>
@@ -169,7 +170,7 @@ export default function MovieDetailScreen({ route }: Props) {
               <TouchableOpacity style={s.listRow} onPress={() => toggleList(item)}>
                 <Text style={s.listRowName}>{item.name}</Text>
                 <View style={[s.listCheck, memberListIds.has(item.id) && s.listCheckActive]}>
-                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>âœ“</Text>}
+                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>✓</Text>}
                 </View>
               </TouchableOpacity>
             )}
@@ -195,7 +196,7 @@ export default function MovieDetailScreen({ route }: Props) {
         <View style={s.ratingRow}>
           {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
             <TouchableOpacity key={star} onPress={() => handleRate(star)} style={s.starBtn}>
-              <Text style={[s.star, star <= rating && s.starActive]}>â˜…</Text>
+              <Text style={[s.star, star <= rating && s.starActive]}>★</Text>
             </TouchableOpacity>
           ))}
         </View>

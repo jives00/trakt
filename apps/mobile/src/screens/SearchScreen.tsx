@@ -9,6 +9,7 @@ import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { SearchResult } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
@@ -101,11 +102,11 @@ export default function SearchScreen() {
       {/* Search bar */}
       <View style={s.searchRow}>
         <View style={s.searchBar}>
-          <Text style={s.searchIcon}>âŒ•</Text>
+          <Ionicons name="search-outline" size={16} color="rgba(240,240,246,0.4)" />
           <TextInput
             ref={inputRef}
             style={s.searchInput}
-            placeholder="Search movies and showsâ€¦"
+            placeholder="Search movies and shows…"
             placeholderTextColor="rgba(240,240,246,0.3)"
             value={query}
             onChangeText={setQuery}
@@ -116,7 +117,7 @@ export default function SearchScreen() {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={clearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={s.clearBtn}>âœ•</Text>
+              <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
             </TouchableOpacity>
           )}
         </View>
@@ -208,7 +209,7 @@ function MediaCard({ item, onPress }: { item: SearchResult; onPress: () => void 
         </View>
       )}
       <View style={s.yearBadge}>
-        <Text style={s.yearText}>{item.year ?? "â€“"}</Text>
+        <Text style={s.yearText}>{item.year ?? "—"}</Text>
       </View>
       <View style={s.cardInfo}>
         <Text style={s.cardTitle} numberOfLines={2}>{item.title}</Text>
@@ -229,9 +230,7 @@ const s = StyleSheet.create({
     backgroundColor: "#1e2029", borderRadius: 24, paddingHorizontal: 14, paddingVertical: 10,
     borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
   },
-  searchIcon: { fontSize: 18, color: "rgba(240,240,246,0.4)" },
   searchInput: { flex: 1, fontSize: 14, color: "#f0f0f6", padding: 0 },
-  clearBtn: { fontSize: 13, color: "rgba(240,240,246,0.3)" },
   searchBtn: {
     backgroundColor: "#e8002d", borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 10,

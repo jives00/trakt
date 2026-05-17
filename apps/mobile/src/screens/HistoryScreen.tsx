@@ -11,6 +11,7 @@ import { formatWatchedAt, groupByDay } from "../lib/format";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { HistoryItem } from "../lib/api";
+import { Ionicons } from "@expo/vector-icons";
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 type FilterType = "all" | "movie" | "episode";
@@ -178,7 +179,7 @@ function HistoryCard({
         {hasEpInfo ? (
           <View style={s.epRow}>
             <Text style={s.epCode}>
-              S{String(item.seasonNumber).padStart(2, "0")} Â· E{String(item.episodeNumber).padStart(2, "0")}
+              S{String(item.seasonNumber).padStart(2, "0")} · E{String(item.episodeNumber).padStart(2, "0")}
             </Text>
             {item.title && isEpisode && (
               <Text style={s.epName} numberOfLines={1}>{item.title}</Text>
@@ -189,7 +190,7 @@ function HistoryCard({
         )}
         <View style={s.cardFooter}>
           <TouchableOpacity onPress={onDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={s.deleteBtn}>âœ•</Text>
+            <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
           </TouchableOpacity>
           <Text style={s.watchedAt}>{formatWatchedAt(item.watchedAt)}</Text>
         </View>

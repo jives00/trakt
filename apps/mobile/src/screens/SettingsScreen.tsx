@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator
 import * as SecureStore from "expo-secure-store";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
+import { Ionicons } from "@expo/vector-icons";
 
 type Theme = "red-dark" | "blue-dark" | "red-light" | "blue-light";
 const THEMES: { value: Theme; label: string; accent: string; bg: string }[] = [
@@ -135,12 +136,12 @@ export default function SettingsScreen() {
                 : <Text style={s.saveBtnText}>Save</Text>}
             </TouchableOpacity>
             <TouchableOpacity style={s.cancelBtn} onPress={() => setEditingDisplayName(false)}>
-              <Text style={s.cancelBtnText}>âœ•</Text>
+              <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity style={s.fieldValueRow} onPress={() => setEditingDisplayName(true)}>
-            <Text style={s.fieldValue}>{displayName || "â€”"}</Text>
+            <Text style={s.fieldValue}>{displayName || "—"}</Text>
             <Text style={s.fieldEdit}>Edit</Text>
           </TouchableOpacity>
         )}
@@ -148,16 +149,16 @@ export default function SettingsScreen() {
 
       <TouchableOpacity style={s.actionRow} onPress={handleChangeUsername}>
         <Text style={s.actionText}>Change Username</Text>
-        <Text style={s.actionChevron}>â€º</Text>
+        <Ionicons name="chevron-forward" size={18} color="#888" />
       </TouchableOpacity>
       <TouchableOpacity style={s.actionRow} onPress={handleChangePassword}>
         <Text style={s.actionText}>Change Password</Text>
-        <Text style={s.actionChevron}>â€º</Text>
+        <Ionicons name="chevron-forward" size={18} color="#888" />
       </TouchableOpacity>
 
       {/* Theme */}
       <SectionHeader title="Color Theme" />
-      <Text style={s.todoNote}>âš  Theme selection is saved but not yet applied â€” needs ThemeContext wired through the app.</Text>
+      <Text style={s.todoNote}>⚠ Theme selection is saved but not yet applied — needs ThemeContext wired through the app.</Text>
       <View style={s.themeGrid}>
         {THEMES.map((t) => (
           <TouchableOpacity

@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SearchResult } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = {
   visible: boolean;
@@ -84,14 +85,14 @@ export default function ManualScrobbleModal({ visible, onClose }: Props) {
         <View style={s.header}>
           {step === "confirm" ? (
             <TouchableOpacity onPress={handleBack} style={s.backBtn}>
-              <Text style={s.backBtnText}>â€¹ Back</Text>
+              <Text style={s.backBtnText}>‹ Back</Text>
             </TouchableOpacity>
           ) : (
             <View style={{ width: 60 }} />
           )}
           <Text style={s.headerTitle}>Log Watch</Text>
           <TouchableOpacity onPress={handleClose} style={s.closeBtn}>
-            <Text style={s.closeBtnText}>âœ•</Text>
+            <Ionicons name="close" size={16} color="rgba(240,240,246,0.4)" />
           </TouchableOpacity>
         </View>
 
@@ -101,7 +102,7 @@ export default function ManualScrobbleModal({ visible, onClose }: Props) {
             <View style={s.searchRow}>
               <TextInput
                 style={s.input}
-                placeholder="Search movies or showsâ€¦"
+                placeholder="Search movies or shows…"
                 placeholderTextColor="rgba(240,240,246,0.3)"
                 value={query}
                 onChangeText={setQuery}
@@ -140,10 +141,10 @@ export default function ManualScrobbleModal({ visible, onClose }: Props) {
                       <View style={s.resultInfo}>
                         <Text style={s.resultTitle} numberOfLines={1}>{item.title}</Text>
                         <Text style={s.resultMeta}>
-                          {item.mediaType === "movie" ? "MOVIE" : "SHOW"}{item.year ? ` Â· ${item.year}` : ""}
+                          {item.mediaType === "movie" ? "MOVIE" : "SHOW"}{item.year ? ` · ${item.year}` : ""}
                         </Text>
                       </View>
-                      <Text style={s.resultChevron}>â€º</Text>
+                      <Ionicons name="chevron-forward" size={20} color="#e8002d" />
                     </TouchableOpacity>
                   );
                 }}
@@ -160,7 +161,7 @@ export default function ManualScrobbleModal({ visible, onClose }: Props) {
             )}
             <Text style={s.confirmTitle}>{selected?.title}</Text>
             <Text style={s.confirmMeta}>
-              {selected?.mediaType === "movie" ? "Movie" : "TV Show"}{selected?.year ? ` Â· ${selected.year}` : ""}
+              {selected?.mediaType === "movie" ? "Movie" : "TV Show"}{selected?.year ? ` · ${selected.year}` : ""}
             </Text>
             <Text style={s.confirmHint}>
               {selected?.mediaType === "movie"
@@ -175,7 +176,7 @@ export default function ManualScrobbleModal({ visible, onClose }: Props) {
               {submitting ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={s.confirmBtnText}>âœ“ Mark as Watched</Text>
+                <Text style={s.confirmBtnText}>✓ Mark as Watched</Text>
               )}
             </TouchableOpacity>
           </View>

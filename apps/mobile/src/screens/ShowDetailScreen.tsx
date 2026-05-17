@@ -8,6 +8,7 @@ import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
 import type { ShowDetail, ShowStatus, CastMember, SeasonSummary, ShowEpisodeSummary } from "../lib/api";
 import type { UserList } from "@trakt/types";
+import { Ionicons } from "@expo/vector-icons";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "ShowDetail">;
 
@@ -149,7 +150,7 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
           style={[s.actionBtn, status.inDropped && s.actionBtnActive]}
           onPress={handleDropped}
         >
-          <Text style={s.actionBtnIcon}>ðŸš«</Text>
+          <Ionicons name="ban-outline" size={18} color="rgba(240,240,246,0.6)" />
           <Text style={[s.actionBtnText, status.inDropped && s.actionBtnTextActive]}>
             {status.inDropped ? "Dropped" : "Drop"}
           </Text>
@@ -164,7 +165,7 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity style={s.actionBtn} onPress={openListPicker}>
-          <Text style={s.actionBtnIcon}>â˜°</Text>
+          <Ionicons name="list-outline" size={18} color="rgba(240,240,246,0.6)" />
           <Text style={s.actionBtnText}>Lists</Text>
         </TouchableOpacity>
       </View>
@@ -182,7 +183,7 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
               <TouchableOpacity style={s.listRow} onPress={() => toggleList(item)}>
                 <Text style={s.listRowName}>{item.name}</Text>
                 <View style={[s.listCheck, memberListIds.has(item.id) && s.listCheckActive]}>
-                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>âœ“</Text>}
+                  {memberListIds.has(item.id) && <Text style={s.listCheckMark}>✓</Text>}
                 </View>
               </TouchableOpacity>
             )}
@@ -225,7 +226,7 @@ export default function ShowDetailScreen({ route, navigation }: Props) {
         <View style={s.ratingRow}>
           {Array.from({ length: 10 }, (_, i) => i + 1).map((star) => (
             <TouchableOpacity key={star} onPress={() => handleRate(star)} style={s.starBtn}>
-              <Text style={[s.star, star <= rating && s.starActive]}>â˜…</Text>
+              <Text style={[s.star, star <= rating && s.starActive]}>★</Text>
             </TouchableOpacity>
           ))}
         </View>
