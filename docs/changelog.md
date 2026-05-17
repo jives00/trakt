@@ -1,5 +1,13 @@
 # Changelog
 
+## May 17, 2026
+
+### Web
+- Replace hardcoded server domain fallbacks with `http://localhost:3001` (SSR paths in settings page) `adfac9d`
+
+### Mobile
+- Replace hardcoded server domain in `constants.ts` fallback and `api.test.ts` with `http://localhost:3001`; remove `EXPO_PUBLIC_API_URL` from committed `eas.json` (set via EAS secret instead) `adfac9d`
+
 ## May 16, 2026
 
 ### Web
@@ -52,7 +60,7 @@
 ## May 15, 2026
 
 ### Mobile
-- EAS build: link Expo project ID, set `EXPO_PUBLIC_API_URL=https://berek.xyz` in build env `4eebcc3`
+- EAS build: link Expo project ID, set `EXPO_PUBLIC_API_URL` in build env `4eebcc3`
 - EAS build: switch to community autolinking to fix pnpm monorepo native module resolution `893f742`
 - EAS build: explicitly set `projectRoot` in settings.gradle so autolinking uses `apps/mobile/package.json`, not monorepo root `f1dac96`
 - Fix More tab: reset to MoreMenu on re-tap instead of jumping to previous tab; add scene background color to prevent tab-switch flash `76cdd88`
@@ -65,7 +73,7 @@
 - Renamed Search tab to Discover with shows/movies filter toggle; auto-loads trending on open `100e30d`
 - Settings page: inline display name editor, color theme selector (with note), removed unused API key/export token sections `100e30d`
 - SafeAreaView and pull-to-refresh on all main tab screens `100e30d`
-- Fixed default API URL from jives.duckdns.org to berek.xyz `100e30d`
+- Fixed default API URL fallback `100e30d`
 - Initial React Native + Expo SDK 54 app (Android): full feature parity with web across Dashboard, History, Shows, Movies, Search, Lists, Progress, Ratings, Calendar, Stats, and Settings screens; manual scrobble modal; bottom tab + nested stack navigation `526d47b`
 
 ### API

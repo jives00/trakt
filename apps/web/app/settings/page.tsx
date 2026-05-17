@@ -702,7 +702,7 @@ function StremioGuide({
 }) {
   const manifestUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/stremio-addon/manifest.json`
-    : 'https://berek.xyz/stremio-addon/manifest.json';
+    : 'http://localhost:3001/stremio-addon/manifest.json';
 
   return (
     <div className="space-y-6">
@@ -946,7 +946,7 @@ function ListSelect({ lists, value, onChange }: { lists: { slug: string; name: s
 }
 
 function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists: { id: number; slug: string; name: string; stremioCatalog: boolean }[] }) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://berek.xyz';
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
   const defaultSlug = lists.find((l) => l.slug === 'watchlist')?.slug ?? lists[0]?.slug ?? 'watchlist';
   const [radarrSlug, setRadarrSlug] = useState(defaultSlug);
   const [sonarrSlug, setSonarrSlug] = useState(defaultSlug);

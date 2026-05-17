@@ -1,6 +1,6 @@
 import { api, ApiError } from "../api";
 
-const BASE = "https://berek.xyz";
+const BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3001";
 
 function mockFetch(status: number, body: unknown, ok = status >= 200 && status < 300) {
   const text = body === undefined || status === 204 ? "" : JSON.stringify(body);
