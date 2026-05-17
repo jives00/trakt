@@ -1,7 +1,9 @@
-﻿import { useEffect, useState } from "react";
+﻿﻿﻿﻿﻿import { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
@@ -13,6 +15,7 @@ type Props = NativeStackScreenProps<SharedDetailParamList, "EpisodeDetail">;
 export default function EpisodeDetailScreen({ route }: Props) {
   const { tmdbId, seasonNumber, episodeNumber, showName } = route.params;
   const { token } = useAuth();
+  const nav = useNavigation<NativeStackNavigationProp<SharedDetailParamList>>();
   const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
   const [watched, setWatched] = useState(false);
   const [guestCast, setGuestCast] = useState<CastMember[]>([]);
@@ -92,20 +95,25 @@ export default function EpisodeDetailScreen({ route }: Props) {
           <Text style={s.overview}>{episode.overview}</Text>
         ) : null}
 
-        {/* Watched toggle */}
-        <TouchableOpacity
-          style={[s.watchedBtn, watched && s.watchedBtnActive]}
-          onPress={handleToggle}
-          disabled={toggling}
-        >
+        {/* Action row */}
+        <View style={s.actionRow}>
+          <TouchableOpacity
+            style={[s.watchedBtn, watched && s.watchedBtnActive]}
+            onPress={handleToggle}
+            disabled={toggling}
+          >
           {toggling ? (
             <ActivityIndicator size="small" color={watched ? "#fff" : "#e8002d"} />
           ) : (
             <Text style={[s.watchedBtnText, watched && s.watchedBtnTextActive]}>
-              {watched ? "âœ“ Watched" : "Mark as Watched"}
+              {watched ? "✓ Watched" : "Mark as Watched"}
             </Text>
           )}
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.showBtn} onPress={() => nav.navigate("ShowDetail", { tmdbId })}>
+            <Text style={s.showBtnText}>View Show</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Ratings */}
         {(episode.tmdbRating != null || episode.rtCriticScore != null) && (
@@ -186,13 +194,19 @@ const s = StyleSheet.create({
   airDate: { fontSize: 12, color: "rgba(240,240,246,0.4)", marginBottom: 16 },
   overview: { fontSize: 14, color: "rgba(240,240,246,0.75)", lineHeight: 22, marginBottom: 24 },
 
+  actionRow: { flexDirection: "row", gap: 10, marginBottom: 20 },
   watchedBtn: {
-    paddingVertical: 14, borderRadius: 10, alignItems: "center",
-    borderWidth: 2, borderColor: "#e8002d", marginBottom: 20,
+    flex: 1, paddingVertical: 14, borderRadius: 10, alignItems: "center",
+    borderWidth: 2, borderColor: "#e8002d",
   },
   watchedBtnActive: { backgroundColor: "#e8002d" },
   watchedBtnText: { fontSize: 14, fontWeight: "700", color: "#e8002d" },
   watchedBtnTextActive: { color: "#fff" },
+  showBtn: {
+    flex: 1, paddingVertical: 14, borderRadius: 10, alignItems: "center",
+    backgroundColor: "#1e2029", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)",
+  },
+  showBtnText: { fontSize: 14, fontWeight: "700", color: "rgba(240,240,246,0.75)" },
 
   ratingsRow: { flexDirection: "row", gap: 12, marginBottom: 24 },
   ratingChip: { alignItems: "center", backgroundColor: "#1e2029", borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },

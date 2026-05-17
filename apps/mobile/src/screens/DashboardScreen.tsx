@@ -72,7 +72,7 @@ export default function DashboardScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => nav.navigate("ShowDetail", { tmdbId: item.showTmdbId })}>
+              <TouchableOpacity onPress={() => nav.navigate("EpisodeDetail", { tmdbId: item.showTmdbId, seasonNumber: item.seasonNumber, episodeNumber: item.episodeNumber, showName: item.showTitle })}>
                 <View style={s.posterCard}>
                   {item.posterPath ? (
                     <Image source={{ uri: `${TMDB_IMG}w185${item.posterPath}` }} style={s.posterImg} contentFit="cover" />
@@ -108,7 +108,8 @@ export default function DashboardScreen() {
                 style={s.schedRow}
                 onPress={() => {
                   if (isMovie && item.movieTmdbId) nav.navigate("MovieDetail", { tmdbId: item.movieTmdbId });
-                  else if (!isMovie && item.showTmdbId) nav.navigate("ShowDetail", { tmdbId: item.showTmdbId });
+                  else if (!isMovie && item.showTmdbId && item.seasonNumber != null && item.episodeNumber != null)
+                    nav.navigate("EpisodeDetail", { tmdbId: item.showTmdbId, seasonNumber: item.seasonNumber, episodeNumber: item.episodeNumber, showName: item.showTitle ?? "" });
                 }}
               >
                 <View style={s.schedDate}>
@@ -148,9 +149,10 @@ export default function DashboardScreen() {
                 <TouchableOpacity
                   onPress={() => {
                     if (item.tmdbId) {
-                      isEpisode
-                        ? nav.navigate("ShowDetail", { tmdbId: item.tmdbId })
-                        : nav.navigate("MovieDetail", { tmdbId: item.tmdbId });
+                      if (isEpisode && item.seasonNumber != null && item.episodeNumber != null)
+                        nav.navigate("EpisodeDetail", { tmdbId: item.tmdbId, seasonNumber: item.seasonNumber, episodeNumber: item.episodeNumber, showName: item.showTitle ?? "" });
+                      else if (!isEpisode)
+                        nav.navigate("MovieDetail", { tmdbId: item.tmdbId });
                     }
                   }}
                 >

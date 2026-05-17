@@ -19,6 +19,8 @@
 - Fix black-on-black lists icon and replace corrupt emoji icons with Ionicons on show/movie action buttons `8fd891c`
 - Move hero title, genres, and overview below backdrop image on show and movie detail screens `8fd891c`
 - Add dashboard header with logo glyph and TRAKT wordmark `8fd891c`
+- Dashboard episode items (Up Next, Upcoming, Recently Watched) now navigate to EpisodeDetail instead of ShowDetail `dcdaca4`
+- Add "View Show" button on episode detail page to navigate to the parent show `dcdaca4`
 
 ## May 16, 2026
 
