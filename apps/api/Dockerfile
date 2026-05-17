@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -9,10 +9,16 @@ COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
 RUN pnpm install --ignore-scripts
-
 RUN pnpm --filter @trakt/types build
 RUN pnpm --filter api build
+RUN pnpm --filter api deploy --prod /deploy
+
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY --from=builder /deploy/node_modules ./node_modules
+COPY --from=builder /app/apps/api/dist ./dist
 
 EXPOSE 3002
-
-CMD ["node", "apps/api/dist/server.js"]
+CMD ["node", "dist/server.js"]

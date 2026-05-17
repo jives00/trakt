@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:24-alpine AS builder
 
 ARG NEXT_PUBLIC_API_URL
 
@@ -11,16 +11,18 @@ COPY packages/ ./packages/
 COPY apps/web/ ./apps/web/
 
 RUN pnpm install --ignore-scripts
-
 RUN pnpm --filter @trakt/types build
 RUN NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL pnpm --filter web build
 
-# Copy public assets and static files into the standalone bundle
 RUN cp -r apps/web/public apps/web/.next/standalone/apps/web/public && \
     cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
 
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/apps/web/.next/standalone/apps/web ./
+
 EXPOSE 3000
-
 ENV HOSTNAME=0.0.0.0
-
-CMD ["node", "apps/web/.next/standalone/apps/web/server.js"]
+CMD ["node", "server.js"]

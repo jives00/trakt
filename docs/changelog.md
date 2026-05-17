@@ -3,6 +3,12 @@
 ## May 17, 2026
 
 ### API
+- Switch to multi-stage Docker builds; runtime image ships only prod deps + compiled dist, dropping ~1.3-1.5 GB combined across api and web images `80faf27`
+
+### Web
+- Switch to multi-stage Docker builds; runtime image ships only the Next.js standalone bundle `80faf27`
+
+### API
 - Fix schedule query sort order to include `seasonNumber, episodeNumber` so episodes within a show are ordered correctly `2b8d210`
 
 ### Docs
