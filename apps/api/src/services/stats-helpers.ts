@@ -76,9 +76,12 @@ export async function queryTopGenres(
   );
   const counts: Record<string, number> = {};
   for (const row of rows) {
-    const genres: string[] = Array.isArray(row.genres)
-      ? row.genres
-      : JSON.parse(row.genres as string);
+    let genres: string[] = [];
+    try {
+      genres = Array.isArray(row.genres) ? row.genres : JSON.parse(row.genres as string);
+    } catch {
+      console.error('Invalid genres JSON in watch_history row, skipping');
+    }
     for (const g of genres) counts[g] = (counts[g] ?? 0) + 1;
   }
   return Object.entries(counts)

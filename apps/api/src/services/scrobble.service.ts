@@ -6,6 +6,8 @@ import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 import { applyImageOverrides } from './image-overrides.service';
 
+export const DEFAULT_USER_ID = 1;
+
 const WATCH_THRESHOLD = { movie: 90, episode: 90 };
 
 export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<void> {
@@ -68,18 +70,20 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
     const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
 
     if (event === 'PlaybackProgress') {
-      await updateNowPlaying('emby', mediaType, mediaIdDb, progressPct);
+      await updateNowPlaying(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct);
       if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
-        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, false);
+        await upsertWatchHistory(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct, false);
       }
     } else if (event === 'PlaybackStopped') {
-      await clearNowPlaying();
+      await clearNowPlaying(DEFAULT_USER_ID);
       if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
-        await upsertWatchHistory('emby', mediaType, mediaIdDb, progressPct, true);
+        await upsertWatchHistory(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct, true);
         if (mediaType === 'movie') {
-          void checkMovieWatchlistCompletion(1, mediaIdDb).catch(() => {});
+          void checkMovieWatchlistCompletion(DEFAULT_USER_ID, mediaIdDb)
+            .catch(err => console.error('Watchlist movie completion check failed:', err));
         } else if (showDbId !== null) {
-          void checkShowWatchlistCompletion(1, showDbId).catch(() => {});
+          void checkShowWatchlistCompletion(DEFAULT_USER_ID, showDbId)
+            .catch(err => console.error('Watchlist show completion check failed:', err));
         }
       }
     }
@@ -105,6 +109,7 @@ export async function isScrobbleExcluded(
 }
 
 export async function upsertWatchHistory(
+  userId: number,
   source: 'emby' | 'stremio' | 'kodi',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
@@ -115,8 +120,8 @@ export async function upsertWatchHistory(
 
   const existingRow = await pool.query(
     `SELECT id FROM watch_history
-     WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-    [mediaType, mediaIdDb]
+     WHERE user_id = ? AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+    [userId, mediaType, mediaIdDb]
   );
 
   const completionProgress = Math.min(progressPct, 100);
@@ -126,19 +131,20 @@ export async function upsertWatchHistory(
     await pool.query(
       `UPDATE watch_history
        SET progress_pct = ?, watched_at = NOW(), source = ?, completion_progress = ?, playback_stopped_at = ?
-       WHERE user_id = 1 AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
-      [progressPct, source, completionProgress, playbackStoppedAtValue, mediaType, mediaIdDb]
+       WHERE user_id = ? AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+      [progressPct, source, completionProgress, playbackStoppedAtValue, userId, mediaType, mediaIdDb]
     );
   } else {
     await pool.query(
       `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress, playback_stopped_at)
-       VALUES (1, ?, ?, ?, ?, NOW(), ?, ?)`,
-      [mediaType, mediaIdDb, progressPct, source, completionProgress, playbackStoppedAtValue]
+       VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)`,
+      [userId, mediaType, mediaIdDb, progressPct, source, completionProgress, playbackStoppedAtValue]
     );
   }
 }
 
 export async function updateNowPlaying(
+  userId: number,
   source: 'emby' | 'stremio' | 'kodi',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
@@ -147,22 +153,22 @@ export async function updateNowPlaying(
   const pool = getPool();
   await pool.query(
     `INSERT INTO now_playing (user_id, media_type, media_id, progress_pct, source)
-     VALUES (1, ?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        media_type   = VALUES(media_type),
        media_id     = VALUES(media_id),
        progress_pct = VALUES(progress_pct),
        source       = VALUES(source)`,
-    [mediaType, mediaIdDb, progressPct, source]
+    [userId, mediaType, mediaIdDb, progressPct, source]
   );
 }
 
-export async function clearNowPlaying(): Promise<void> {
+export async function clearNowPlaying(userId: number): Promise<void> {
   const pool = getPool();
-  await pool.query(`DELETE FROM now_playing WHERE user_id = 1`);
+  await pool.query(`DELETE FROM now_playing WHERE user_id = ?`, [userId]);
 }
 
-export async function getNowPlaying(): Promise<NowPlayingItem | null> {
+export async function getNowPlaying(userId: number): Promise<NowPlayingItem | null> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
@@ -186,8 +192,9 @@ export async function getNowPlaying(): Promise<NowPlayingItem | null> {
      LEFT JOIN episodes e   ON np.media_type = 'episode' AND np.media_id = e.id
      LEFT JOIN seasons seas ON seas.id = e.season_id
      LEFT JOIN tv_shows s   ON s.id = e.show_id
-     WHERE np.user_id = 1
-       AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)`
+     WHERE np.user_id = ?
+       AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)`,
+    [userId]
   );
 
   if (!(rows as any[]).length) return null;

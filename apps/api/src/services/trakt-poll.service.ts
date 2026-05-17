@@ -1,6 +1,6 @@
 import https from 'https';
 import { getPool } from '../db';
-import { isScrobbleExcluded, upsertWatchHistory, updateNowPlaying, clearNowPlaying } from './scrobble.service';
+import { isScrobbleExcluded, upsertWatchHistory, updateNowPlaying, clearNowPlaying, DEFAULT_USER_ID } from './scrobble.service';
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
@@ -178,14 +178,14 @@ async function syncWatchHistory(): Promise<void> {
           const movie = await getOrFetchMovie(tmdbId);
           // Check if already logged (any source, any date)
           const [existing] = await pool.query(
-            `SELECT id FROM watch_history WHERE user_id = 1 AND media_type = 'movie' AND media_id = ?`,
-            [movie.id]
+            `SELECT id FROM watch_history WHERE user_id = ? AND media_type = 'movie' AND media_id = ?`,
+            [DEFAULT_USER_ID, movie.id]
           );
           if ((existing as any[]).length === 0) {
             await pool.query(
               `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
-               VALUES (1, 'movie', ?, 100, 'trakt.tv', ?, 100)`,
-              [movie.id, watchedAt]
+               VALUES (?, 'movie', ?, 100, 'trakt.tv', ?, 100)`,
+              [DEFAULT_USER_ID, movie.id, watchedAt]
             );
           }
         } else if (item.type === 'episode' && item.episode && item.show) {
@@ -201,14 +201,14 @@ async function syncWatchHistory(): Promise<void> {
           const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
           // Check if already logged (any source, any date)
           const [existing] = await pool.query(
-            `SELECT id FROM watch_history WHERE user_id = 1 AND media_type = 'episode' AND media_id = ?`,
-            [episode.episodeId]
+            `SELECT id FROM watch_history WHERE user_id = ? AND media_type = 'episode' AND media_id = ?`,
+            [DEFAULT_USER_ID, episode.episodeId]
           );
           if ((existing as any[]).length === 0) {
             await pool.query(
               `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
-               VALUES (1, 'episode', ?, 100, 'trakt.tv', ?, 100)`,
-              [episode.episodeId, watchedAt]
+               VALUES (?, 'episode', ?, 100, 'trakt.tv', ?, 100)`,
+              [DEFAULT_USER_ID, episode.episodeId, watchedAt]
             );
           }
         }
@@ -273,7 +273,7 @@ async function pollNow(): Promise<void> {
   }
 
   if (res.status === 204) {
-    await clearNowPlaying();
+    await clearNowPlaying(DEFAULT_USER_ID);
     return;
   }
 
@@ -295,7 +295,7 @@ async function pollNow(): Promise<void> {
   try {
     data = JSON.parse(res.body);
   } catch (err) {
-    console.error('🔁 Background poll: failed to parse response', err);
+    console.error('🔁 Background poll: failed to parse response', `(${res.status}) ${res.body.substring(0, 200)}`, err);
     return;
   }
 
@@ -317,21 +317,23 @@ async function pollNow(): Promise<void> {
   if (data.type === 'movie' && data.movie) {
     const tmdbId = data.movie.ids.tmdb;
     const movie = await getOrFetchMovie(tmdbId);
-    await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
+    await updateNowPlaying(DEFAULT_USER_ID, 'stremio', 'movie', movie.id, progressPct);
     const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
     if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
-      await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
-      void checkMovieWatchlistCompletion(1, movie.id).catch(() => {});
+      await upsertWatchHistory(DEFAULT_USER_ID, 'stremio', 'movie', movie.id, progressPct);
+      void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
+        .catch(err => console.error('🔁 Background poll: watchlist movie completion check failed:', err));
     }
   } else if (data.type === 'episode' && data.show && data.episode) {
     const showTmdbId = data.show.ids.tmdb;
     const show = await getOrFetchShow(showTmdbId);
     const episode = await getOrFetchEpisode(showTmdbId, data.episode.season, data.episode.number);
-    await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
+    await updateNowPlaying(DEFAULT_USER_ID, 'stremio', 'episode', episode.episodeId, progressPct);
     const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
     if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
-      await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
-      void checkShowWatchlistCompletion(1, show.id).catch(() => {});
+      await upsertWatchHistory(DEFAULT_USER_ID, 'stremio', 'episode', episode.episodeId, progressPct);
+      void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
+        .catch(err => console.error('🔁 Background poll: watchlist show completion check failed:', err));
     }
   }
 }
@@ -364,7 +366,7 @@ export async function startPollLoop(
   }
   console.log('📡 Starting poll loop for:', { imdbId, contentType, username });
   const safety4hTimeout = setTimeout(() => {
-    clearNowPlaying().catch(err => console.error('Error clearing now_playing on timeout:', err));
+    clearNowPlaying(DEFAULT_USER_ID).catch(err => console.error('Error clearing now_playing on timeout:', err));
     stopPollLoop(imdbId);
   }, SAFETY_TIMEOUT);
 
@@ -426,7 +428,7 @@ export async function startPollLoop(
           return;
         }
         // User stopped watching
-        await clearNowPlaying();
+        await clearNowPlaying(DEFAULT_USER_ID);
         stopPollLoop(imdbId);
         clearTimeout(safety4hTimeout);
         return;
@@ -474,11 +476,12 @@ export async function startPollLoop(
       if (data.type === 'movie' && data.movie) {
         const tmdbId = data.movie.ids.tmdb;
         const movie = await getOrFetchMovie(tmdbId);
-        await updateNowPlaying('stremio', 'movie', movie.id, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'stremio', 'movie', movie.id, progressPct);
         const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
         if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
-          await upsertWatchHistory('stremio', 'movie', movie.id, progressPct);
-          void checkMovieWatchlistCompletion(1, movie.id).catch(() => {});
+          await upsertWatchHistory(DEFAULT_USER_ID, 'stremio', 'movie', movie.id, progressPct);
+          void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
+            .catch(err => console.error('📡 Poll loop: watchlist movie completion check failed:', err));
         }
       } else if (data.type === 'episode' && data.show && data.episode) {
         const showTmdbId = data.show.ids.tmdb;
@@ -486,11 +489,12 @@ export async function startPollLoop(
         const episodeNumber = data.episode.number;
         const show = await getOrFetchShow(showTmdbId);
         const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
-        await updateNowPlaying('stremio', 'episode', episode.episodeId, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'stremio', 'episode', episode.episodeId, progressPct);
         const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
         if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
-          await upsertWatchHistory('stremio', 'episode', episode.episodeId, progressPct);
-          void checkShowWatchlistCompletion(1, show.id).catch(() => {});
+          await upsertWatchHistory(DEFAULT_USER_ID, 'stremio', 'episode', episode.episodeId, progressPct);
+          void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
+            .catch(err => console.error('📡 Poll loop: watchlist show completion check failed:', err));
         }
       }
 

@@ -17,15 +17,19 @@ export async function dashboardRoutes(app: FastifyInstance) {
     return getUpNext(userId(request));
   });
 
-  app.get('/dashboard/schedule', auth, async (request: FastifyRequest) => {
-    const { range = '7', type = 'all', startDays: sd = '0' } = request.query as any;
-    const days = Math.min(90, Math.max(1, parseInt(range, 10) || 7));
-    const startDays = Math.min(365, Math.max(0, parseInt(sd, 10) || 0));
-    return getSchedule(userId(request), days, type, startDays);
-  });
+  app.get<{ Querystring: { range?: string; type?: string; startDays?: string } }>(
+    '/dashboard/schedule',
+    auth,
+    async (request) => {
+      const { range = '7', type = 'all', startDays: sd = '0' } = request.query;
+      const days = Math.min(90, Math.max(1, parseInt(range, 10) || 7));
+      const startDays = Math.min(365, Math.max(0, parseInt(sd, 10) || 0));
+      return getSchedule(userId(request), days, type, startDays);
+    },
+  );
 
-  app.get('/dashboard/recent', auth, async (request: FastifyRequest) => {
-    const { limit = '10' } = request.query as any;
+  app.get<{ Querystring: { limit?: string } }>('/dashboard/recent', auth, async (request) => {
+    const { limit = '10' } = request.query;
     const l = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
     return getRecentItems(userId(request), l);
   });

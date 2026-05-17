@@ -10,42 +10,40 @@ import { getAvailableImages, setImageOverride } from '../services/image-override
 import { getPool } from '../db';
 import { HistoryItem } from '@trakt/types';
 
+type TmdbParams = { tmdbId: string };
+
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
-}
-
-function params(request: FastifyRequest) {
-  return request.params as Record<string, string>;
 }
 
 export async function moviesRoutes(app: FastifyInstance) {
   const auth = { preHandler: [authenticate] };
 
-  app.get('/movies/:tmdbId', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.get<{ Params: TmdbParams }>('/movies/:tmdbId', auth, async (request, reply) => {
+    const tmdbId = Number(request.params.tmdbId);
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
     const movie = await getOrFetchMovie(tmdbId);
     const status = await getMovieStatus(userId(request), movie.id);
     return { movie, status };
   });
 
-  app.post('/movies/:tmdbId/watched', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
-    const { watchedAt } = (request.body as any) ?? {};
+  app.post<{ Params: TmdbParams; Body: { watchedAt?: string } }>('/movies/:tmdbId/watched', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
+    const { watchedAt } = request.body ?? {};
     const movie = await getOrFetchMovie(tmdbId);
     await markMovieWatched(userId(request), movie.id, watchedAt);
     return { watched: true };
   });
 
-  app.delete('/movies/:tmdbId/watched', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.delete<{ Params: TmdbParams }>('/movies/:tmdbId/watched', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
     await unmarkMovieWatched(userId(request), movie.id);
     return { watched: false };
   });
 
-  app.get('/movies/:tmdbId/history', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.get<{ Params: TmdbParams }>('/movies/:tmdbId/history', auth, async (request: FastifyRequest<{ Params: TmdbParams }>, reply: FastifyReply) => {
+    const tmdbId = Number(request.params.tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
     const pool = getPool();
     const [rows] = await pool.query<RowDataPacket[]>(
@@ -62,58 +60,57 @@ export async function moviesRoutes(app: FastifyInstance) {
     return rows as HistoryItem[];
   });
 
-  app.post('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.post<{ Params: TmdbParams }>('/movies/:tmdbId/watchlist', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
     const added = await toggleWatchlist(userId(request), 'movie', movie.id);
     return { inWatchlist: added };
   });
 
-  app.delete('/movies/:tmdbId/watchlist', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.delete<{ Params: TmdbParams }>('/movies/:tmdbId/watchlist', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     const movie = await getOrFetchMovie(tmdbId);
     await removeFromWatchlist(userId(request), 'movie', movie.id);
     return { inWatchlist: false };
   });
 
-
-  app.get('/movies/:tmdbId/cast', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.get<{ Params: TmdbParams }>('/movies/:tmdbId/cast', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     const cast = await getOrFetchMovieCast(tmdbId);
     return { cast };
   });
 
-  app.get('/movies/:tmdbId/crew', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.get<{ Params: TmdbParams }>('/movies/:tmdbId/crew', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     const crew = await getOrFetchMovieCrew(tmdbId);
     return { crew };
   });
 
-  app.post('/movies/:tmdbId/metadata/refresh', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.post<{ Params: TmdbParams }>('/movies/:tmdbId/metadata/refresh', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
     const movie = await forceRefreshMovieMetadata(tmdbId);
     return { movie };
   });
 
-  app.post('/movies/:tmdbId/cast/refresh', auth, async (request: FastifyRequest) => {
-    const tmdbId = Number((request.params as any).tmdbId);
+  app.post<{ Params: TmdbParams }>('/movies/:tmdbId/cast/refresh', auth, async (request) => {
+    const tmdbId = Number(request.params.tmdbId);
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return { error: 'Invalid tmdbId' };
     const { cast, crew } = await forceRefreshMovieCast(tmdbId);
     return { cast, crew };
   });
 
-  app.get('/movies/:tmdbId/images', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const tmdbId = Number(params(request).tmdbId);
+  app.get<{ Params: TmdbParams }>('/movies/:tmdbId/images', auth, async (request, reply) => {
+    const tmdbId = Number(request.params.tmdbId);
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
     const images = await getAvailableImages('movie', tmdbId);
     return images;
   });
 
-  app.put('/movies/:tmdbId/image', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const tmdbId = Number(params(request).tmdbId);
+  app.put<{ Params: TmdbParams; Body: { imageType: 'hero' | 'poster'; path: string } }>('/movies/:tmdbId/image', auth, async (request, reply) => {
+    const tmdbId = Number(request.params.tmdbId);
     if (!Number.isInteger(tmdbId) || tmdbId <= 0) return reply.status(400).send({ error: 'Invalid tmdbId' });
-    const { imageType, path } = request.body as { imageType: 'hero' | 'poster'; path: string };
+    const { imageType, path } = request.body;
     if (!['hero', 'poster'].includes(imageType) || !path) return reply.status(400).send({ error: 'Invalid body' });
     await setImageOverride('movie', tmdbId, imageType, path);
     return { ok: true };

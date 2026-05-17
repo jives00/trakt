@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import { getStatsAllTime, getStatsYear, getStatsMonth } from '../services/stats.service';
 
@@ -13,17 +13,17 @@ export async function statsRoutes(app: FastifyInstance) {
     return getStatsAllTime(userId(request));
   });
 
-  app.get('/stats/year/:year', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const year = Number((request.params as any).year);
+  app.get<{ Params: { year: string } }>('/stats/year/:year', auth, async (request, reply) => {
+    const year = Number(request.params.year);
     if (!Number.isInteger(year) || year < 1900 || year > 2100) {
       return reply.status(400).send({ error: 'Invalid year' });
     }
     return getStatsYear(userId(request), year);
   });
 
-  app.get('/stats/month/:year/:month', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const year = Number((request.params as any).year);
-    const month = Number((request.params as any).month);
+  app.get<{ Params: { year: string; month: string } }>('/stats/month/:year/:month', auth, async (request, reply) => {
+    const year = Number(request.params.year);
+    const month = Number(request.params.month);
     if (!Number.isInteger(year) || year < 1900 || year > 2100) {
       return reply.status(400).send({ error: 'Invalid year' });
     }

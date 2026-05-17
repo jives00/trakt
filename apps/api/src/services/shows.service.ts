@@ -107,8 +107,8 @@ export async function getOrFetchShow(tmdbId: number) {
         [fresh.backdropPath, fresh.firstAirDate, fresh.originCountry, fresh.originalLanguage, fresh.runtimeMin, sc, fresh.trailerYoutubeKey ?? null, row.id],
       );
       if (process.env.NODE_ENV !== 'test') {
-        backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-        backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+        backfillShowImdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] IMDb rating show ${tmdbId}:`, err));
+        backfillShowTmdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] TMDB rating show ${tmdbId}:`, err));
       }
       return applyImageOverrides('show', rowToShow({ ...row, backdrop_path: fresh.backdropPath, first_air_date: fresh.firstAirDate, origin_country: fresh.originCountry, original_language: fresh.originalLanguage, runtime_min: fresh.runtimeMin }, sc, imdbId));
     }
@@ -116,8 +116,8 @@ export async function getOrFetchShow(tmdbId: number) {
       const { seasonCount } = await fetchShowWithSeasonCount(tmdbId);
       await pool.query('UPDATE tv_shows SET season_count = ?, metadata_refreshed_at = NOW() WHERE id = ?', [seasonCount, row.id]);
       if (process.env.NODE_ENV !== 'test') {
-        backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-        backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+        backfillShowImdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] IMDb rating show ${tmdbId}:`, err));
+        backfillShowTmdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] TMDB rating show ${tmdbId}:`, err));
       }
       return applyImageOverrides('show', rowToShow(row, seasonCount, imdbId));
     }
@@ -140,7 +140,7 @@ export async function getOrFetchShow(tmdbId: number) {
       row.original_language = fresh.originalLanguage;
       row.runtime_min = fresh.runtimeMin;
       if (freshCount > prevSeasonCount) {
-        void prefetchAllSeasons(tmdbId).catch(() => {});
+        void prefetchAllSeasons(tmdbId).catch(err => console.error(`[prefetch] seasons show ${tmdbId}:`, err));
       }
     }
 
@@ -156,8 +156,8 @@ export async function getOrFetchShow(tmdbId: number) {
       }
     }
     if (process.env.NODE_ENV !== 'test') {
-      backfillShowImdbRating(row.id, tmdbId).catch(() => {});
-      backfillShowTmdbRating(row.id, tmdbId).catch(() => {});
+      backfillShowImdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] IMDb rating show ${tmdbId}:`, err));
+      backfillShowTmdbRating(row.id, tmdbId).catch(err => console.error(`[backfill] TMDB rating show ${tmdbId}:`, err));
     }
     return applyImageOverrides('show', show);
   }
@@ -177,7 +177,7 @@ export async function getOrFetchShow(tmdbId: number) {
   const imdbId = await getShowImdbId(inserted[0].id);
   const result = rowToShow(inserted[0], seasonCount, imdbId);
   if (process.env.NODE_ENV !== 'test') {
-    backfillShowImdbRating(result.id, tmdbId).catch(() => {});
+    backfillShowImdbRating(result.id, tmdbId).catch(err => console.error(`[backfill] IMDb rating show ${tmdbId}:`, err));
   }
   return applyImageOverrides('show', result);
 }
@@ -577,7 +577,8 @@ export async function backfillAirTimes(): Promise<{ updated: number; failed: num
         [airTime, show.id],
       );
       updated++;
-    } catch {
+    } catch (err) {
+      console.error(`[backfillAirTimes] Failed for show id=${show.id} tmdb=${show.tmdb_id}:`, err);
       failed++;
     }
   }

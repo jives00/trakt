@@ -120,8 +120,8 @@ export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { i
     const imdbId = await getMovieImdbId(rows[0].id);
     const movie = rowToMovie(rows[0], imdbId);
     if (process.env.NODE_ENV !== 'test') {
-      backfillMovieImdbRating(movie.id, tmdbId).catch(() => {});
-      backfillMovieTmdbRating(movie.id, tmdbId).catch(() => {});
+      backfillMovieImdbRating(movie.id, tmdbId).catch(err => console.error(`[backfill] IMDb rating movie ${tmdbId}:`, err));
+      backfillMovieTmdbRating(movie.id, tmdbId).catch(err => console.error(`[backfill] TMDB rating movie ${tmdbId}:`, err));
     }
     return movie;
   }

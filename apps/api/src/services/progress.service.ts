@@ -67,17 +67,29 @@ export async function getProgress(
 
     rewatchDates.forEach((r: any) => rewatchMap.set(r.media_id, r.added_at));
 
-    // Filter shows with rewatch list to only count recent watches
-    for (const show of shows) {
-      if (rewatchMap.has(show.showId)) {
-        const rewatchDate = rewatchMap.get(show.showId);
-        const [recentWatches] = await pool.query<RowDataPacket[]>(
-          `SELECT COUNT(DISTINCT wh.media_id) as count FROM watch_history wh
-           JOIN episodes e ON e.id = wh.media_id
-           WHERE e.show_id = ? AND wh.user_id = ? AND wh.watched_at >= ?`,
-          [show.showId, userId, rewatchDate],
-        );
-        show.watchedEpisodes = Number((recentWatches[0] as any).count);
+    // Batch-fetch recent episode counts for all rewatch shows in a single query
+    if (rewatchMap.size > 0) {
+      const rewatchIds = Array.from(rewatchMap.keys());
+      const [recentWatchRows] = await pool.query<RowDataPacket[]>(
+        `SELECT e.show_id, COUNT(DISTINCT wh.media_id) as count
+         FROM watch_history wh
+         JOIN episodes e ON e.id = wh.media_id
+         WHERE wh.user_id = ? AND e.show_id IN (${rewatchIds.map(() => '?').join(',')})
+           AND wh.watched_at >= (
+             SELECT MIN(li2.added_at) FROM list_items li2
+             JOIN lists l2 ON l2.id = li2.list_id
+             WHERE li2.media_type = 'show' AND l2.list_type = 'rewatch' AND l2.user_id = ? AND li2.media_id = e.show_id
+           )
+         GROUP BY e.show_id`,
+        [userId, ...rewatchIds, userId],
+      );
+      const recentCountMap = new Map<number, number>(
+        recentWatchRows.map((r: any) => [r.show_id, Number(r.count)]),
+      );
+      for (const show of shows) {
+        if (rewatchMap.has(show.showId)) {
+          show.watchedEpisodes = recentCountMap.get(show.showId) ?? 0;
+        }
       }
     }
   }

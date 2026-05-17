@@ -60,15 +60,18 @@ export async function showsRoutes(app: FastifyInstance) {
     };
   });
 
-  app.post('/shows/:tmdbId/seasons/:season/episodes/:ep/watched', auth, async (request: FastifyRequest) => {
-    const { tmdbId, season, ep } = params(request);
-    const { watchedAt } = (request.body as any) ?? {};
+  app.post<{ Params: { tmdbId: string; season: string; ep: string }; Body: { watchedAt?: string } }>(
+    '/shows/:tmdbId/seasons/:season/episodes/:ep/watched',
+    auth,
+    async (request) => {
+    const { tmdbId, season, ep } = request.params;
+    const { watchedAt } = request.body ?? {};
     const show = await getOrFetchShow(Number(tmdbId));
     const { episodeId } = await getOrFetchEpisode(Number(tmdbId), Number(season), Number(ep));
     const uid = userId(request);
     await markEpisodeWatched(uid, episodeId, watchedAt);
-    void checkRewatchCompletion(uid, show.id).catch(() => {});
-    await checkShowWatchlistCompletion(uid, show.id).catch(() => {});
+    void checkRewatchCompletion(uid, show.id).catch(err => console.error('Rewatch completion check failed:', err));
+    await checkShowWatchlistCompletion(uid, show.id).catch(err => console.error('Watchlist show completion check failed:', err));
     return { watched: true, episodeId };
   });
 
@@ -124,9 +127,9 @@ export async function showsRoutes(app: FastifyInstance) {
     return { cast };
   });
 
-  app.post('/shows/:tmdbId/watched', auth, async (request: FastifyRequest) => {
-    const { watchedAt } = (request.body as any) ?? {};
-    const show = await getOrFetchShow(Number(params(request).tmdbId));
+  app.post<{ Params: { tmdbId: string }; Body: { watchedAt?: string } }>('/shows/:tmdbId/watched', auth, async (request) => {
+    const { watchedAt } = request.body ?? {};
+    const show = await getOrFetchShow(Number(request.params.tmdbId));
     await markShowWatched(userId(request), show.id, watchedAt);
     return { watched: true };
   });
@@ -141,7 +144,7 @@ export async function showsRoutes(app: FastifyInstance) {
     const tmdbId = Number(params(request).tmdbId);
     const show = await getOrFetchShow(tmdbId);
     const added = await toggleWatchlist(userId(request), 'show', show.id);
-    if (added) void prefetchAllSeasons(tmdbId).catch(() => {});
+    if (added) void prefetchAllSeasons(tmdbId).catch(err => console.error(`[prefetch] seasons show ${tmdbId}:`, err));
     return { inWatchlist: added };
   });
 

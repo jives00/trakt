@@ -3,6 +3,11 @@
 ## May 16, 2026
 
 ### API
+- Add `DEFAULT_USER_ID` constant; thread `userId` param through scrobble service functions — eliminates hardcoded `user_id=1` in SQL `150f9ed`
+- Replace all silent `.catch(()=>{})` with named error logging across scrobble, trakt-poll, shows, and movies services `150f9ed`
+- Guard `JSON.parse(genres)` in stats-helpers with try/catch to prevent stats endpoint crash on corrupt data `150f9ed`
+- Batch N+1 rewatch episode count loop in progress service into a single `GROUP BY` query `150f9ed`
+- Replace `request.params/body/query as any` with Fastify generic types across 10 route files `150f9ed`
 - Fetch YouTube trailer key from TMDB videos endpoint; store in `movies`/`tv_shows` via migration 028 `ba19bed`
 
 ### Web

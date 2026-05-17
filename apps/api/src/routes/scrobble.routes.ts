@@ -1,7 +1,11 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { EmbyWebhookPayload } from '@trakt/types';
 import { authenticateScrobble, authenticate } from '../middleware/auth';
 import { handleEmbyScrobble, getNowPlaying } from '../services/scrobble.service';
+
+function userId(request: FastifyRequest): number {
+  return (request.user as { sub: number }).sub;
+}
 
 export async function scrobbleRoutes(app: FastifyInstance) {
   app.post<{ Body: EmbyWebhookPayload }>('/scrobble/emby', { preHandler: authenticateScrobble }, async (request, reply) => {
@@ -19,9 +23,9 @@ export async function scrobbleRoutes(app: FastifyInstance) {
     }
   });
 
-  app.get('/scrobble/now-playing', { preHandler: authenticate }, async (_request, reply) => {
+  app.get('/scrobble/now-playing', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const item = await getNowPlaying();
+      const item = await getNowPlaying(userId(request));
       if (!item) {
         return reply.status(204).send();
       }
