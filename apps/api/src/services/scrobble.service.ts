@@ -120,7 +120,8 @@ export async function upsertWatchHistory(
 
   const existingRow = await pool.query(
     `SELECT id FROM watch_history
-     WHERE user_id = ? AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+     WHERE user_id = ? AND media_type = ? AND media_id = ?
+       AND watched_at >= CURDATE() AND watched_at < CURDATE() + INTERVAL 1 DAY`,
     [userId, mediaType, mediaIdDb]
   );
 
@@ -131,7 +132,8 @@ export async function upsertWatchHistory(
     await pool.query(
       `UPDATE watch_history
        SET progress_pct = ?, watched_at = NOW(), source = ?, completion_progress = ?, playback_stopped_at = ?
-       WHERE user_id = ? AND media_type = ? AND media_id = ? AND DATE(watched_at) = CURDATE()`,
+       WHERE user_id = ? AND media_type = ? AND media_id = ?
+         AND watched_at >= CURDATE() AND watched_at < CURDATE() + INTERVAL 1 DAY`,
       [progressPct, source, completionProgress, playbackStoppedAtValue, userId, mediaType, mediaIdDb]
     );
   } else {

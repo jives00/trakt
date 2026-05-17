@@ -3,6 +3,13 @@
 ## May 16, 2026
 
 ### API
+- Add composite indexes on `watch_history (user_id, media_type, media_id)` and `(user_id, watched_at)`; index on `credits (media_type, media_id)` via migration 029 `04309d2`
+- Replace N+1 per-show query loop in progress service with 2–4 batch `ROW_NUMBER()` window-function queries `04309d2`
+- Fix `DATE(watched_at)` in scrobble upsert — replaced with range condition so the new index is usable `04309d2`
+- Rewrite `queryShowsCompleted` correlated subqueries with a self-join on `episodes`; rewrite `queryTopGenres` to aggregate via MySQL `JSON_TABLE` instead of Node-side parsing `04309d2`
+- Bulk INSERT episode rows when caching a season (N queries → 1) `04309d2`
+- Batch `syncWatchHistory`: pre-load all exclusions once, batch existence check, bulk insert new entries `04309d2`
+- Extend `migrate.ts` to also apply migrations to `trakt_test_1` through `trakt_test_18` `04309d2`
 - Add `DEFAULT_USER_ID` constant; thread `userId` param through scrobble service functions — eliminates hardcoded `user_id=1` in SQL `150f9ed`
 - Replace all silent `.catch(()=>{})` with named error logging across scrobble, trakt-poll, shows, and movies services `150f9ed`
 - Guard `JSON.parse(genres)` in stats-helpers with try/catch to prevent stats endpoint crash on corrupt data `150f9ed`

@@ -323,13 +323,18 @@ export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number)
         }
       }
 
-      for (const ep of tmdbSeason.episodes) {
+      if (tmdbSeason.episodes.length > 0) {
+        const episodeValues = tmdbSeason.episodes.map((ep) => [
+          show.id, seasonId, ep.episodeNumber, ep.title, ep.overview,
+          ep.stillPath, ep.airDate, ep.runtimeMin, ep.airTime ?? seriesAirTime, ep.episodeType,
+        ]);
+        const placeholders = episodeValues.map(() => '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').join(', ');
         await pool.query(
           `INSERT INTO episodes (show_id, season_id, episode_number, title, overview, still_path, air_date, runtime_min, air_time, episode_type)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           VALUES ${placeholders}
            ON DUPLICATE KEY UPDATE title = VALUES(title), overview = VALUES(overview),
              still_path = VALUES(still_path), air_date = VALUES(air_date), runtime_min = VALUES(runtime_min), episode_type = VALUES(episode_type)`,
-          [show.id, seasonId, ep.episodeNumber, ep.title, ep.overview, ep.stillPath, ep.airDate, ep.runtimeMin, ep.airTime ?? seriesAirTime, ep.episodeType],
+          episodeValues.flat(),
         );
       }
     }

@@ -164,57 +164,91 @@ async function syncWatchHistory(): Promise<void> {
     }
 
     const pool = getPool();
+
+    // Pre-load all exclusions so each item check is an O(1) Set lookup instead of a DB query.
+    const [exclusionRows] = await pool.query(
+      `SELECT tmdb_id, media_type, integration FROM scrobble_exclusions`
+    );
+    const exclusionSet = new Set(
+      (exclusionRows as any[]).map((r) => `${r.integration}:${r.media_type}:${r.tmdb_id}`)
+    );
+    const isExcludedFast = (tmdbId: number, mediaType: 'movie' | 'show') =>
+      exclusionSet.has(`stremio:${mediaType}:${tmdbId}`);
+
+    // Phase 1: resolve all media IDs sequentially (DB cache; external API only on cache miss).
+    type Resolved = { mediaType: 'movie' | 'episode'; mediaId: number; watchedAt: Date };
+    const resolved: Array<Resolved | null> = [];
+
     for (const item of data) {
       try {
         const watchedAt = item.watched_at ? new Date(item.watched_at) : new Date();
 
         if (item.type === 'movie' && item.movie) {
           const tmdbId = item.movie.ids?.tmdb;
-          if (!tmdbId) continue;
-
-          const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'stremio');
-          if (isExcluded) continue;
-
+          if (!tmdbId || isExcludedFast(tmdbId, 'movie')) { resolved.push(null); continue; }
           const movie = await getOrFetchMovie(tmdbId);
-          // Check if already logged (any source, any date)
-          const [existing] = await pool.query(
-            `SELECT id FROM watch_history WHERE user_id = ? AND media_type = 'movie' AND media_id = ?`,
-            [DEFAULT_USER_ID, movie.id]
-          );
-          if ((existing as any[]).length === 0) {
-            await pool.query(
-              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
-               VALUES (?, 'movie', ?, 100, 'trakt.tv', ?, 100)`,
-              [DEFAULT_USER_ID, movie.id, watchedAt]
-            );
-          }
+          resolved.push({ mediaType: 'movie', mediaId: movie.id, watchedAt });
         } else if (item.type === 'episode' && item.episode && item.show) {
           const showTmdbId = item.show.ids?.tmdb;
           const seasonNumber = item.episode.season;
           const episodeNumber = item.episode.number;
-          if (!showTmdbId || seasonNumber === undefined || episodeNumber === undefined) continue;
-
-          const isExcluded = await isScrobbleExcluded(showTmdbId, 'episode', 'stremio');
-          if (isExcluded) continue;
-
+          if (!showTmdbId || seasonNumber === undefined || episodeNumber === undefined ||
+              isExcludedFast(showTmdbId, 'show')) { resolved.push(null); continue; }
           await getOrFetchShow(showTmdbId);
           const episode = await getOrFetchEpisode(showTmdbId, seasonNumber, episodeNumber);
-          // Check if already logged (any source, any date)
-          const [existing] = await pool.query(
-            `SELECT id FROM watch_history WHERE user_id = ? AND media_type = 'episode' AND media_id = ?`,
-            [DEFAULT_USER_ID, episode.episodeId]
-          );
-          if ((existing as any[]).length === 0) {
-            await pool.query(
-              `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress)
-               VALUES (?, 'episode', ?, 100, 'trakt.tv', ?, 100)`,
-              [DEFAULT_USER_ID, episode.episodeId, watchedAt]
-            );
-          }
+          resolved.push({ mediaType: 'episode', mediaId: episode.episodeId, watchedAt });
+        } else {
+          resolved.push(null);
         }
       } catch (err) {
         console.error('📚 Error processing history item:', err);
+        resolved.push(null);
       }
+    }
+
+    const validItems = resolved.filter(Boolean) as Resolved[];
+    if (validItems.length === 0) return;
+
+    // Phase 2: batch check which are already logged (any source, any date).
+    const movieItems = validItems.filter((r) => r.mediaType === 'movie');
+    const episodeItems = validItems.filter((r) => r.mediaType === 'episode');
+
+    const existingMovieIds = new Set<number>();
+    if (movieItems.length > 0) {
+      const [rows] = await pool.query(
+        `SELECT media_id FROM watch_history WHERE user_id = ? AND media_type = 'movie' AND media_id IN (${movieItems.map(() => '?').join(',')})`,
+        [DEFAULT_USER_ID, ...movieItems.map((r) => r.mediaId)]
+      );
+      (rows as any[]).forEach((r) => existingMovieIds.add(r.media_id));
+    }
+
+    const existingEpisodeIds = new Set<number>();
+    if (episodeItems.length > 0) {
+      const [rows] = await pool.query(
+        `SELECT media_id FROM watch_history WHERE user_id = ? AND media_type = 'episode' AND media_id IN (${episodeItems.map(() => '?').join(',')})`,
+        [DEFAULT_USER_ID, ...episodeItems.map((r) => r.mediaId)]
+      );
+      (rows as any[]).forEach((r) => existingEpisodeIds.add(r.media_id));
+    }
+
+    // Phase 3: bulk insert new items.
+    const newMovies = movieItems.filter((r) => !existingMovieIds.has(r.mediaId));
+    const newEpisodes = episodeItems.filter((r) => !existingEpisodeIds.has(r.mediaId));
+
+    if (newMovies.length > 0) {
+      const placeholders = newMovies.map(() => "(?, 'movie', ?, 100, 'trakt.tv', ?, 100)").join(', ');
+      await pool.query(
+        `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress) VALUES ${placeholders}`,
+        newMovies.flatMap((r) => [DEFAULT_USER_ID, r.mediaId, r.watchedAt])
+      );
+    }
+
+    if (newEpisodes.length > 0) {
+      const placeholders = newEpisodes.map(() => "(?, 'episode', ?, 100, 'trakt.tv', ?, 100)").join(', ');
+      await pool.query(
+        `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress) VALUES ${placeholders}`,
+        newEpisodes.flatMap((r) => [DEFAULT_USER_ID, r.mediaId, r.watchedAt])
+      );
     }
   } catch (err) {
     console.error('📚 History sync error:', err);

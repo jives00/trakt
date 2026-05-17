@@ -18,6 +18,12 @@ async function main() {
 
   await runMigrations('trakt_test', dbConfig);
   console.log(`✓ Migrated trakt_test`);
+
+  for (let i = 1; i <= 18; i++) {
+    const db = `trakt_test_${i}`;
+    await runMigrations(db, dbConfig);
+    console.log(`✓ Migrated ${db}`);
+  }
 }
 
 main().catch(err => { console.error(err); process.exit(1); });

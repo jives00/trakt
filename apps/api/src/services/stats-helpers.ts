@@ -61,33 +61,29 @@ export async function queryTopGenres(
   month?: number,
 ): Promise<TopGenre[]> {
   const { sql: dc, params: dp } = dateClause(year, month);
+  // JSON_TABLE expands the genres array server-side so only 10 rows are returned to Node.
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT m.genres
-     FROM watch_history wh
-     JOIN movies m ON wh.media_type='movie' AND m.id=wh.media_id
-     WHERE wh.user_id=?${dc} AND m.genres IS NOT NULL
-     UNION ALL
-     SELECT ts.genres
-     FROM watch_history wh
-     JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
-     JOIN tv_shows ts ON e.show_id=ts.id
-     WHERE wh.user_id=?${dc} AND ts.genres IS NOT NULL`,
+    `SELECT genre, COUNT(*) AS count
+     FROM (
+       SELECT jt.genre
+       FROM watch_history wh
+       JOIN movies m ON wh.media_type='movie' AND m.id=wh.media_id
+       JOIN JSON_TABLE(m.genres, '$[*]' COLUMNS (genre VARCHAR(100) PATH '$')) jt
+       WHERE wh.user_id=?${dc} AND m.genres IS NOT NULL
+       UNION ALL
+       SELECT jt.genre
+       FROM watch_history wh
+       JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
+       JOIN tv_shows ts ON ts.id=e.show_id
+       JOIN JSON_TABLE(ts.genres, '$[*]' COLUMNS (genre VARCHAR(100) PATH '$')) jt
+       WHERE wh.user_id=?${dc} AND ts.genres IS NOT NULL
+     ) g
+     GROUP BY genre
+     ORDER BY count DESC
+     LIMIT 10`,
     [userId, ...dp, userId, ...dp],
   );
-  const counts: Record<string, number> = {};
-  for (const row of rows) {
-    let genres: string[] = [];
-    try {
-      genres = Array.isArray(row.genres) ? row.genres : JSON.parse(row.genres as string);
-    } catch {
-      console.error('Invalid genres JSON in watch_history row, skipping');
-    }
-    for (const g of genres) counts[g] = (counts[g] ?? 0) + 1;
-  }
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([genre, count]) => ({ genre, count }));
+  return rows.map((r) => ({ genre: String(r.genre), count: Number(r.count) })) as TopGenre[];
 }
 
 export async function queryTotalMinutes(
@@ -111,20 +107,23 @@ export async function queryShowsCompleted(
   userId: number,
   year: number,
 ): Promise<number> {
+  // Replaces two correlated subqueries per show with a self-join on episodes + LEFT JOIN on
+  // watch_history. Shows watched at least once in the given year where all episodes are watched
+  // at any time are counted as completed.
   const [[row]] = await pool.query<RowDataPacket[]>(
-    `SELECT COUNT(DISTINCT show_id) AS count FROM (
+    `SELECT COUNT(*) AS count FROM (
        SELECT e.show_id,
-         (SELECT COUNT(*) FROM episodes WHERE show_id = e.show_id) AS total_episodes,
-         (SELECT COUNT(*) FROM watch_history wh2
-          WHERE wh2.user_id = ? AND wh2.media_type='episode'
-            AND wh2.media_id IN (SELECT id FROM episodes WHERE show_id = e.show_id)
-         ) AS watched_episodes
+         COUNT(DISTINCT all_eps.id)    AS total_eps,
+         COUNT(DISTINCT wh_all.media_id) AS watched_eps
        FROM watch_history wh
-       JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
-       WHERE wh.user_id=? AND YEAR(wh.watched_at)=?
+       JOIN episodes e ON wh.media_type = 'episode' AND e.id = wh.media_id
+       JOIN episodes all_eps ON all_eps.show_id = e.show_id
+       LEFT JOIN watch_history wh_all
+         ON wh_all.user_id = ? AND wh_all.media_type = 'episode' AND wh_all.media_id = all_eps.id
+       WHERE wh.user_id = ? AND YEAR(wh.watched_at) = ?
        GROUP BY e.show_id
-     ) shows_in_year
-     WHERE total_episodes = watched_episodes`,
+       HAVING watched_eps = total_eps
+     ) completed`,
     [userId, userId, year],
   );
   return Number(row.count ?? 0);
