@@ -21,8 +21,8 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/apps/web/.next/standalone/apps/web ./
+COPY --from=builder /app/apps/web/.next/standalone ./
 
 EXPOSE 3000
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]
