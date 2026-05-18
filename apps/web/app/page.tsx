@@ -296,7 +296,7 @@ function StatsBarChart({ data, summary, genres, onBarClick }: { data: DashboardD
   const watchTime = formatWatchTime(summary.totalMinutes);
   const summaryParts: string[] = [`${watchTime} watched`];
   if (summary.episodes > 0) {
-    summaryParts.push(`${summary.episodes} episode${summary.episodes !== 1 ? "s" : ""} (${summary.plays} play${summary.plays !== 1 ? "s" : ""})`);
+    summaryParts.push(`${summary.episodes} episode${summary.episodes !== 1 ? "s" : ""}`);
   }
   if (summary.movies > 0) {
     summaryParts.push(`${summary.movies} movie${summary.movies !== 1 ? "s" : ""}`);

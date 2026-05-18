@@ -9,6 +9,7 @@
 ### Web
 - Switch to multi-stage Docker builds; runtime image ships only the Next.js standalone bundle `80faf27`
 - Fix 502 by copying full standalone directory; monorepo node_modules live at standalone root, not apps/web `d3a80d4`
+- Remove misleading plays count from dashboard 30-day summary; plays included movies but displayed next to episodes `dd9d6ac`
 
 ### API
 - Fix schedule query sort order to include `seasonNumber, episodeNumber` so episodes within a show are ordered correctly `2b8d210`
