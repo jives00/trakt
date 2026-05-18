@@ -4,6 +4,7 @@
 
 ### API
 - Switch to multi-stage Docker builds; runtime image ships only prod deps + compiled dist, dropping ~1.3-1.5 GB combined across api and web images `80faf27`
+- Fix pnpm deploy failure by adding --legacy flag for pnpm v10 compatibility `0b3daee`
 
 ### Web
 - Switch to multi-stage Docker builds; runtime image ships only the Next.js standalone bundle `80faf27`

@@ -11,7 +11,7 @@ COPY apps/api/ ./apps/api/
 RUN pnpm install --ignore-scripts
 RUN pnpm --filter @trakt/types build
 RUN pnpm --filter api build
-RUN pnpm --filter api deploy --prod /deploy
+RUN pnpm --filter api deploy --legacy --prod /deploy
 
 FROM node:24-alpine
 
