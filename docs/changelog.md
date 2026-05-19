@@ -1,5 +1,10 @@
 # Changelog
 
+## May 19, 2026
+
+### Mobile
+- Fix upcoming schedule showing wrong date for midnight airings; `new Date("YYYY-MM-DD")` parsed as UTC causing off-by-one in local time zones; also adds Today/Tomorrow labels `1f2513c`
+
 ## May 17, 2026
 
 ### API

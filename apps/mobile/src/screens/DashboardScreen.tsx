@@ -12,6 +12,20 @@ import type { UpNextItem, ScheduleItem, DashboardStats, RecentItem } from "@trak
 
 type Nav = NativeStackNavigationProp<SharedDetailParamList>;
 
+function formatScheduleDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const d = new Date(year, month - 1, day);
+  const now = new Date();
+  if (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()) {
+    return "Today";
+  }
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  if (d.getFullYear() === tomorrow.getFullYear() && d.getMonth() === tomorrow.getMonth() && d.getDate() === tomorrow.getDate()) {
+    return "Tomorrow";
+  }
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const { width: SCREEN_W } = Dimensions.get("window");
 const POSTER_W = 90;
 const POSTER_H = 135;
@@ -113,7 +127,7 @@ export default function DashboardScreen() {
                 }}
               >
                 <View style={s.schedDate}>
-                  <Text style={s.schedDateText}>{new Date(item.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</Text>
+                  <Text style={s.schedDateText}>{formatScheduleDate(item.date.slice(0, 10))}</Text>
                 </View>
                 {item.posterPath ? (
                   <Image source={{ uri: `${TMDB_IMG}w92${item.posterPath}` }} style={s.schedPoster} contentFit="cover" />
