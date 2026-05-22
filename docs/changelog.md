@@ -1,5 +1,13 @@
 # Changelog
 
+## May 21, 2026
+
+### API
+- Delete episodes from DB that TMDB no longer returns when refreshing a season `a1141ac`
+
+### Web
+- Episode page redirects to season if the current episode no longer exists after a refresh `a1141ac`
+
 ## May 19, 2026
 
 ### Mobile

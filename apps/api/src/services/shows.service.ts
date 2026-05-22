@@ -336,6 +336,13 @@ export async function getOrFetchSeason(showTmdbId: number, seasonNumber: number)
              still_path = VALUES(still_path), air_date = VALUES(air_date), runtime_min = VALUES(runtime_min), episode_type = VALUES(episode_type)`,
           episodeValues.flat(),
         );
+
+        // Remove episodes that TMDB no longer returns for this season
+        const tmdbEpNums = tmdbSeason.episodes.map((ep) => ep.episodeNumber);
+        await pool.query(
+          `DELETE FROM episodes WHERE season_id = ? AND episode_number NOT IN (${tmdbEpNums.map(() => '?').join(', ')})`,
+          [seasonId, ...tmdbEpNums],
+        );
       }
     }
   } else {

@@ -138,6 +138,8 @@ export default function EpisodeDetailPage() {
         showTitle: show!.title,
         seasonNumber: sn,
       });
+    } else {
+      router.push(`/shows/${tmdbId}/seasons/${sn}`);
     }
   }
 
