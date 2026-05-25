@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
 function formatWatchedAt(iso: string): string {
-  const date = new Date(iso);
+  const date = new Date(iso.endsWith('Z') ? iso : iso + 'Z');
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffH = Math.floor(diffMs / 3600000);
@@ -27,7 +27,7 @@ function formatWatchedAt(iso: string): string {
 function groupByDay(items: HistoryItem[]): [string, HistoryItem[]][] {
   const groups = new Map<string, HistoryItem[]>();
   for (const item of items) {
-    const d = new Date(item.watchedAt);
+    const d = new Date(item.watchedAt.endsWith('Z') ? item.watchedAt : item.watchedAt + 'Z');
     const now = new Date();
     const isToday = d.toDateString() === now.toDateString();
     const yesterday = new Date(now);

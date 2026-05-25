@@ -7,6 +7,9 @@
 - Fix Trakt username being cleared to null on every OAuth token refresh `78cf6d9`
 - Fix history sync being blocked for 1 hour after an early return due to missing username `92feda6`
 
+### Web
+- Fix watched dates showing one day ahead in non-UTC timezones (history, episode, and movie pages) `538d9b1`
+
 ## May 21, 2026
 
 ### API

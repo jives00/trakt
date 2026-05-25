@@ -310,7 +310,7 @@ export default function EpisodeDetailPage() {
                       <div key={entry.id} className="flex items-center justify-between p-2 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
                         <div className="flex-1">
                           <p className="text-on-surface text-sm">
-                            {new Date(entry.watchedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {new Date(entry.watchedAt.endsWith('Z') ? entry.watchedAt : entry.watchedAt + 'Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
                           <p className="text-on-surface/50 text-xs capitalize">{entry.source}</p>
                         </div>
