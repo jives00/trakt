@@ -8,6 +8,44 @@ const LIST_FIELDS = `
   l.description, l.created_at AS createdAt, l.stremio_catalog AS stremioCatalog,
   COUNT(li.id) AS itemCount`;
 
+const WATCHED_STATUS_SQL = `
+  CASE
+    WHEN li.media_type = 'movie' THEN
+      EXISTS(SELECT 1 FROM watch_history wh WHERE wh.user_id = ? AND wh.media_type = 'movie' AND wh.media_id = li.media_id)
+    WHEN li.media_type = 'show' THEN (
+      SELECT CASE WHEN
+        SUM(IF(s2.season_number > 0 AND e2.air_date <= CURDATE(), 1, 0)) > 0
+        AND SUM(IF(s2.season_number > 0 AND e2.air_date <= CURDATE(), 1, 0)) =
+          SUM(IF(s2.season_number > 0 AND e2.air_date <= CURDATE() AND
+            EXISTS(SELECT 1 FROM watch_history wh2 WHERE wh2.user_id = ? AND wh2.media_type = 'episode' AND wh2.media_id = e2.id),
+            1, 0))
+      THEN 1 ELSE 0 END
+      FROM episodes e2
+      JOIN seasons s2 ON s2.id = e2.season_id
+      WHERE e2.show_id = li.media_id
+    )
+    ELSE 0
+  END AS isFullyWatched`;
+
+const ITEMS_SELECT = `
+  SELECT li.id, li.media_type AS mediaType, li.media_id AS mediaId,
+    li.added_at AS addedAt, li.sort_order AS sortOrder,
+    COALESCE(m.tmdb_id, ts.tmdb_id) AS tmdbId,
+    COALESCE(m.title, ts.title, e.title) AS title,
+    COALESCE(m.poster_path, ts.poster_path) AS posterPath,
+    COALESCE(m.year, ts.year) AS year,
+    ${WATCHED_STATUS_SQL}
+  FROM list_items li
+  LEFT JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
+  LEFT JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
+  LEFT JOIN episodes e ON li.media_type='episode' AND e.id=li.media_id
+  WHERE li.list_id=?
+  ORDER BY li.sort_order, li.added_at`;
+
+function mapItems(rows: RowDataPacket[]): ListItemEntry[] {
+  return rows.map((r) => ({ ...r, isFullyWatched: !!r.isFullyWatched })) as unknown as ListItemEntry[];
+}
+
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -64,23 +102,9 @@ export async function getListByType(userId: number, listType: ListType): Promise
   );
   if (!list) return null;
 
-  const [items] = await pool.query<RowDataPacket[]>(
-    `SELECT li.id, li.media_type AS mediaType, li.media_id AS mediaId,
-       li.added_at AS addedAt, li.sort_order AS sortOrder,
-       COALESCE(m.tmdb_id, ts.tmdb_id) AS tmdbId,
-       COALESCE(m.title, ts.title, e.title) AS title,
-       COALESCE(m.poster_path, ts.poster_path) AS posterPath,
-       COALESCE(m.year, ts.year) AS year
-     FROM list_items li
-     LEFT JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
-     LEFT JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
-     LEFT JOIN episodes e ON li.media_type='episode' AND e.id=li.media_id
-     WHERE li.list_id=?
-     ORDER BY li.sort_order, li.added_at`,
-    [list.id],
-  );
+  const [items] = await pool.query<RowDataPacket[]>(ITEMS_SELECT, [userId, userId, list.id]);
 
-  return { ...(list as UserList), items: items as ListItemEntry[] };
+  return { ...(list as UserList), items: mapItems(items) };
 }
 
 export async function createList(
@@ -157,23 +181,9 @@ export async function getListDetail(userId: number, listId: number): Promise<Lis
   );
   if (!list) return null;
 
-  const [items] = await pool.query<RowDataPacket[]>(
-    `SELECT li.id, li.media_type AS mediaType, li.media_id AS mediaId,
-       li.added_at AS addedAt, li.sort_order AS sortOrder,
-       COALESCE(m.tmdb_id, ts.tmdb_id) AS tmdbId,
-       COALESCE(m.title, ts.title, e.title) AS title,
-       COALESCE(m.poster_path, ts.poster_path) AS posterPath,
-       COALESCE(m.year, ts.year) AS year
-     FROM list_items li
-     LEFT JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
-     LEFT JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
-     LEFT JOIN episodes e ON li.media_type='episode' AND e.id=li.media_id
-     WHERE li.list_id=?
-     ORDER BY li.sort_order, li.added_at`,
-    [listId],
-  );
+  const [items] = await pool.query<RowDataPacket[]>(ITEMS_SELECT, [userId, userId, listId]);
 
-  return { ...(list as UserList), items: items as ListItemEntry[] };
+  return { ...(list as UserList), items: mapItems(items) };
 }
 
 export async function deleteList(userId: number, listId: number): Promise<boolean> {

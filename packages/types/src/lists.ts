@@ -26,6 +26,7 @@ export interface ListItemEntry {
   title: string | null;
   posterPath: string | null;
   year: number | null;
+  isFullyWatched: boolean;
 }
 
 export interface ListDetail extends UserList {

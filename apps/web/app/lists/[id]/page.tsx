@@ -341,6 +341,11 @@ function ListItemCard({ item, onRemove }: { item: ListItemEntry; onRemove: () =>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          {item.isFullyWatched && (
+            <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center z-10 shadow">
+              <span className="material-symbols-outlined text-white" style={{ fontSize: "15px", lineHeight: "1" }}>check</span>
+            </div>
+          )}
         </div>
         <p className="text-sm font-semibold text-on-surface line-clamp-1 group-hover:text-accent transition-colors">{item.title}</p>
         {item.year && <p className="text-xs text-on-surface/40">{item.year}</p>}

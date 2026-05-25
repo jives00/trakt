@@ -1,5 +1,13 @@
 # Changelog
 
+## May 25, 2026
+
+### API
+- Add `isFullyWatched` to list item queries: movies with any watch history, shows where all aired non-special episodes are watched `839a474`
+
+### Web
+- Show green checkmark badge on fully-watched items in list pages `839a474`
+
 ## May 24, 2026
 
 ### API
