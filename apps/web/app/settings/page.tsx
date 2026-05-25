@@ -241,6 +241,20 @@ export default function SettingsPage() {
     }
   };
 
+  const handleTraktDisconnect = async () => {
+    if (!confirm("Disconnect from Trakt? Watch history syncing will stop until you reconnect.")) return;
+    try {
+      const res = await fetch("/api/settings/trakt-auth", {
+        method: "DELETE",
+        credentials: "include",
+        headers: authHeaders,
+      });
+      if (res.ok) setTraktConnected(false);
+    } catch (err) {
+      console.error("Failed to disconnect Trakt:", err);
+    }
+  };
+
   const pollAuthorizationStatus = async () => {
     const pollInterval = setInterval(async () => {
       try {
@@ -477,17 +491,27 @@ export default function SettingsPage() {
                   <div className="glass-panel rounded-xl p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-bold text-on-surface">Trakt Connection</h3>
-                      <button
-                        onClick={handleTraktConnect}
-                        disabled={traktConnected}
-                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${
-                          traktConnected
-                            ? "bg-green-600/20 text-green-400 border border-green-600/30 cursor-default"
-                            : "bg-accent text-white hover:bg-accent-hover"
-                        }`}
-                      >
-                        {traktConnected ? "✓ Connected" : "Connect Trakt"}
-                      </button>
+                      {traktConnected ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-2 rounded-lg text-sm font-bold bg-green-600/20 text-green-400 border border-green-600/30">
+                            ✓ Connected
+                          </span>
+                          <button
+                            onClick={handleTraktDisconnect}
+                            className="px-3 py-2 rounded-lg text-sm font-bold bg-on-surface/10 text-on-surface/60 hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                          >
+                            Disconnect
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleTraktConnect}
+                          disabled={oauthAuthorizing}
+                          className="px-4 py-2 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {oauthAuthorizing ? "Starting..." : "Connect Trakt"}
+                        </button>
+                      )}
                     </div>
                     <p className="text-xs text-on-surface-variant">Required for watch history syncing from Trakt, Emby, and Stremio.</p>
                   </div>

@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { authenticate } from '../middleware/auth';
-import { getTraktToken, setTraktToken } from '../services/trakt-poll.service';
+import { getTraktToken, setTraktToken, clearTraktToken } from '../services/trakt-poll.service';
 import { initiateDeviceCodeFlow, checkAuthorizationStatus } from '../services/trakt-oauth.service';
 
 export async function settingsRoutes(app: FastifyInstance) {
@@ -42,6 +42,15 @@ export async function settingsRoutes(app: FastifyInstance) {
       }
     }
   );
+
+  app.delete('/settings/trakt-auth', auth, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      await clearTraktToken();
+      return reply.send({ isConnected: false });
+    } catch (err) {
+      return reply.status(500).send({ error: 'Failed to disconnect' });
+    }
+  });
 
   // Start device code OAuth flow
   app.post('/settings/trakt-auth/start', auth, async (request: FastifyRequest, reply: FastifyReply) => {

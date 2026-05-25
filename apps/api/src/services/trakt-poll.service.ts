@@ -55,6 +55,11 @@ export async function setTraktToken(token: StoredToken): Promise<void> {
   );
 }
 
+export async function clearTraktToken(): Promise<void> {
+  const pool = getPool();
+  await pool.query('DELETE FROM trakt_tokens WHERE id = 1');
+}
+
 export async function refreshTraktToken(): Promise<StoredToken> {
   const token = await getTraktToken();
   if (!token) {
