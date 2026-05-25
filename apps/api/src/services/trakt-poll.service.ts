@@ -107,10 +107,10 @@ async function syncWatchHistory(): Promise<void> {
     return;
   }
 
-  lastHistorySync = now;
-
   let token = await getTraktToken();
   if (!token?.username) return;
+
+  lastHistorySync = now;
 
   if (token.expiresAt < new Date()) {
     try {
