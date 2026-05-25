@@ -136,12 +136,14 @@ export async function upsertWatchHistory(
          AND watched_at >= CURDATE() AND watched_at < CURDATE() + INTERVAL 1 DAY`,
       [progressPct, source, completionProgress, playbackStoppedAtValue, userId, mediaType, mediaIdDb]
     );
+    console.log(`✅ Scrobble updated — ${source} ${mediaType} id=${mediaIdDb} at ${progressPct}%`);
   } else {
     await pool.query(
       `INSERT INTO watch_history (user_id, media_type, media_id, progress_pct, source, watched_at, completion_progress, playback_stopped_at)
        VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)`,
       [userId, mediaType, mediaIdDb, progressPct, source, completionProgress, playbackStoppedAtValue]
     );
+    console.log(`✅ Scrobble recorded — ${source} ${mediaType} id=${mediaIdDb} at ${progressPct}%`);
   }
 }
 

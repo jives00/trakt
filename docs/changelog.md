@@ -1,5 +1,10 @@
 # Changelog
 
+## May 24, 2026
+
+### API
+- Add operational logging: background poller startup, Trakt token refresh, hourly history sync completion with counts, and per-scrobble record/update confirmation `f653b51`
+
 ## May 21, 2026
 
 ### API

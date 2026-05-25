@@ -93,6 +93,7 @@ export async function refreshTraktToken(): Promise<StoredToken> {
   };
 
   await setTraktToken(newToken);
+  console.log('🔐 Trakt token refreshed successfully');
   return newToken;
 }
 
@@ -250,6 +251,8 @@ async function syncWatchHistory(): Promise<void> {
         newEpisodes.flatMap((r) => [DEFAULT_USER_ID, r.mediaId, r.watchedAt])
       );
     }
+
+    console.log(`📚 History sync complete — ${newEpisodes.length} new episodes, ${newMovies.length} new movies`);
   } catch (err) {
     console.error('📚 History sync error:', err);
   }
@@ -374,6 +377,7 @@ async function pollNow(): Promise<void> {
 
 export function startBackgroundPoller(): void {
   if (backgroundPoller) return;
+  console.log('🔁 Background poller started');
   pollNow().catch(err => console.error('Background poll error:', err));
   syncWatchHistory().catch(err => console.error('History sync error:', err));
   backgroundPoller = setInterval(() => {
