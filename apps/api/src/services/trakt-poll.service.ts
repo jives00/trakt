@@ -90,6 +90,7 @@ export async function refreshTraktToken(): Promise<StoredToken> {
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
     expiresAt: new Date(Date.now() + data.expires_in * 1000),
+    username: token.username,
   };
 
   await setTraktToken(newToken);

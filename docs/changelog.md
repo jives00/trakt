@@ -4,6 +4,7 @@
 
 ### API
 - Add operational logging: background poller startup, Trakt token refresh, hourly history sync completion with counts, and per-scrobble record/update confirmation `f653b51`
+- Fix Trakt username being cleared to null on every OAuth token refresh `78cf6d9`
 
 ## May 21, 2026
 
