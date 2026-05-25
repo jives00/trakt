@@ -34,8 +34,13 @@ export async function dashboardRoutes(app: FastifyInstance) {
     return getRecentItems(userId(request), l);
   });
 
-  app.get('/dashboard/stats', auth, async (request: FastifyRequest) => {
-    return getDashboardStats(userId(request));
+  app.get<{ Querystring: { tzOffset?: string } }>('/dashboard/stats', auth, async (request) => {
+    const raw = parseInt(request.query.tzOffset ?? '0', 10);
+    const clampedOffset = Math.max(-840, Math.min(840, isNaN(raw) ? 0 : raw));
+    const sign = clampedOffset > 0 ? '-' : '+';
+    const abs = Math.abs(clampedOffset);
+    const tzString = `${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+    return getDashboardStats(userId(request), tzString);
   });
 
   app.get('/dashboard/recommendations/shows', auth, async (request: FastifyRequest) => {

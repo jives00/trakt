@@ -235,8 +235,8 @@ export const api = {
     request<ScheduleItem[]>(`/api/dashboard/schedule?range=${range}&type=${type}&startDays=${startDays}`, { token }),
   getRecentItems: (token: string, limit = 10) =>
     request<RecentItem[]>(`/api/dashboard/recent?limit=${limit}`, { token }),
-  getDashboardStats: (token: string) =>
-    request<DashboardStats>("/api/dashboard/stats", { token }),
+  getDashboardStats: (token: string, tzOffset: number) =>
+    request<DashboardStats>(`/api/dashboard/stats?tzOffset=${tzOffset}`, { token }),
   getDashboardArt: (token: string) =>
     request<string[]>("/api/dashboard/art", { token }),
   getShowRecommendations: (token: string) =>

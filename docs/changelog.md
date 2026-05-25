@@ -9,6 +9,7 @@
 
 ### Web
 - Fix watched dates showing one day ahead in non-UTC timezones (history, episode, and movie pages) `538d9b1`
+- Fix dashboard 30-day chart grouping watches by UTC date instead of local date `30257a5`
 
 ## May 21, 2026
 

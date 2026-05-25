@@ -4,17 +4,18 @@ import { batchApplyImageOverrides } from './image-overrides.service';
 import { DashboardStats, DashboardGenre, RecentItem } from '@trakt/types';
 import { RUNTIME_EXPR, MEDIA_JOINS } from './stats-helpers';
 
-export async function getDashboardStats(userId: number): Promise<DashboardStats> {
+export async function getDashboardStats(userId: number, tzOffset: string = '+00:00'): Promise<DashboardStats> {
   const pool = getPool();
+  const localDate = `CONVERT_TZ(wh.watched_at, '+00:00', '${tzOffset}')`;
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT DATE_FORMAT(DATE(wh.watched_at), '%Y-%m-%d') AS date,
+    `SELECT DATE_FORMAT(DATE(${localDate}), '%Y-%m-%d') AS date,
        SUM(${RUNTIME_EXPR}) / 60.0 AS hours,
        SUM(wh.media_type = 'episode') AS episodes,
        SUM(wh.media_type = 'movie') AS movies
      FROM watch_history wh ${MEDIA_JOINS}
-     WHERE wh.user_id=? AND wh.watched_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
+     WHERE wh.user_id=? AND ${localDate} >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
        AND (wh.completion_progress >= 90 OR wh.playback_stopped_at IS NOT NULL)
-     GROUP BY DATE_FORMAT(DATE(wh.watched_at), '%Y-%m-%d') ORDER BY date`,
+     GROUP BY DATE_FORMAT(DATE(${localDate}), '%Y-%m-%d') ORDER BY date`,
     [userId],
   );
   const [[summary]] = await pool.query<RowDataPacket[]>(
@@ -24,7 +25,7 @@ export async function getDashboardStats(userId: number): Promise<DashboardStats>
        SUM(wh.media_type = 'movie') AS movies,
        COUNT(*) AS plays
      FROM watch_history wh ${MEDIA_JOINS}
-     WHERE wh.user_id=? AND wh.watched_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
+     WHERE wh.user_id=? AND ${localDate} >= DATE_SUB(CURDATE(), INTERVAL 29 DAY)
        AND (wh.completion_progress >= 90 OR wh.playback_stopped_at IS NOT NULL)`,
     [userId],
   );
@@ -33,7 +34,7 @@ export async function getDashboardStats(userId: number): Promise<DashboardStats>
      FROM watch_history wh
      JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
      JOIN tv_shows ts ON e.show_id=ts.id
-     WHERE wh.user_id=? AND wh.watched_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND ts.genres IS NOT NULL
+     WHERE wh.user_id=? AND ${localDate} >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND ts.genres IS NOT NULL
        AND (wh.completion_progress >= 90 OR wh.playback_stopped_at IS NOT NULL)`,
     [userId],
   );
@@ -41,7 +42,7 @@ export async function getDashboardStats(userId: number): Promise<DashboardStats>
     `SELECT m.genres
      FROM watch_history wh
      JOIN movies m ON wh.media_type='movie' AND m.id=wh.media_id
-     WHERE wh.user_id=? AND wh.watched_at >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND m.genres IS NOT NULL
+     WHERE wh.user_id=? AND ${localDate} >= DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND m.genres IS NOT NULL
        AND (wh.completion_progress >= 90 OR wh.playback_stopped_at IS NOT NULL)`,
     [userId],
   );
