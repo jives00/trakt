@@ -108,7 +108,8 @@ Config at `/etc/nginx/sites-available/trakt`. See `EC2Documentation.md` for full
 - `/stremio-addon/` → API (3002)
 
 ### GitHub Actions
-Push to `main` → SSH to EC2 → `git pull` → `docker compose up --build -d`.
+- Push to `main` → SSH to EC2 → `git pull` → `docker compose up --build -d`
+- Push `apk-*` tag → build Android APK on Ubuntu via Gradle → upload as workflow artifact
 
 ---
 
@@ -124,18 +125,29 @@ pnpm --filter api run migrate     # Run DB migrations
 ### Mobile (Android)
 
 ```bash
-# Local builds (preserves EAS tokens)
-cd apps/mobile
-npx expo run:android              # debug APK, installs to connected device/emulator
-npx expo run:android --variant release   # release APK locally
-
-# EAS cloud builds (use sparingly — limited tokens)
-eas build --platform android --profile preview     # test APK
-eas build --platform android --profile production  # release AAB
-
 # Dev server only (no build)
+cd apps/mobile
 npx expo start
+
+# Debug build — installs to connected device/emulator
+npx expo run:android
 ```
+
+**Release APK — GitHub Actions (preferred)**
+Push an `apk-*` tag to trigger the build workflow (~20–30 min):
+```bash
+git tag apk-<description>
+git push origin apk-<description>
+```
+Download the APK from the Actions tab → workflow run → Artifacts.
+
+- Runs on Ubuntu — no Windows 260-char path limits from cmake/ninja
+- Uses `expo prebuild --platform android --clean` then Gradle
+- Free tier: 2,000 Linux minutes/month (private repo)
+
+**Why not local Windows Gradle:** cmake generates mangled `C_/Users/...` paths for codegen output outside the source dir. These exceed 260 chars and ninja.exe is not long-path-aware. Emergency fallback only.
+
+**Why not EAS:** Monthly token limit; tokens burn even on failed builds.
 
 EC2 deploy: `apps/mobile/` is excluded via git sparse checkout in `deploy.yml` — it never lands on the server.
 
