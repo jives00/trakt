@@ -1,5 +1,10 @@
 # Changelog
 
+## May 26, 2026
+
+### CI
+- Name APK build artifacts with timestamp (`trakt-MMDDYYYY-HHMM.apk`) and send email notification on successful build `5390345`
+
 ## May 25, 2026
 
 ### API
