@@ -11,6 +11,7 @@
 
 ### Mobile
 - Increase character name font sizes on cast sections for better readability `4ad46b6`
+- Swipe left/right on episode detail page to navigate to next/previous episode `9469236`
 
 ## May 24, 2026
 

@@ -1,5 +1,5 @@
-﻿﻿﻿﻿﻿import { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
+﻿﻿﻿﻿﻿import { useEffect, useState, useRef } from "react";
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl, PanResponder } from "react-native";
 import { Image } from "expo-image";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -8,7 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
-import type { EpisodeDetail, CastMember } from "../lib/api";
+import type { EpisodeDetail, CastMember, SeasonSummary } from "../lib/api";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "EpisodeDetail">;
 
@@ -20,22 +20,72 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const [watched, setWatched] = useState(false);
   const [guestCast, setGuestCast] = useState<CastMember[]>([]);
   const [regularCast, setRegularCast] = useState<CastMember[]>([]);
+  const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toggling, setToggling] = useState(false);
+
+  // Stable refs so the PanResponder (created once) always calls fresh navigation functions
+  const navPrevRef = useRef<() => void>(() => {});
+  const navNextRef = useRef<() => void>(() => {});
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gs) =>
+        Math.abs(gs.dx) > Math.abs(gs.dy) && Math.abs(gs.dx) > 20,
+      onPanResponderRelease: (_, gs) => {
+        if (gs.dx > 50) navPrevRef.current();
+        else if (gs.dx < -50) navNextRef.current();
+      },
+    })
+  );
 
   async function load() {
     if (!token) return;
     return Promise.all([
       api.getEpisode(tmdbId, seasonNumber, episodeNumber, token),
       api.getEpisodeCast(tmdbId, seasonNumber, episodeNumber, token),
-    ]).then(([epData, castData]) => {
+      api.getShowSeasons(tmdbId, token),
+    ]).then(([epData, castData, seasonsData]) => {
       setEpisode(epData.episode);
       setWatched(epData.watched);
       setRegularCast(castData.cast.filter((m) => m.isRegular).slice(0, 20));
       setGuestCast(castData.cast.filter((m) => !m.isRegular).slice(0, 12));
+      setSeasons(seasonsData.seasons);
     });
   }
+
+  function navigatePrevious() {
+    if (seasons.length === 0) return;
+    const currentSeason = seasons.find(s => s.seasonNumber === seasonNumber);
+    if (!currentSeason) return;
+
+    if (episodeNumber > 1) {
+      nav.push("EpisodeDetail", { tmdbId, seasonNumber, episodeNumber: episodeNumber - 1, showName });
+    } else if (seasonNumber > 1) {
+      const prevSeason = seasons.find(s => s.seasonNumber === seasonNumber - 1);
+      if (prevSeason) {
+        nav.push("EpisodeDetail", { tmdbId, seasonNumber: seasonNumber - 1, episodeNumber: prevSeason.episodeCount, showName });
+      }
+    }
+  }
+
+  function navigateNext() {
+    if (seasons.length === 0) return;
+    const currentSeason = seasons.find(s => s.seasonNumber === seasonNumber);
+    if (!currentSeason) return;
+
+    if (episodeNumber < currentSeason.episodeCount) {
+      nav.push("EpisodeDetail", { tmdbId, seasonNumber, episodeNumber: episodeNumber + 1, showName });
+    } else if (seasonNumber < seasons[seasons.length - 1].seasonNumber) {
+      nav.push("EpisodeDetail", { tmdbId, seasonNumber: seasonNumber + 1, episodeNumber: 1, showName });
+    }
+  }
+
+  // Update refs each render so PanResponder always has fresh state
+  navPrevRef.current = navigatePrevious;
+  navNextRef.current = navigateNext;
 
   useEffect(() => {
     load().finally(() => setLoading(false));
@@ -67,7 +117,12 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const stillUrl = episode.stillPath ? `${TMDB_IMG}w780${episode.stillPath}` : null;
 
   return (
-    <ScrollView style={s.root} contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}>
+    <View style={s.swipeContainer} {...panResponder.current.panHandlers}>
+    <ScrollView
+      style={s.root}
+      contentContainerStyle={s.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#e8002d" colors={["#e8002d"]} />}
+    >
       {/* Still */}
       <View style={s.stillContainer}>
         {stillUrl ? (
@@ -174,10 +229,12 @@ export default function EpisodeDetailScreen({ route }: Props) {
         )}
       </View>
     </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
+  swipeContainer: { flex: 1 },
   root: { flex: 1, backgroundColor: "#1c1e26" },
   content: { flexGrow: 1 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1e26" },
