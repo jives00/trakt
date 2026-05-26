@@ -6,9 +6,10 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
-import type { MovieDetail, MovieStatus, MovieCastMember } from "../lib/api";
+import type { MovieDetail, MovieStatus, MovieCastMember, HistoryItem } from "../lib/api";
 import type { UserList } from "@trakt/types";
 import { Ionicons } from "@expo/vector-icons";
+import { WatchActionSheet } from "../components/WatchActionSheet";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "MovieDetail">;
 
@@ -21,6 +22,8 @@ export default function MovieDetailScreen({ route }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [watchSheet, setWatchSheet] = useState(false);
   const [rating, setRating] = useState(0);
   const [listModal, setListModal] = useState(false);
   const [lists, setLists] = useState<UserList[]>([]);
@@ -31,10 +34,12 @@ export default function MovieDetailScreen({ route }: Props) {
     return Promise.all([
       api.getMovie(tmdbId, token),
       api.getMovieCast(tmdbId, token),
-    ]).then(([movieData, castData]) => {
+      api.getMovieHistory(tmdbId, token).catch(() => [] as HistoryItem[]),
+    ]).then(([movieData, castData, historyData]) => {
       setMovie(movieData.movie);
       setStatus(movieData.status);
       setCast(castData.cast.slice(0, 20));
+      setHistory(historyData);
     });
   }
 
@@ -47,15 +52,31 @@ export default function MovieDetailScreen({ route }: Props) {
     try { await load(); } finally { setRefreshing(false); }
   }
 
-  async function handleWatched() {
-    if (!token || !status || toggling) return;
+  async function handleMarkWatched(watchedAt: string) {
+    if (!token || toggling) return;
     setToggling(true);
     try {
-      const res = await api.toggleMovieWatched(tmdbId, status.watched, token);
+      const res = await api.toggleMovieWatched(tmdbId, false, token, watchedAt);
       setStatus((s) => s && { ...s, watched: res.watched });
+      api.getMovieHistory(tmdbId, token).then(setHistory).catch(() => {});
     } finally {
       setToggling(false);
     }
+  }
+
+  async function handleRemoveLatest(id: number) {
+    if (!token) return;
+    await api.deleteHistory(id, token).catch(() => {});
+    const [historyData] = await Promise.all([api.getMovieHistory(tmdbId, token).catch(() => [] as HistoryItem[])]);
+    setHistory(historyData);
+    if (historyData.length === 0) setStatus((s) => s && { ...s, watched: false });
+  }
+
+  async function handleRemoveAll() {
+    if (!token || !status) return;
+    const res = await api.toggleMovieWatched(tmdbId, true, token);
+    setStatus((s) => s && { ...s, watched: res.watched });
+    setHistory([]);
   }
 
   async function handleWatchlist() {
@@ -129,7 +150,7 @@ export default function MovieDetailScreen({ route }: Props) {
       <View style={s.actionRow}>
         <TouchableOpacity
           style={[s.actionBtn, status.watched && s.actionBtnActive]}
-          onPress={handleWatched}
+          onPress={() => setWatchSheet(true)}
           disabled={toggling}
         >
           {toggling ? (
@@ -157,6 +178,17 @@ export default function MovieDetailScreen({ route }: Props) {
           <Text style={s.actionBtnText}>Lists</Text>
         </TouchableOpacity>
       </View>
+
+      <WatchActionSheet
+        visible={watchSheet}
+        onClose={() => setWatchSheet(false)}
+        watched={status.watched}
+        releaseDate={movie.releaseDate ?? null}
+        onMark={handleMarkWatched}
+        onRemoveLatest={handleRemoveLatest}
+        onRemoveAll={handleRemoveAll}
+        latestEntryId={history[0]?.id ?? null}
+      />
 
       {/* List picker modal */}
       <Modal visible={listModal} transparent animationType="slide" onRequestClose={() => setListModal(false)}>

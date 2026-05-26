@@ -8,7 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { TMDB_IMG } from "../lib/constants";
 import type { SharedDetailParamList } from "../navigation/types";
-import type { EpisodeDetail, CastMember, SeasonSummary } from "../lib/api";
+import type { EpisodeDetail, CastMember, SeasonSummary, HistoryItem } from "../lib/api";
+import { WatchActionSheet } from "../components/WatchActionSheet";
 
 type Props = NativeStackScreenProps<SharedDetailParamList, "EpisodeDetail">;
 
@@ -18,6 +19,8 @@ export default function EpisodeDetailScreen({ route }: Props) {
   const nav = useNavigation<NativeStackNavigationProp<SharedDetailParamList>>();
   const [episode, setEpisode] = useState<EpisodeDetail | null>(null);
   const [watched, setWatched] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [watchSheet, setWatchSheet] = useState(false);
   const [guestCast, setGuestCast] = useState<CastMember[]>([]);
   const [regularCast, setRegularCast] = useState<CastMember[]>([]);
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
@@ -47,12 +50,14 @@ export default function EpisodeDetailScreen({ route }: Props) {
       api.getEpisode(tmdbId, seasonNumber, episodeNumber, token),
       api.getEpisodeCast(tmdbId, seasonNumber, episodeNumber, token),
       api.getShowSeasons(tmdbId, token),
-    ]).then(([epData, castData, seasonsData]) => {
+      api.getEpisodeHistory(tmdbId, seasonNumber, episodeNumber, token).catch(() => [] as HistoryItem[]),
+    ]).then(([epData, castData, seasonsData, historyData]) => {
       setEpisode(epData.episode);
       setWatched(epData.watched);
       setRegularCast(castData.cast.filter((m) => m.isRegular).slice(0, 20));
       setGuestCast(castData.cast.filter((m) => !m.isRegular).slice(0, 12));
       setSeasons(seasonsData.seasons);
+      setHistory(historyData);
     });
   }
 
@@ -96,15 +101,31 @@ export default function EpisodeDetailScreen({ route }: Props) {
     try { await load(); } finally { setRefreshing(false); }
   }
 
-  async function handleToggle() {
+  async function handleMarkWatched(watchedAt: string) {
     if (!token || toggling) return;
     setToggling(true);
     try {
-      await api.toggleEpisodeWatched(tmdbId, seasonNumber, episodeNumber, watched, token);
-      setWatched(!watched);
+      await api.toggleEpisodeWatched(tmdbId, seasonNumber, episodeNumber, false, token, watchedAt);
+      setWatched(true);
+      api.getEpisodeHistory(tmdbId, seasonNumber, episodeNumber, token).then(setHistory).catch(() => {});
     } finally {
       setToggling(false);
     }
+  }
+
+  async function handleRemoveLatest(id: number) {
+    if (!token) return;
+    await api.deleteHistory(id, token).catch(() => {});
+    const historyData = await api.getEpisodeHistory(tmdbId, seasonNumber, episodeNumber, token).catch(() => [] as HistoryItem[]);
+    setHistory(historyData);
+    if (historyData.length === 0) setWatched(false);
+  }
+
+  async function handleRemoveAll() {
+    if (!token) return;
+    await api.toggleEpisodeWatched(tmdbId, seasonNumber, episodeNumber, true, token);
+    setWatched(false);
+    setHistory([]);
   }
 
   if (loading) {
@@ -154,7 +175,7 @@ export default function EpisodeDetailScreen({ route }: Props) {
         <View style={s.actionRow}>
           <TouchableOpacity
             style={[s.watchedBtn, watched && s.watchedBtnActive]}
-            onPress={handleToggle}
+            onPress={() => setWatchSheet(true)}
             disabled={toggling}
           >
           {toggling ? (
@@ -169,6 +190,18 @@ export default function EpisodeDetailScreen({ route }: Props) {
             <Text style={s.showBtnText}>View Show</Text>
           </TouchableOpacity>
         </View>
+
+        <WatchActionSheet
+          visible={watchSheet}
+          onClose={() => setWatchSheet(false)}
+          watched={watched}
+          releaseDate={episode.airDate ?? null}
+          releaseDateLabel="Air Date"
+          onMark={handleMarkWatched}
+          onRemoveLatest={handleRemoveLatest}
+          onRemoveAll={handleRemoveAll}
+          latestEntryId={history[0]?.id ?? null}
+        />
 
         {/* Ratings */}
         {(episode.tmdbRating != null || episode.rtCriticScore != null) && (
