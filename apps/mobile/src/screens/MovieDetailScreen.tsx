@@ -310,7 +310,7 @@ const s = StyleSheet.create({
   castPhoto: { width: 70, height: 105, borderRadius: 6, backgroundColor: "#323440" },
   castFallback: { backgroundColor: "#323440" },
   castName: { fontSize: 10, color: "#d7d8e2", marginTop: 4, lineHeight: 13 },
-  castChar: { fontSize: 9, color: "#888", marginTop: 1 },
+  castChar: { fontSize: 11, color: "#888", marginTop: 1 },
 
   linkSection: { paddingTop: 24 },
   linkRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16 },

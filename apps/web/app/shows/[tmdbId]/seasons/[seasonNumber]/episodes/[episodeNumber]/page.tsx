@@ -382,7 +382,7 @@ function CastCard({ member }: { member: CastMember }) {
         )}
       </div>
       <p className="text-on-surface text-xs font-semibold line-clamp-2 group-hover:text-accent transition-colors">{member.name}</p>
-      <p className="text-on-surface/50 text-[10px] line-clamp-2 mt-0.5">{member.character}</p>
+      <p className="text-on-surface/50 text-sm line-clamp-2 mt-0.5">{member.character}</p>
     </a>
   );
 }

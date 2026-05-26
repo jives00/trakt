@@ -7,6 +7,10 @@
 
 ### Web
 - Show green checkmark badge on fully-watched items in list pages `839a474`
+- Increase character name font sizes on cast sections for better readability `4ad46b6`
+
+### Mobile
+- Increase character name font sizes on cast sections for better readability `4ad46b6`
 
 ## May 24, 2026
 

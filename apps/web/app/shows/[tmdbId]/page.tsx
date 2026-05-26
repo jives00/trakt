@@ -401,7 +401,7 @@ export default function ShowDetailPage() {
                           )}
                         </div>
                         <p className="text-on-surface text-xs font-bold line-clamp-1 group-hover:text-accent transition-colors">{m.name}</p>
-                        <p className="text-on-surface/40 text-sm line-clamp-1">{m.character}</p>
+                        <p className="text-on-surface/40 text-base line-clamp-1">{m.character}</p>
                         <p className="text-on-surface/30 text-sm">{m.episodeCount} ep{m.episodeCount !== 1 ? "s" : ""}</p>
                       </a>
                     ))}

@@ -377,7 +377,7 @@ const s = StyleSheet.create({
 
   castPhoto: { width: CAST_W, height: CAST_W * 1.5, borderRadius: 6, backgroundColor: "#323440" },
   castName: { fontSize: 10, color: "#d7d8e2", marginTop: 4, lineHeight: 13 },
-  castChar: { fontSize: 9, color: "#888", marginTop: 1 },
+  castChar: { fontSize: 11, color: "#888", marginTop: 1 },
 
   linkRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16 },
   linkBtn: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "#1e2029" },
