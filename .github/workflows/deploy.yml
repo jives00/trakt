@@ -28,9 +28,13 @@ jobs:
       - run: pnpm install
       - name: Prebuild Android
         working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://jives.duckdns.org
         run: npx expo prebuild --platform android --clean
       - name: Build APK
         working-directory: apps/mobile/android
+        env:
+          EXPO_PUBLIC_API_URL: https://jives.duckdns.org
         run: ./gradlew app:assembleRelease -x lint -x test -PreactNativeArchitectures=arm64-v8a
       - name: Upload APK
         uses: actions/upload-artifact@v4
