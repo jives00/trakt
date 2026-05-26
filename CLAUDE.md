@@ -133,21 +133,7 @@ npx expo start
 npx expo run:android
 ```
 
-**Release APK — GitHub Actions (preferred)**
-Push an `apk-*` tag to trigger the build workflow (~20–30 min):
-```bash
-git tag apk-<description>
-git push origin apk-<description>
-```
-Download the APK from the Actions tab → workflow run → Artifacts.
-
-- Runs on Ubuntu — no Windows 260-char path limits from cmake/ninja
-- Uses `expo prebuild --platform android --clean` then Gradle
-- Free tier: 2,000 Linux minutes/month (private repo)
-
-**Why not local Windows Gradle:** cmake generates mangled `C_/Users/...` paths for codegen output outside the source dir. These exceed 260 chars and ninja.exe is not long-path-aware. Emergency fallback only.
-
-**Why not EAS:** Monthly token limit; tokens burn even on failed builds.
+**Release APK:** push an `apk-*` tag — GitHub Actions builds on Ubuntu via Gradle (~20–30 min), APK downloads from the Actions tab. See **[docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md)** for the full workflow, pre-build checklist, and local fallback instructions.
 
 EC2 deploy: `apps/mobile/` is excluded via git sparse checkout in `deploy.yml` — it never lands on the server.
 
