@@ -101,7 +101,7 @@ All DTOs and DB model types in `packages/types/`. No barrel re-exports unless ne
 - **Migrations:** Manual — `pnpm --filter api run migrate`. Test DBs reset automatically via `resetDb()` in `beforeEach`.
 
 ### Nginx
-Config at `/etc/nginx/sites-available/trakt`. See `EC2Documentation.md` for full config.
+Config at `/etc/nginx/sites-available/trakt`. See `../.claude/plans/EC2Documentation.md` for full config.
 
 - `/` → web (3001)
 - `/api/` → API (3002)
@@ -165,4 +165,4 @@ Tests co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`
 - **[docs/DESIGN.md](docs/DESIGN.md)** — color tokens, typography, component patterns, filter pills
 - **[docs/SECURITY.md](docs/SECURITY.md)** — helmet config, rate limiting, abort controller pattern
 - **[docs/changelog.md](docs/changelog.md)** — feature history
-- **[../EC2Documentation.md](../EC2Documentation.md)** — EC2 nginx config, .env files, PM2 setup, server reference
+- **[../.claude/plans/EC2Documentation.md](../.claude/plans/EC2Documentation.md)** — EC2 nginx config, .env files, PM2 setup, server reference

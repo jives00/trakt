@@ -1,13 +1,14 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+    image: ghcr.io/jbromber/trakt-api:latest
     container_name: trakt-api
-    network_mode: host
+    ports:
+      - "3002:3002"
+    networks:
+      - shared-db
     environment:
       NODE_ENV: production
-      DB_HOST: localhost
+      DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -25,18 +26,14 @@ services:
     restart: unless-stopped
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    image: ghcr.io/jbromber/trakt-web:latest
     container_name: trakt-web
     ports:
-      - "127.0.0.1:3001:3000"
+      - "3001:3000"
     networks:
-      - trakt-network
+      - shared-db
     restart: unless-stopped
 
 networks:
-  trakt-network:
-    driver: bridge
+  shared-db:
+    external: true
