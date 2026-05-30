@@ -1,6 +1,7 @@
 FROM node:24-alpine AS builder
 
 ARG NEXT_PUBLIC_API_URL
+ARG API_URL=http://trakt-api:3002
 
 WORKDIR /app
 
@@ -12,7 +13,7 @@ COPY apps/web/ ./apps/web/
 
 RUN pnpm install --ignore-scripts
 RUN pnpm --filter @trakt/types build
-RUN NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL pnpm --filter web build
+RUN NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL API_URL=$API_URL pnpm --filter web build
 
 RUN cp -r apps/web/public apps/web/.next/standalone/apps/web/public && \
     cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
