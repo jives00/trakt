@@ -26,7 +26,7 @@ jobs:
           context: .
           file: apps/api/Dockerfile
           push: true
-          tags: ghcr.io/${{ secrets.GHCR_USERNAME }}/trakt-api:latest
+          tags: ghcr.io/jives00/trakt-api:latest
 
       - name: Build and push web image
         uses: docker/build-push-action@v5
@@ -34,6 +34,6 @@ jobs:
           context: .
           file: apps/web/Dockerfile
           push: true
-          tags: ghcr.io/${{ secrets.GHCR_USERNAME }}/trakt-web:latest
+          tags: ghcr.io/jives00/trakt-web:latest
           build-args: |
             NEXT_PUBLIC_API_URL=http://${{ secrets.TAILSCALE_HOSTNAME }}:3002

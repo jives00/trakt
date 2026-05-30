@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/jbromber/trakt-api:latest
+    image: ghcr.io/jives00/trakt-api:latest
     container_name: trakt-api
     ports:
       - "3002:3002"
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   web:
-    image: ghcr.io/jbromber/trakt-web:latest
+    image: ghcr.io/jives00/trakt-web:latest
     container_name: trakt-web
     ports:
       - "3001:3000"
