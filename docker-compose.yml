@@ -32,6 +32,8 @@ services:
       - "3001:3000"
     networks:
       - shared-db
+    environment:
+      API_URL: http://trakt-api:3002
     restart: unless-stopped
 
 networks:
