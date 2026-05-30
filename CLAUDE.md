@@ -29,11 +29,12 @@ docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 | Backend API | Node.js 24 + Fastify + TypeScript |
 | Web | Next.js 14 (App Router) + TypeScript + Tailwind CSS + Material Symbols |
 | Mobile | React Native + Expo SDK 54 + NativeWind 4 (Android) |
-| Database | MySQL 8 on EC2 (not Docker) |
+| Database | MySQL 8 — shared Docker container on Synology NAS |
 | Monorepo | pnpm workspaces |
-| Infra | Docker Compose on EC2; API on `network_mode: host` |
-| TLS | nginx (not the containers) |
-| CI/CD | GitHub Actions → SSH deploy on push to main |
+| Infra | Docker Compose on Synology NAS; Tailscale for private access; Cloudflare Tunnel for Stremio addon HTTPS |
+| CI/CD | GitHub Actions → ghcr.io → Watchtower auto-deploy |
+
+See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, networking, and troubleshooting details.
 
 ---
 
@@ -96,19 +97,12 @@ All DTOs and DB model types in `packages/types/`. No barrel re-exports unless ne
 ## Deployment
 
 ### Docker Services
-- **API:** `network_mode: host`, port 3002, connects directly to local MySQL.
-- **Web:** Bridge network, `127.0.0.1:3001`. Runs Next.js standalone output (`node server.js`).
+- **API:** port 3002, on `shared-db` external network, `DB_HOST=mysql`
+- **Web:** port 3001, on `shared-db` network, proxies `/api/*` to `trakt-api:3002` (baked in at build time)
 - **Migrations:** Manual — `pnpm --filter api run migrate`. Test DBs reset automatically via `resetDb()` in `beforeEach`.
 
-### Nginx
-Config at `/etc/nginx/sites-available/trakt`. See `../.claude/plans/EC2Documentation.md` for full config.
-
-- `/` → web (3001)
-- `/api/` → API (3002)
-- `/stremio-addon/` → API (3002)
-
 ### GitHub Actions
-- Push to `main` → SSH to EC2 → `git pull` → `docker compose up --build -d`
+- Push to `main` → build images → push to `ghcr.io/jives00/trakt-api:latest` and `ghcr.io/jives00/trakt-web:latest` → Watchtower auto-deploys within 5 min
 - Push `apk-*` tag → build Android APK on Ubuntu via Gradle → upload as workflow artifact
 
 ---
@@ -165,4 +159,4 @@ Tests co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`
 - **[docs/DESIGN.md](docs/DESIGN.md)** — color tokens, typography, component patterns, filter pills
 - **[docs/SECURITY.md](docs/SECURITY.md)** — helmet config, rate limiting, abort controller pattern
 - **[docs/changelog.md](docs/changelog.md)** — feature history
-- **[../.claude/plans/EC2Documentation.md](../.claude/plans/EC2Documentation.md)** — EC2 nginx config, .env files, PM2 setup, server reference
+- **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** — hosting, networking, deployment flow, troubleshooting
