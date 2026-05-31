@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Pressable } from "react-native";
 import { useAuth } from "../contexts/AuthContext";
 
 export default function LoginScreen() {
@@ -8,6 +8,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin() {
     if (!username || !password) return;
@@ -15,8 +16,8 @@ export default function LoginScreen() {
     setError("");
     try {
       await login(username, password);
-    } catch {
-      setError("Invalid username or password");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -38,15 +39,20 @@ export default function LoginScreen() {
             value={username}
             onChangeText={setUsername}
           />
-          <TextInput
-            style={s.input}
-            placeholder="Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            onSubmitEditing={handleLogin}
-          />
+          <View style={s.passwordRow}>
+            <TextInput
+              style={[s.input, s.passwordInput]}
+              placeholder="Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              onSubmitEditing={handleLogin}
+            />
+            <Pressable style={s.eyeButton} onPress={() => setShowPassword(v => !v)}>
+              <Text style={s.eyeText}>{showPassword ? "🙈" : "👁"}</Text>
+            </Pressable>
+          </View>
 
           {error ? <Text style={s.error}>{error}</Text> : null}
 
@@ -89,4 +95,8 @@ const s = StyleSheet.create({
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 15 },
   error: { color: "#ffb4ab", fontSize: 13, textAlign: "center" },
+  passwordRow: { position: "relative" },
+  passwordInput: { paddingRight: 48 },
+  eyeButton: { position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" },
+  eyeText: { fontSize: 18 },
 });
