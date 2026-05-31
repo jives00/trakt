@@ -2,6 +2,9 @@
 
 ## May 31, 2026
 
+### Frontend – Web
+- Fix watch date showing as yesterday: `getTodayString()` now sends a full UTC datetime instead of a date-only string (which stored as midnight UTC = 7pm CDT the prior day); picked dates use noon UTC via `dateToUtcNoon()` `e189a36`
+
 ### Backend
 - Force MySQL session timezone to UTC (`timezone: '+00:00'` in pool config) so `NOW()` always stores UTC regardless of NAS system timezone, fixing watch dates showing as the previous day `97c69d0`
 

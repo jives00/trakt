@@ -51,13 +51,13 @@ export function WatchDatePicker({
     if (useReleaseDate) {
       onMark('release_date');
     } else if (releaseDate) {
-      onMark(releaseDate);
+      onMark(dateToUtcNoon(releaseDate));
     }
     setIsOpen(false);
   };
 
   const handleConfirmDate = () => {
-    onMark(selectedDate);
+    onMark(dateToUtcNoon(selectedDate));
     setIsOpen(false);
     setShowDateInput(false);
     setSelectedDate(getTodayString());
@@ -87,7 +87,7 @@ export function WatchDatePicker({
                   />
                   <button
                     onClick={() => {
-                      onMark(selectedDate);
+                      onMark(dateToUtcNoon(selectedDate));
                       setIsOpen(false);
                       setAddingWatch(false);
                       setSelectedDate(getTodayString());
@@ -235,9 +235,13 @@ export function WatchDatePicker({
 }
 
 function getTodayString(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const date = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${date}`;
+  // Full UTC datetime so MySQL stores the actual moment, not midnight UTC (which would
+  // display as yesterday in negative-offset timezones like CDT).
+  return new Date().toISOString().slice(0, 19).replace('T', ' ');
+}
+
+function dateToUtcNoon(dateStr: string): string {
+  // Store user-picked dates at noon UTC so they survive any UTC± timezone without
+  // rolling back to the previous calendar day.
+  return new Date(dateStr + 'T12:00:00Z').toISOString().slice(0, 19).replace('T', ' ');
 }
