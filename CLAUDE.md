@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, and Stremio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on EC2. Production live with automated GitHub deployment.
+Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, and Stremio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
 
 ---
 
