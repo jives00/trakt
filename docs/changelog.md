@@ -1,5 +1,10 @@
 # Changelog
 
+## May 31, 2026
+
+### Backend
+- Force MySQL session timezone to UTC (`timezone: '+00:00'` in pool config) so `NOW()` always stores UTC regardless of NAS system timezone, fixing watch dates showing as the previous day `97c69d0`
+
 ## May 26, 2026
 
 ### CI

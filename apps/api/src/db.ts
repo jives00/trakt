@@ -21,6 +21,7 @@ export function getPool(): mysql.Pool {
       user: process.env.DB_USER ?? 'trakt',
       password: process.env.DB_PASSWORD ?? '',
       dateStrings: true,
+      timezone: '+00:00',
     });
   }
   return pool;

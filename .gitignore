@@ -10,6 +10,7 @@ dist/
 .claude/
 docs/codereviews/
 docs/designs/
+docs/plans/
 docs/trackt_screenshots/
 plans/
 /docs/trakt-export/
