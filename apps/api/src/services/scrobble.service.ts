@@ -96,7 +96,7 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
 export async function isScrobbleExcluded(
   tmdbId: number,
   mediaType: 'movie' | 'episode',
-  integration: 'emby' | 'stremio' | 'kodi'
+  integration: 'emby' | 'stremio' | 'kodi' | 'nuvio'
 ): Promise<boolean> {
   const pool = getPool();
   const exclusionMediaType = mediaType === 'episode' ? 'show' : 'movie';
@@ -110,7 +110,7 @@ export async function isScrobbleExcluded(
 
 export async function upsertWatchHistory(
   userId: number,
-  source: 'emby' | 'stremio' | 'kodi',
+  source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
   progressPct: number,
@@ -149,7 +149,7 @@ export async function upsertWatchHistory(
 
 export async function updateNowPlaying(
   userId: number,
-  source: 'emby' | 'stremio' | 'kodi',
+  source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
   progressPct: number

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 type MainTab = "account" | "appearance" | "integrations" | "export";
 type IntegrationTab = "config" | "instructions";
-type Integration = "emby" | "stremio" | "kodi";
+type Integration = "emby" | "stremio" | "kodi" | "nuvio";
 
 interface Exclusion {
   id: number;
@@ -52,6 +52,8 @@ export default function SettingsPage() {
   const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]>([]);
   const [traktConnected, setTraktConnected] = useState(false);
   const [exclusions, setExclusions] = useState<Exclusion[]>([]);
+  const [nuvioExclusions, setNuvioExclusions] = useState<Exclusion[]>([]);
+  const [nuvioSearchQuery, setNuvioSearchQuery] = useState("");
   const [sourceStats, setSourceStats] = useState<{ trakt: number; manual: number; stremio: number } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -126,6 +128,12 @@ export default function SettingsPage() {
         if (excRes.ok) {
           const data = await excRes.json();
           setExclusions(data);
+        }
+
+        const nuvioExcRes = await fetch(`/api/settings/exclusions?integration=nuvio`, { credentials: "include", headers: authHeaders });
+        if (nuvioExcRes.ok) {
+          const data = await nuvioExcRes.json();
+          setNuvioExclusions(data);
         }
       } catch (err) {
         console.error("Failed to fetch exclusions:", err);
@@ -648,7 +656,7 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Excluded Titles */}
+                  {/* Stremio Excluded Titles */}
                   <ExclusionPanel
                     integration="stremio"
                     exclusions={exclusions}
@@ -656,14 +664,37 @@ export default function SettingsPage() {
                     setSearchQuery={setSearchQuery}
                     authHeaders={authHeaders}
                     onRefresh={() => {
-                      const fetchExclusions = async () => {
-                        const res = await fetch(`/api/settings/exclusions?integration=stremio`, { credentials: "include", headers: authHeaders });
-                        if (res.ok) {
-                          const data = await res.json();
-                          setExclusions(data);
-                        }
-                      };
-                      fetchExclusions();
+                      fetch(`/api/settings/exclusions?integration=stremio`, { credentials: "include", headers: authHeaders })
+                        .then(r => r.ok ? r.json() : [])
+                        .then(setExclusions)
+                        .catch(() => {});
+                    }}
+                  />
+
+                  {/* NuvioTV */}
+                  <div className="glass-panel rounded-xl p-6">
+                    <h3 className="font-bold text-on-surface mb-1">NuvioTV</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Install the catalog addon in NuvioTV using the URL below. Scrobbling is handled automatically by the forked app build.</p>
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant/60 mb-1">Addon URL</p>
+                    <div className="bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 mb-4">
+                      <code className="text-sm text-accent font-mono break-all">
+                        {typeof window !== 'undefined' ? `${window.location.origin}/nuvio-addon/manifest.json` : '/nuvio-addon/manifest.json'}
+                      </code>
+                    </div>
+                  </div>
+
+                  {/* NuvioTV Excluded Titles */}
+                  <ExclusionPanel
+                    integration="nuvio"
+                    exclusions={nuvioExclusions}
+                    searchQuery={nuvioSearchQuery}
+                    setSearchQuery={setNuvioSearchQuery}
+                    authHeaders={authHeaders}
+                    onRefresh={() => {
+                      fetch(`/api/settings/exclusions?integration=nuvio`, { credentials: "include", headers: authHeaders })
+                        .then(r => r.ok ? r.json() : [])
+                        .then(setNuvioExclusions)
+                        .catch(() => {});
                     }}
                   />
                 </div>
@@ -672,6 +703,7 @@ export default function SettingsPage() {
               {intTab === "instructions" && (
                 <div className="space-y-6">
                   <StremioGuide traktConnected={traktConnected} />
+                  <NuvioGuide />
                   <ExportGuide exportToken={exportToken} lists={exportableLists} />
                 </div>
               )}
@@ -873,7 +905,7 @@ function ExclusionPanel({
     <div className="glass-panel rounded-xl p-6">
       <h3 className="font-bold text-on-surface mb-1">Excluded Titles</h3>
       <p className="text-xs text-on-surface-variant mb-4">
-        Titles in this list won't be scrobbled from {integration === "emby" ? "Emby" : integration === "stremio" ? "Stremio" : "Kodi"}.
+        Titles in this list won't be scrobbled from {integration === "emby" ? "Emby" : integration === "stremio" ? "Stremio" : integration === "nuvio" ? "NuvioTV" : "Kodi"}.
       </p>
 
       <div className="space-y-4">
@@ -966,6 +998,37 @@ function ListSelect({ lists, value, onChange }: { lists: { slug: string; name: s
         <option key={l.slug} value={l.slug}>{l.name}</option>
       ))}
     </select>
+  );
+}
+
+function NuvioGuide() {
+  const manifestUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/nuvio-addon/manifest.json`
+    : '/nuvio-addon/manifest.json';
+
+  return (
+    <div className="space-y-6">
+      <div className="glass-panel rounded-xl p-6">
+        <h2 className="text-h3 font-bold text-on-surface mb-6">NuvioTV Setup Guide</h2>
+        <div className="flex flex-col gap-6">
+          <Step n={1} title="Install the forked APK">
+            <p>Build and install your forked NuvioTV APK on your Android TV. The fork is pre-configured to send scrobbles directly to this app — no Trakt account required.</p>
+          </Step>
+          <Step n={2} title="Install the Catalog Addon">
+            <p>In NuvioTV, go to <strong className="text-on-surface">Settings → Addons</strong> and paste the addon URL:</p>
+            <CodeBlock>{manifestUrl}</CodeBlock>
+            <p>Your lists will appear as browsable catalogs in the Discover tab.</p>
+          </Step>
+          <Step n={3} title="Start Watching">
+            <p>Play any content. NuvioTV will automatically send start and stop events to this app. Watch progress and completion are tracked in your History.</p>
+          </Step>
+          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
+            <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
+            Scrobbles are recorded at 80% completion for movies and 70% for episodes. List catalogs are shared with the Stremio addon — manage them in the Configuration tab.
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

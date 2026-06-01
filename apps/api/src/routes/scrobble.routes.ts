@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { EmbyWebhookPayload } from '@trakt/types';
 import { authenticateScrobble, authenticate } from '../middleware/auth';
 import { handleEmbyScrobble, getNowPlaying } from '../services/scrobble.service';
+import { handleNuvioScrobble, type NuvioScrobblePayload } from '../services/nuvio-scrobble.service';
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -16,6 +17,26 @@ export async function scrobbleRoutes(app: FastifyInstance) {
       }
 
       await handleEmbyScrobble(parsed.data);
+      return reply.send({});
+    } catch (err) {
+      app.log.error(err);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  app.post<{ Body: NuvioScrobblePayload }>('/scrobble/nuvio/start', { preHandler: authenticateScrobble }, async (request, reply) => {
+    try {
+      await handleNuvioScrobble('start', request.body);
+      return reply.send({});
+    } catch (err) {
+      app.log.error(err);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  app.post<{ Body: NuvioScrobblePayload }>('/scrobble/nuvio/stop', { preHandler: authenticateScrobble }, async (request, reply) => {
+    try {
+      await handleNuvioScrobble('stop', request.body);
       return reply.send({});
     } catch (err) {
       app.log.error(err);

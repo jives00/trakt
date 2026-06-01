@@ -17,6 +17,7 @@ import { userRoutes } from './routes/user.routes';
 import { exclusionsRoutes } from './routes/exclusions.routes';
 import { scrobbleRoutes } from './routes/scrobble.routes';
 import { stremioAddonRoutes } from './routes/stremio-addon.routes';
+import { nuvioAddonRoutes } from './routes/nuvio-addon.routes';
 import { settingsRoutes } from './routes/settings.routes';
 import { discoverRoutes } from './routes/discover.routes';
 import { exportTokenRoutes } from './routes/export-token.routes';
@@ -65,6 +66,7 @@ export function buildApp(): FastifyInstance {
   void app.register(exportFeedsRoutes, { prefix: '/api' });
   void app.register(excelExportRoutes, { prefix: '/api' });
   void app.register(stremioAddonRoutes, { prefix: '/stremio-addon' });
+  void app.register(nuvioAddonRoutes, { prefix: '/nuvio-addon' });
 
   return app;
 }

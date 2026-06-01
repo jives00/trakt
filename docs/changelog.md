@@ -2,6 +2,14 @@
 
 ## May 31, 2026
 
+### Backend
+- Add NuvioTV integration: `/nuvio-addon/` catalog addon (Stremio-compatible, reuses `stremio_catalog` lists), `POST /api/scrobble/nuvio/start` and `/stop` endpoints with `X-Api-Key` auth, 80%/70% watch thresholds, migration 030 extends source/integration enums `80a37b8`
+
+### Frontend – Web
+- Add NuvioTV section to Settings → Integrations: addon URL display, exclusion panel, setup guide in Instructions tab `80a37b8`
+
+## May 31, 2026
+
 ### Frontend – Web
 - Fix watch date showing as yesterday: `getTodayString()` now sends a full UTC datetime instead of a date-only string (which stored as midnight UTC = 7pm CDT the prior day); picked dates use noon UTC via `dateToUtcNoon()` `e189a36`
 
