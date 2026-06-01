@@ -5,21 +5,34 @@ import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 import { applyImageOverrides } from './image-overrides.service';
+import { get as tmdbGet } from './tmdb.client';
 
 export const DEFAULT_USER_ID = 1;
 
 const WATCH_THRESHOLD = { movie: 90, episode: 90 };
 
+async function resolveShowTmdbIdFromTvdbEpisode(tvdbEpisodeId: string): Promise<number | null> {
+  try {
+    const data = await tmdbGet<any>(`/find/${tvdbEpisodeId}?external_source=tvdb_id`);
+    return data.tv_episode_results?.[0]?.show_id ?? null;
+  } catch (err) {
+    console.error('Failed to resolve TMDB show ID from TVDB episode ID:', err);
+    return null;
+  }
+}
+
 export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<void> {
   try {
     const event = payload.Event;
 
-    if (!event || (event !== 'PlaybackProgress' && event !== 'PlaybackStopped')) {
+    if (!event || (event !== 'playback.start' && event !== 'playback.stop')) {
       return;
     }
 
     const { Item, PlaybackInfo } = payload;
-    const progressPct = Math.round((PlaybackInfo.PlaybackPositionTicks / Item.RunTimeTicks) * 100);
+    const progressPct = Item.RunTimeTicks > 0
+      ? Math.min(100, Math.round((PlaybackInfo.PositionTicks / Item.RunTimeTicks) * 100))
+      : 0;
 
     let tmdbId: number | null = null;
     let mediaType: 'movie' | 'episode' | null = null;
@@ -29,31 +42,26 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
     if (Item.Type === 'Movie') {
       mediaType = 'movie';
       const tmdbIdStr = Item.ProviderIds?.Tmdb;
-      if (tmdbIdStr) {
-        tmdbId = parseInt(tmdbIdStr, 10);
-      }
-
-      if (!tmdbId) {
-        return;
-      }
+      if (tmdbIdStr) tmdbId = parseInt(tmdbIdStr, 10);
+      if (!tmdbId) return;
     } else if (Item.Type === 'Episode') {
       mediaType = 'episode';
+      seasonNumber = Item.ParentIndexNumber ?? null;
+      episodeNumber = Item.IndexNumber ?? null;
+      if (seasonNumber === null || episodeNumber === null) return;
+
       const tmdbIdStr = Item.SeriesProviderIds?.Tmdb;
-      if (tmdbIdStr) {
-        tmdbId = parseInt(tmdbIdStr, 10);
+      if (tmdbIdStr) tmdbId = parseInt(tmdbIdStr, 10);
+
+      if (!tmdbId) {
+        const tvdbEpisodeId = Item.ProviderIds?.Tvdb;
+        if (tvdbEpisodeId) tmdbId = await resolveShowTmdbIdFromTvdbEpisode(tvdbEpisodeId);
       }
 
-      seasonNumber = Item.ParentIndexNumber || null;
-      episodeNumber = Item.IndexNumber || null;
-
-      if (!tmdbId || seasonNumber === null || episodeNumber === null) {
-        return;
-      }
+      if (!tmdbId) return;
     }
 
-    if (!tmdbId || !mediaType) {
-      return;
-    }
+    if (!tmdbId || !mediaType) return;
 
     let mediaIdDb: number;
     let showDbId: number | null = null;
@@ -69,12 +77,9 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
 
     const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
 
-    if (event === 'PlaybackProgress') {
+    if (event === 'playback.start') {
       await updateNowPlaying(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct);
-      if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
-        await upsertWatchHistory(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct, false);
-      }
-    } else if (event === 'PlaybackStopped') {
+    } else if (event === 'playback.stop') {
       await clearNowPlaying(DEFAULT_USER_ID);
       if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
         await upsertWatchHistory(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct, true);

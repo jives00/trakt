@@ -11,7 +11,7 @@ export const EmbyWebhookPayload = z.object({
     RunTimeTicks: z.number().int(),
   }),
   PlaybackInfo: z.object({
-    PlaybackPositionTicks: z.number().int(),
+    PositionTicks: z.number().int(),
   }),
 });
 export type EmbyWebhookPayload = z.infer<typeof EmbyWebhookPayload>;
