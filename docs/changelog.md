@@ -3,6 +3,18 @@
 ## June 01, 2026
 
 ### Backend
+- Add `GET/PUT /api/settings/preferences` for user-configurable watched % thresholds (movie + episode), stored as `watch_threshold_movie`/`watch_threshold_episode` on users table (migration 031) `36e3e0f`
+- Add `GET /api/settings/source-stats` returning watch history entry counts grouped by source `36e3e0f`
+- Emby and Nuvio scrobble services now read watch threshold from DB instead of hardcoded constants `36e3e0f`
+- Add `nuvio` to exclusions type enum and route validation (was silently rejected) `36e3e0f`
+
+### Frontend – Web
+- Overhaul Settings → Integrations: unified exclusion panel (all integrations, defaults to All), user-configurable watched % thresholds, live source-stats watch history counts, Stremio & Nuvio catalogs merged, Nuvio URL moved to Instructions `36e3e0f`
+- Add Emby setup guide to Instructions tab with masked webhook URL (eye toggle to reveal API key) `36e3e0f`
+- Merge Stremio scrobble + catalog guides into single panel in Instructions tab `36e3e0f`
+- Fix: DELETE requests omit `Content-Type: application/json` header to avoid Fastify empty-body rejection `36e3e0f`
+
+### Backend
 - Add `EMBY_URL`/`EMBY_API_KEY` env vars to docker-compose for Emby Sessions poller `3ef8fa5`
 - Add Emby Sessions poller for live now-playing progress updates every 30s, replacing Trakt.tv background poll for Emby playback `f4378fc`
 - Rewrite Emby scrobble handler for webhook plugin payload: handle `playback.start`/`playback.stop` events, `PositionTicks` field, and resolve show TMDB ID from TVDB episode ID via TMDB `/find` `ede9555`

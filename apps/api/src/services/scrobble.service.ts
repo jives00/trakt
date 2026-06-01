@@ -9,7 +9,18 @@ import { get as tmdbGet } from './tmdb.client';
 
 export const DEFAULT_USER_ID = 1;
 
-const WATCH_THRESHOLD = { movie: 90, episode: 90 };
+export async function getWatchThreshold(userId: number): Promise<{ movie: number; episode: number }> {
+  const pool = getPool();
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT watch_threshold_movie, watch_threshold_episode FROM users WHERE id = ?',
+    [userId]
+  );
+  if (rows.length === 0) return { movie: 90, episode: 90 };
+  return {
+    movie: rows[0].watch_threshold_movie as number,
+    episode: rows[0].watch_threshold_episode as number,
+  };
+}
 
 async function resolveShowTmdbIdFromTvdbEpisode(tvdbEpisodeId: string): Promise<number | null> {
   try {
@@ -77,11 +88,12 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
 
     const isExcluded = await isScrobbleExcluded(tmdbId, mediaType, 'emby');
 
+    const threshold = await getWatchThreshold(DEFAULT_USER_ID);
     if (event === 'playback.start') {
       await updateNowPlaying(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct);
     } else if (event === 'playback.stop') {
       await clearNowPlaying(DEFAULT_USER_ID);
-      if (!isExcluded && progressPct >= WATCH_THRESHOLD[mediaType]) {
+      if (!isExcluded && progressPct >= threshold[mediaType]) {
         await upsertWatchHistory(DEFAULT_USER_ID, 'emby', mediaType, mediaIdDb, progressPct, true);
         if (mediaType === 'movie') {
           void checkMovieWatchlistCompletion(DEFAULT_USER_ID, mediaIdDb)

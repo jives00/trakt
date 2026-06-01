@@ -1,11 +1,9 @@
 import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
-import { updateNowPlaying, clearNowPlaying, upsertWatchHistory, isScrobbleExcluded, DEFAULT_USER_ID } from './scrobble.service';
+import { updateNowPlaying, clearNowPlaying, upsertWatchHistory, isScrobbleExcluded, DEFAULT_USER_ID, getWatchThreshold } from './scrobble.service';
 import { getPool } from '../db';
 import { get as tmdbGet } from './tmdb.client';
-
-const WATCH_THRESHOLD = { movie: 80, episode: 70 };
 
 interface NuvioIds {
   trakt?: number;
@@ -55,6 +53,7 @@ async function resolveTmdbId(ids: NuvioIds, mediaType: 'movie' | 'show'): Promis
 export async function handleNuvioScrobble(action: 'start' | 'stop', payload: NuvioScrobblePayload): Promise<void> {
   try {
     const progressPct = Math.round(payload.progress);
+    const threshold = await getWatchThreshold(DEFAULT_USER_ID);
 
     if (isEpisodePayload(payload)) {
       const tmdbId = await resolveTmdbId(payload.show.ids, 'show');
@@ -72,7 +71,7 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct);
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
-        if (!isExcluded && progressPct >= WATCH_THRESHOLD.episode) {
+        if (!isExcluded && progressPct >= threshold.episode) {
           await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
           void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
             .catch(err => console.error('Watchlist show completion check failed:', err));
@@ -89,7 +88,7 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct);
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
-        if (!isExcluded && progressPct >= WATCH_THRESHOLD.movie) {
+        if (!isExcluded && progressPct >= threshold.movie) {
           await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
           void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
             .catch(err => console.error('Watchlist movie completion check failed:', err));

@@ -52,10 +52,12 @@ export default function SettingsPage() {
   const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]>([]);
   const [traktConnected, setTraktConnected] = useState(false);
   const [exclusions, setExclusions] = useState<Exclusion[]>([]);
-  const [nuvioExclusions, setNuvioExclusions] = useState<Exclusion[]>([]);
-  const [nuvioSearchQuery, setNuvioSearchQuery] = useState("");
-  const [sourceStats, setSourceStats] = useState<{ trakt: number; manual: number; stremio: number } | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [sourceStats, setSourceStats] = useState<Record<string, number> | null>(null);
+  const [preferences, setPreferences] = useState<{ watchThresholdMovie: number; watchThresholdEpisode: number } | null>(null);
+  const [thresholdMovie, setThresholdMovie] = useState("90");
+  const [thresholdEpisode, setThresholdEpisode] = useState("90");
+  const [savingThreshold, setSavingThreshold] = useState(false);
+  const [thresholdSaved, setThresholdSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [traktOAuthOpen, setTraktOAuthOpen] = useState(false);
   const [oauthUserCode, setOAuthUserCode] = useState<string | null>(null);
@@ -84,30 +86,30 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const keyRes = await fetch("/api/settings/api-key", { credentials: "include", headers: authHeaders });
-        if (keyRes.ok) {
-          const data = await keyRes.json();
-          setApiKey(data.scrobbleApiKey);
-        }
+        const [keyRes, exportRes, listsRes, authRes, statsRes, prefRes] = await Promise.all([
+          fetch("/api/settings/api-key", { credentials: "include", headers: authHeaders }),
+          fetch("/api/settings/export-token", { credentials: "include", headers: authHeaders }),
+          fetch("/api/lists", { credentials: "include", headers: authHeaders }),
+          fetch("/api/settings/trakt-auth", { credentials: "include", headers: authHeaders }),
+          fetch("/api/settings/source-stats", { credentials: "include", headers: authHeaders }),
+          fetch("/api/settings/preferences", { credentials: "include", headers: authHeaders }),
+        ]);
 
-        const exportRes = await fetch("/api/settings/export-token", { credentials: "include", headers: authHeaders });
-        if (exportRes.ok) {
-          const data = await exportRes.json();
-          setExportToken(data.token);
-        }
-
-        const listsRes = await fetch("/api/lists", { credentials: "include", headers: authHeaders });
+        if (keyRes.ok) setApiKey((await keyRes.json()).scrobbleApiKey);
+        if (exportRes.ok) setExportToken((await exportRes.json()).token);
         if (listsRes.ok) {
           const data = await listsRes.json();
           setExportableLists(
             (data as { id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]).filter((l) => l.slug)
           );
         }
-
-        const authRes = await fetch("/api/settings/trakt-auth", { credentials: "include", headers: authHeaders });
-        if (authRes.ok) {
-          const data = await authRes.json();
-          setTraktConnected(data.isConnected);
+        if (authRes.ok) setTraktConnected((await authRes.json()).isConnected);
+        if (statsRes.ok) setSourceStats(await statsRes.json());
+        if (prefRes.ok) {
+          const pref = await prefRes.json();
+          setPreferences(pref);
+          setThresholdMovie(String(pref.watchThresholdMovie));
+          setThresholdEpisode(String(pref.watchThresholdEpisode));
         }
       } catch (err) {
         console.error("Failed to fetch integrations data:", err);
@@ -120,28 +122,13 @@ export default function SettingsPage() {
     }
   }, [mainTab, authHeaders]);
 
-  // Load exclusions and source stats
+  // Load exclusions
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const excRes = await fetch(`/api/settings/exclusions?integration=stremio`, { credentials: "include", headers: authHeaders });
-        if (excRes.ok) {
-          const data = await excRes.json();
-          setExclusions(data);
-        }
-
-        const nuvioExcRes = await fetch(`/api/settings/exclusions?integration=nuvio`, { credentials: "include", headers: authHeaders });
-        if (nuvioExcRes.ok) {
-          const data = await nuvioExcRes.json();
-          setNuvioExclusions(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch exclusions:", err);
-      }
-    };
-    if (mainTab === "integrations") {
-      fetchData();
-    }
+    if (mainTab !== "integrations") return;
+    fetch("/api/settings/exclusions", { credentials: "include", headers: authHeaders })
+      .then(r => r.ok ? r.json() : [])
+      .then(setExclusions)
+      .catch(() => {});
   }, [mainTab, authHeaders]);
 
   async function handleSaveProfile() {
@@ -221,6 +208,32 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSaveThresholds = async () => {
+    const movie = parseInt(thresholdMovie, 10);
+    const episode = parseInt(thresholdEpisode, 10);
+    if (isNaN(movie) || isNaN(episode) || movie < 1 || movie > 100 || episode < 1 || episode > 100) return;
+
+    setSavingThreshold(true);
+    try {
+      const res = await fetch("/api/settings/preferences", {
+        method: "PUT",
+        credentials: "include",
+        headers: authHeaders,
+        body: JSON.stringify({ watchThresholdMovie: movie, watchThresholdEpisode: episode }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPreferences(data);
+        setThresholdSaved(true);
+        setTimeout(() => setThresholdSaved(false), 3000);
+      }
+    } catch (err) {
+      console.error("Failed to save thresholds:", err);
+    } finally {
+      setSavingThreshold(false);
+    }
+  };
+
   const handleTraktConnect = async () => {
     try {
       setOAuthAuthorizing(true);
@@ -232,7 +245,6 @@ export default function SettingsPage() {
       });
 
       if (!res.ok) {
-        console.error("OAuth start error:", res.status);
         alert(`Authentication failed: ${res.status}`);
         return;
       }
@@ -252,10 +264,11 @@ export default function SettingsPage() {
   const handleTraktDisconnect = async () => {
     if (!confirm("Disconnect from Trakt? Watch history syncing will stop until you reconnect.")) return;
     try {
+      const { "Content-Type": _, ...headersNoContentType } = authHeaders;
       const res = await fetch("/api/settings/trakt-auth", {
         method: "DELETE",
         credentials: "include",
-        headers: authHeaders,
+        headers: headersNoContentType,
       });
       if (res.ok) setTraktConnected(false);
     } catch (err) {
@@ -301,6 +314,26 @@ export default function SettingsPage() {
     { id: "integrations", label: "Integrations", description: "Connect media players and services" },
     { id: "export", label: "Export", description: "Download your data" },
   ];
+
+  const SOURCE_LABELS: Record<string, string> = {
+    trakt: "From Trakt",
+    manual: "Manual entries",
+    emby: "From Emby",
+    stremio: "From Stremio",
+    nuvio: "From NuvioTV",
+    kodi: "From Kodi",
+  };
+
+  const thresholdMovieNum = parseInt(thresholdMovie, 10);
+  const thresholdEpisodeNum = parseInt(thresholdEpisode, 10);
+  const thresholdValid =
+    !isNaN(thresholdMovieNum) && !isNaN(thresholdEpisodeNum) &&
+    thresholdMovieNum >= 1 && thresholdMovieNum <= 100 &&
+    thresholdEpisodeNum >= 1 && thresholdEpisodeNum <= 100;
+  const thresholdDirty =
+    preferences !== null &&
+    (thresholdMovieNum !== preferences.watchThresholdMovie ||
+      thresholdEpisodeNum !== preferences.watchThresholdEpisode);
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
@@ -521,29 +554,77 @@ export default function SettingsPage() {
                         </button>
                       )}
                     </div>
-                    <p className="text-xs text-on-surface-variant">Required for watch history syncing from Trakt, Emby, and Stremio.</p>
+                    <p className="text-xs text-on-surface-variant">Required for watch history syncing from Trakt and Stremio.</p>
                   </div>
 
-                  {/* Status Indicators */}
-                  {traktConnected && (
-                    <div className="glass-panel rounded-xl p-6">
-                      <h3 className="font-bold text-on-surface mb-4">Watch History</h3>
+                  {/* Watch History Sources */}
+                  <div className="glass-panel rounded-xl p-6">
+                    <h3 className="font-bold text-on-surface mb-4">Watch History</h3>
+                    {loading ? (
+                      <p className="text-sm text-on-surface/40">Loading...</p>
+                    ) : !sourceStats || Object.keys(sourceStats).length === 0 ? (
+                      <p className="text-sm text-on-surface/40">No watch history yet.</p>
+                    ) : (
                       <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-on-surface-variant">From Trakt:</span>
-                          <span className="text-on-surface font-medium">17,207 entries</span>
+                        {Object.entries(SOURCE_LABELS).map(([source, label]) => {
+                          const count = sourceStats[source];
+                          if (!count) return null;
+                          return (
+                            <div key={source} className="flex justify-between">
+                              <span className="text-on-surface-variant">{label}:</span>
+                              <span className="text-on-surface font-medium">{count.toLocaleString()} entries</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Watched % Thresholds */}
+                  <div className="glass-panel rounded-xl p-6">
+                    <h3 className="font-bold text-on-surface mb-1">Watched Threshold</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Minimum playback percentage required to mark something as watched.</p>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant/60 block mb-1">Movies</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={thresholdMovie}
+                            onChange={(e) => setThresholdMovie(e.target.value)}
+                            className="w-20 px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface focus:outline-none focus:border-accent transition-colors text-sm"
+                          />
+                          <span className="text-sm text-on-surface-variant">%</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-on-surface-variant">Manual entries:</span>
-                          <span className="text-on-surface font-medium">493 entries</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-on-surface-variant">From Stremio:</span>
-                          <span className="text-on-surface font-medium">5 entries</span>
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant/60 block mb-1">Episodes</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={thresholdEpisode}
+                            onChange={(e) => setThresholdEpisode(e.target.value)}
+                            className="w-20 px-3 py-2 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface focus:outline-none focus:border-accent transition-colors text-sm"
+                          />
+                          <span className="text-sm text-on-surface-variant">%</span>
                         </div>
                       </div>
                     </div>
-                  )}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleSaveThresholds}
+                        disabled={savingThreshold || !thresholdValid || !thresholdDirty}
+                        className="px-4 py-2 rounded-lg bg-accent text-white font-bold text-sm uppercase tracking-widest hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {savingThreshold ? "Saving..." : "Save"}
+                      </button>
+                      {thresholdSaved && <span className="text-xs text-green-400">Saved</span>}
+                    </div>
+                  </div>
 
                   {/* API Key */}
                   <div className="glass-panel rounded-xl p-6">
@@ -593,10 +674,10 @@ export default function SettingsPage() {
                     )}
                   </div>
 
-                  {/* Stremio Catalogs */}
+                  {/* Stremio & Nuvio Catalogs */}
                   <div className="glass-panel rounded-xl p-6">
-                    <h3 className="font-bold text-on-surface mb-1">Stremio Catalogs</h3>
-                    <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio.</p>
+                    <h3 className="font-bold text-on-surface mb-1">Stremio & Nuvio Catalogs</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio and NuvioTV.</p>
                     <div className="space-y-2">
                       {exportableLists.map((list) => (
                         <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 gap-3">
@@ -656,44 +737,14 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  {/* Stremio Excluded Titles */}
-                  <ExclusionPanel
-                    integration="stremio"
+                  {/* Unified Excluded Titles */}
+                  <UnifiedExclusionPanel
                     exclusions={exclusions}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
                     authHeaders={authHeaders}
                     onRefresh={() => {
-                      fetch(`/api/settings/exclusions?integration=stremio`, { credentials: "include", headers: authHeaders })
+                      fetch("/api/settings/exclusions", { credentials: "include", headers: authHeaders })
                         .then(r => r.ok ? r.json() : [])
                         .then(setExclusions)
-                        .catch(() => {});
-                    }}
-                  />
-
-                  {/* NuvioTV */}
-                  <div className="glass-panel rounded-xl p-6">
-                    <h3 className="font-bold text-on-surface mb-1">NuvioTV</h3>
-                    <p className="text-xs text-on-surface-variant mb-4">Install the catalog addon in NuvioTV using the URL below. Scrobbling is handled automatically by the forked app build.</p>
-                    <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant/60 mb-1">Addon URL</p>
-                    <div className="bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 mb-4">
-                      <code className="text-sm text-accent font-mono break-all">
-                        {typeof window !== 'undefined' ? `${window.location.origin}/nuvio-addon/manifest.json` : '/nuvio-addon/manifest.json'}
-                      </code>
-                    </div>
-                  </div>
-
-                  {/* NuvioTV Excluded Titles */}
-                  <ExclusionPanel
-                    integration="nuvio"
-                    exclusions={nuvioExclusions}
-                    searchQuery={nuvioSearchQuery}
-                    setSearchQuery={setNuvioSearchQuery}
-                    authHeaders={authHeaders}
-                    onRefresh={() => {
-                      fetch(`/api/settings/exclusions?integration=nuvio`, { credentials: "include", headers: authHeaders })
-                        .then(r => r.ok ? r.json() : [])
-                        .then(setNuvioExclusions)
                         .catch(() => {});
                     }}
                   />
@@ -702,6 +753,7 @@ export default function SettingsPage() {
 
               {intTab === "instructions" && (
                 <div className="space-y-6">
+                  <EmbyGuide apiKey={apiKey} />
                   <StremioGuide traktConnected={traktConnected} />
                   <NuvioGuide />
                   <ExportGuide exportToken={exportToken} lists={exportableLists} />
@@ -751,35 +803,90 @@ function CodeBlock({ children }: { children: string }) {
   );
 }
 
-function StremioGuide({
-  traktConnected,
-}: {
-  traktConnected: boolean;
-}) {
+function EmbyGuide({ apiKey }: { apiKey: string | null }) {
+  const [showUrl, setShowUrl] = useState(false);
+  const webhookUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/scrobble/emby`
+    : '/api/scrobble/emby';
+  const fullUrl = apiKey ? `${webhookUrl}?api_key=${apiKey}` : `${webhookUrl}?api_key=<your-api-key>`;
+  const maskedUrl = apiKey ? `${webhookUrl}?api_key=••••••••••••••••••••••••` : fullUrl;
+
+  return (
+    <div className="glass-panel rounded-xl p-6">
+      <h2 className="text-h3 font-bold text-on-surface mb-6">Emby Setup Guide</h2>
+      <div className="flex flex-col gap-6">
+        <Step n={1} title="Install the Webhook Plugin">
+          <p>In Emby, go to <strong className="text-on-surface">Admin → Plugins → Catalog</strong> and install the <strong className="text-on-surface">Webhook</strong> plugin. Restart Emby Server when prompted.</p>
+        </Step>
+        <Step n={2} title="Add a Webhook">
+          <p>Go to <strong className="text-on-surface">Admin → Notifications → Webhooks</strong> and click <strong className="text-on-surface">Add Generic Destination</strong>. Set the webhook URL to:</p>
+          <div className="relative group bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 mt-2 mb-2">
+            <code className="text-sm text-accent font-mono break-all pr-16">{showUrl ? fullUrl : maskedUrl}</code>
+            <div className="absolute top-2 right-2 flex gap-1">
+              {apiKey && (
+                <button
+                  onClick={() => setShowUrl(s => !s)}
+                  className="p-1 rounded material-symbols-outlined text-on-surface/40 hover:text-on-surface text-base"
+                >
+                  {showUrl ? "visibility_off" : "visibility"}
+                </button>
+              )}
+              <button
+                onClick={() => { navigator.clipboard.writeText(fullUrl); }}
+                className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity material-symbols-outlined text-on-surface/40 hover:text-on-surface text-base"
+              >
+                content_copy
+              </button>
+            </div>
+          </div>
+          <p>The API key is passed as a query parameter — no additional headers are needed.</p>
+        </Step>
+        <Step n={3} title="Select Events">
+          <p>Under <strong className="text-on-surface">Send All Properties</strong>, enable it. Then under events, enable <strong className="text-on-surface">Playback</strong> → <strong className="text-on-surface">Play</strong> and <strong className="text-on-surface">Playback Stop</strong>. Click <strong className="text-on-surface">Save</strong>.</p>
+        </Step>
+        <Step n={4} title="Start Watching">
+          <p>Play any movie or episode in Emby. Scrobbles are recorded automatically when you stop playback above the configured completion threshold.</p>
+        </Step>
+        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
+          <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
+          {apiKey
+            ? "Your API key is embedded in the URL. Reveal it with the eye icon before copying."
+            : "Copy your API key from the Configuration tab and replace <your-api-key> in the URL."}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StremioGuide({ traktConnected }: { traktConnected: boolean }) {
   const manifestUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/stremio-addon/manifest.json`
     : 'http://localhost:3001/stremio-addon/manifest.json';
 
   return (
-    <div className="space-y-6">
-      <div className="glass-panel rounded-xl p-6">
-        <h2 className="text-h3 font-bold text-on-surface mb-6">Stremio Setup Guide</h2>
-        <div className="flex flex-col gap-6">
-          <Step n={1} title="Connect Trakt">
-            <p>Go to the <strong className="text-on-surface">Configuration</strong> tab and click <strong className="text-on-surface">Connect Trakt</strong>. This is required for watch history syncing.</p>
-          </Step>
-          <Step n={2} title="Install the Addon">
-            <p>Launch Stremio and click the <strong className="text-on-surface">puzzle piece (Addons)</strong> icon in the top bar. Click <strong className="text-on-surface">Install from URL</strong> and paste:</p>
-            <CodeBlock>{manifestUrl}</CodeBlock>
-            <p>Click <strong className="text-on-surface">Install</strong> to confirm.</p>
-          </Step>
-          <Step n={3} title="Start Watching">
-            <p>Play any content in Stremio. When you open the subtitles menu, this app will start tracking your playback via Trakt. Watch progress and completion will be automatically synced to your History.</p>
-          </Step>
-          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
-            <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
-            Playback progress is synced from Trakt (updated every minute). Make sure Stremio is configured to send playback data to Trakt.
-          </div>
+    <div className="glass-panel rounded-xl p-6">
+      <h2 className="text-h3 font-bold text-on-surface mb-6">Stremio Setup Guide</h2>
+      <div className="flex flex-col gap-6">
+        <Step n={1} title="Connect Trakt">
+          <p>Go to the <strong className="text-on-surface">Configuration</strong> tab and click <strong className="text-on-surface">Connect Trakt</strong>. This is required for watch history syncing from Stremio.</p>
+          {traktConnected && (
+            <p className="text-green-400 font-medium">✓ Trakt is connected</p>
+          )}
+        </Step>
+        <Step n={2} title="Install the Addon">
+          <p>Launch Stremio and click the <strong className="text-on-surface">puzzle piece (Addons)</strong> icon. Click <strong className="text-on-surface">Install from URL</strong> and paste:</p>
+          <CodeBlock>{manifestUrl}</CodeBlock>
+          <p>Click <strong className="text-on-surface">Install</strong> (or <strong className="text-on-surface">Update</strong> if already installed). This single addon handles both scrobbling and personal catalogs.</p>
+        </Step>
+        <Step n={3} title="Browse Your Lists">
+          <p>Your enabled lists appear as browsable sections under the <strong className="text-on-surface">Discover</strong> tab. Toggle which lists appear as catalogs in the <strong className="text-on-surface">Configuration</strong> tab.</p>
+        </Step>
+        <Step n={4} title="Start Watching">
+          <p>Play any content in Stremio. When you open the subtitles menu, this app will start tracking your playback via Trakt. Watch progress and completion will be automatically synced to your History.</p>
+        </Step>
+        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
+          <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
+          Playback progress is synced from Trakt (updated every minute). Make sure Stremio is configured to send playback data to Trakt.
         </div>
       </div>
     </div>
@@ -794,30 +901,38 @@ interface SearchResult {
   posterPath: string | null;
 }
 
-function ExclusionPanel({
-  integration,
+const INTEGRATION_LABELS: Record<Integration, string> = {
+  emby: "Emby",
+  stremio: "Stremio",
+  kodi: "Kodi",
+  nuvio: "NuvioTV",
+};
+
+function UnifiedExclusionPanel({
   exclusions,
-  searchQuery,
-  setSearchQuery,
   authHeaders,
   onRefresh,
 }: {
-  integration: Integration;
   exclusions: Exclusion[];
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
   authHeaders: Record<string, string>;
   onRefresh: () => void;
 }) {
   const [removing, setRemoving] = useState<number | null>(null);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | "all">("all");
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState(false);
   const searchTimeoutRef = useMemo(() => ({ current: null as NodeJS.Timeout | null }), []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    // Don't re-search after a result was selected
+    if (selectedResult) {
       setSearchResults([]);
       return;
     }
@@ -832,8 +947,7 @@ function ExclusionPanel({
           headers: authHeaders,
         });
         if (res.ok) {
-          const results = (await res.json()) as SearchResult[];
-          setSearchResults(results.slice(0, 6));
+          setSearchResults(((await res.json()) as SearchResult[]).slice(0, 6));
         }
       } catch (err) {
         console.error("Search failed:", err);
@@ -845,7 +959,7 @@ function ExclusionPanel({
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [searchQuery, authHeaders]);
+  }, [searchQuery, selectedResult, authHeaders]);
 
   const handleSelectResult = (result: SearchResult) => {
     setSelectedResult(result);
@@ -856,14 +970,14 @@ function ExclusionPanel({
   const handleRemove = async (id: number) => {
     setRemoving(id);
     try {
+      const { "Content-Type": _, ...headersNoContentType } = authHeaders;
       const res = await fetch(`/api/settings/exclusions/${id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: authHeaders,
+        headers: headersNoContentType,
       });
-      if (res.ok) {
-        onRefresh();
-      }
+      if (!res.ok) console.error(`Delete exclusion ${id} failed: ${res.status}`);
+      onRefresh();
     } catch (err) {
       console.error("Failed to remove exclusion:", err);
     } finally {
@@ -872,28 +986,32 @@ function ExclusionPanel({
   };
 
   const handleAddExclusion = async () => {
-    if (!selectedResult) return;
+    const result = selectedResult ?? searchResults[0] ?? null;
+    if (!result) return;
+
+    const integrations: Integration[] = selectedIntegration === "all"
+      ? ["emby", "stremio", "kodi", "nuvio"]
+      : [selectedIntegration];
 
     setAdding(true);
     try {
-      const res = await fetch(`/api/settings/exclusions`, {
-        method: "POST",
-        credentials: "include",
-        headers: authHeaders,
-        body: JSON.stringify({
-          integration,
-          tmdbId: selectedResult.tmdbId,
-          mediaType: selectedResult.mediaType === 'show' ? 'show' : 'movie',
-          title: selectedResult.title,
-        }),
-      });
-
-      if (res.ok) {
-        setSearchQuery('');
-        setSelectedResult(null);
-        setSearchResults([]);
-        onRefresh();
-      }
+      await Promise.all(integrations.map((integration) =>
+        fetch("/api/settings/exclusions", {
+          method: "POST",
+          credentials: "include",
+          headers: authHeaders,
+          body: JSON.stringify({
+            integration,
+            tmdbId: result.tmdbId,
+            mediaType: result.mediaType === 'show' ? 'show' : 'movie',
+            title: result.title,
+          }),
+        })
+      ));
+      setSearchQuery('');
+      setSelectedResult(null);
+      setSearchResults([]);
+      onRefresh();
     } catch (err) {
       console.error("Failed to add exclusion:", err);
     } finally {
@@ -905,23 +1023,33 @@ function ExclusionPanel({
     <div className="glass-panel rounded-xl p-6">
       <h3 className="font-bold text-on-surface mb-1">Excluded Titles</h3>
       <p className="text-xs text-on-surface-variant mb-4">
-        Titles in this list won't be scrobbled from {integration === "emby" ? "Emby" : integration === "stremio" ? "Stremio" : integration === "nuvio" ? "NuvioTV" : "Kodi"}.
+        Titles in this list won&apos;t be scrobbled from the selected integration.
       </p>
 
       <div className="space-y-4">
-        <div className="relative">
+        <div className="relative z-10">
           <div className="flex gap-2">
+            <select
+              value={selectedIntegration}
+              onChange={(e) => setSelectedIntegration(e.target.value as Integration | "all")}
+              className="flex-shrink-0 bg-surface-container border border-outline-variant/40 rounded-lg px-3 py-2 text-on-surface text-sm focus:outline-none focus:border-accent"
+            >
+              <option value="all">All</option>
+              {(Object.entries(INTEGRATION_LABELS) as [Integration, string][]).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Search titles to exclude..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setSelectedResult(null); }}
               className="flex-grow bg-surface-container border border-outline-variant/40 rounded-lg px-4 py-2 text-on-surface placeholder-on-surface/40 focus:outline-none focus:border-accent"
               autoComplete="off"
             />
             <button
               onClick={handleAddExclusion}
-              disabled={!selectedResult || adding}
+              disabled={(!selectedResult && searchResults.length === 0) || adding}
               className="px-4 py-2 bg-accent text-white rounded-lg font-bold hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {adding ? "Adding..." : "Add"}
@@ -960,20 +1088,23 @@ function ExclusionPanel({
         {exclusions.length === 0 ? (
           <p className="text-sm text-on-surface/40 py-4 text-center">No excluded titles yet</p>
         ) : (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="relative z-0 space-y-2 max-h-64 overflow-y-auto">
             {exclusions.map((excl) => (
               <div
                 key={excl.id}
                 className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-2 border border-outline-variant/40"
               >
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                   <p className="text-on-surface text-sm">{excl.title}</p>
                   <p className="text-xs text-on-surface/40">{excl.mediaType === "show" ? "TV Show" : "Movie"}</p>
                 </div>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-on-surface/40 px-2 flex-shrink-0">
+                  {INTEGRATION_LABELS[excl.integration]}
+                </span>
                 <button
                   onClick={() => handleRemove(excl.id)}
                   disabled={removing === excl.id}
-                  className="text-on-surface/40 hover:text-accent transition-colors material-symbols-outlined text-base"
+                  className="text-on-surface/40 hover:text-accent transition-colors material-symbols-outlined text-base flex-shrink-0"
                 >
                   {removing === excl.id ? "hourglass_empty" : "close"}
                 </button>
@@ -1007,25 +1138,23 @@ function NuvioGuide() {
     : '/nuvio-addon/manifest.json';
 
   return (
-    <div className="space-y-6">
-      <div className="glass-panel rounded-xl p-6">
-        <h2 className="text-h3 font-bold text-on-surface mb-6">NuvioTV Setup Guide</h2>
-        <div className="flex flex-col gap-6">
-          <Step n={1} title="Install the forked APK">
-            <p>Build and install your forked NuvioTV APK on your Android TV. The fork is pre-configured to send scrobbles directly to this app — no Trakt account required.</p>
-          </Step>
-          <Step n={2} title="Install the Catalog Addon">
-            <p>In NuvioTV, go to <strong className="text-on-surface">Settings → Addons</strong> and paste the addon URL:</p>
-            <CodeBlock>{manifestUrl}</CodeBlock>
-            <p>Your lists will appear as browsable catalogs in the Discover tab.</p>
-          </Step>
-          <Step n={3} title="Start Watching">
-            <p>Play any content. NuvioTV will automatically send start and stop events to this app. Watch progress and completion are tracked in your History.</p>
-          </Step>
-          <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
-            <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
-            Scrobbles are recorded at 80% completion for movies and 70% for episodes. List catalogs are shared with the Stremio addon — manage them in the Configuration tab.
-          </div>
+    <div className="glass-panel rounded-xl p-6">
+      <h2 className="text-h3 font-bold text-on-surface mb-6">NuvioTV Setup Guide</h2>
+      <div className="flex flex-col gap-6">
+        <Step n={1} title="Install the forked APK">
+          <p>Build and install your forked NuvioTV APK on your Android TV. The fork is pre-configured to send scrobbles directly to this app — no Trakt account required.</p>
+        </Step>
+        <Step n={2} title="Install the Catalog Addon">
+          <p>In NuvioTV, go to <strong className="text-on-surface">Settings → Addons</strong> and paste the addon URL:</p>
+          <CodeBlock>{manifestUrl}</CodeBlock>
+          <p>Your lists will appear as browsable catalogs in the Discover tab.</p>
+        </Step>
+        <Step n={3} title="Start Watching">
+          <p>Play any content. NuvioTV will automatically send start and stop events to this app. Watch progress and completion are tracked in your History.</p>
+        </Step>
+        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
+          <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
+          List catalogs are shared with the Stremio addon — manage them in the Configuration tab.
         </div>
       </div>
     </div>
@@ -1038,7 +1167,6 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
   const [radarrSlug, setRadarrSlug] = useState(defaultSlug);
   const [sonarrSlug, setSonarrSlug] = useState(defaultSlug);
 
-  // Keep defaults in sync once lists load
   useEffect(() => {
     const slug = lists.find((l) => l.slug === 'watchlist')?.slug ?? lists[0]?.slug;
     if (slug) { setRadarrSlug(slug); setSonarrSlug(slug); }
@@ -1053,27 +1181,6 @@ function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists
 
   return (
     <div className="space-y-6">
-      {/* Stremio Catalog */}
-      <div className="glass-panel rounded-xl p-6">
-        <h2 className="text-h3 font-bold text-on-surface mb-2">Stremio — Personal Catalogs</h2>
-        <p className="text-sm text-on-surface/60 mb-6">Your lists are available as catalogs in the existing Stremio addon. Each list with movies appears under Movies, and each list with shows appears under Series in the Discover tab.</p>
-        <div className="flex flex-col gap-6">
-          <Step n={1} title="Copy the addon URL">
-            <CodeBlock>{`${origin}/stremio-addon/manifest.json`}</CodeBlock>
-          </Step>
-          <Step n={2} title="Install in Stremio">
-            <p>Click the <strong className="text-on-surface">puzzle piece icon</strong> in the top-right corner, paste the URL into the <strong className="text-on-surface">Add-on Repository URL</strong> field, and press Enter.</p>
-          </Step>
-          <Step n={3} title="Install or Update">
-            <p>Click <strong className="text-on-surface">Install</strong> (or <strong className="text-on-surface">Update</strong> if already installed). Your lists will appear as browsable sections.</p>
-          </Step>
-          <div className="bg-surface-container rounded-xl p-4 text-sm text-on-surface/60 border border-outline-variant/40">
-            <span className="material-symbols-outlined text-on-surface/40 text-base align-middle mr-2">info</span>
-            This is the same addon used for scrobbling — no separate install required.
-          </div>
-        </div>
-      </div>
-
       {/* Radarr */}
       <div className="glass-panel rounded-xl p-6">
         <h2 className="text-h3 font-bold text-on-surface mb-2">Radarr — Movie Import List</h2>

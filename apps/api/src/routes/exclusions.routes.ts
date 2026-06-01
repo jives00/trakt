@@ -12,7 +12,7 @@ export async function exclusionsRoutes(app: FastifyInstance) {
     async (request, reply) => {
       const { integration } = request.query;
 
-      if (integration && !['emby', 'stremio', 'kodi'].includes(integration)) {
+      if (integration && !['emby', 'stremio', 'kodi', 'nuvio'].includes(integration)) {
         return reply.status(400).send({ error: 'Invalid integration' });
       }
 
