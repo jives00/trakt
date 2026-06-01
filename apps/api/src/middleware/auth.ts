@@ -15,6 +15,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
 export async function authenticateScrobble(request: FastifyRequest, reply: FastifyReply) {
   const key = request.headers['x-api-key'];
   if (!key || key !== process.env.SCROBBLE_API_KEY) {
+    console.log(`🔒 Scrobble auth failed — ${request.method} ${request.url} key=${key ? '(present but wrong)' : '(missing)'}`);
     return reply.status(401).send({ error: 'Unauthorized' });
   }
 }
