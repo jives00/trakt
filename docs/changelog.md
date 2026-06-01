@@ -5,6 +5,7 @@
 ### Backend
 - Add console logging to Nuvio scrobble endpoints to confirm requests are arriving `3239faa`
 - Log 401 auth failures on scrobble endpoints with key presence indicator `1fdb3aa`
+- Fix Nuvio scrobble: resolve IMDB→TMDB via DB lookup then TMDB /find when payload omits TMDB ID `b27c3b4`
 
 ## May 31, 2026
 

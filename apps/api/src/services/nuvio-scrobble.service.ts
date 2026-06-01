@@ -2,6 +2,8 @@ import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 import { updateNowPlaying, clearNowPlaying, upsertWatchHistory, isScrobbleExcluded, DEFAULT_USER_ID } from './scrobble.service';
+import { getPool } from '../db';
+import { get as tmdbGet } from './tmdb.client';
 
 const WATCH_THRESHOLD = { movie: 80, episode: 70 };
 
@@ -31,12 +33,31 @@ function isEpisodePayload(p: NuvioScrobblePayload): p is NuvioEpisodePayload {
   return 'show' in p && 'episode' in p;
 }
 
+async function resolveTmdbId(ids: NuvioIds, mediaType: 'movie' | 'show'): Promise<number | null> {
+  if (ids.tmdb) return ids.tmdb;
+  if (!ids.imdb) return null;
+
+  const pool = getPool();
+  const table = mediaType === 'movie' ? 'movies' : 'tv_shows';
+  const [rows] = await pool.query<any[]>(
+    `SELECT t.tmdb_id FROM ${table} t
+     JOIN external_ids e ON e.media_type = ? AND e.media_id = t.id AND e.source = 'imdb'
+     WHERE e.external_id = ? LIMIT 1`,
+    [mediaType === 'movie' ? 'movie' : 'show', ids.imdb]
+  );
+  if (rows.length > 0) return rows[0].tmdb_id as number;
+
+  const data = await tmdbGet<any>(`/find/${ids.imdb}?external_source=imdb_id`);
+  const results = mediaType === 'movie' ? data.movie_results : data.tv_results;
+  return results?.[0]?.id ?? null;
+}
+
 export async function handleNuvioScrobble(action: 'start' | 'stop', payload: NuvioScrobblePayload): Promise<void> {
   try {
     const progressPct = Math.round(payload.progress);
 
     if (isEpisodePayload(payload)) {
-      const tmdbId = payload.show.ids.tmdb;
+      const tmdbId = await resolveTmdbId(payload.show.ids, 'show');
       if (!tmdbId) return;
 
       const { season, number: episodeNumber } = payload.episode;
@@ -58,7 +79,7 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         }
       }
     } else {
-      const tmdbId = payload.movie.ids.tmdb;
+      const tmdbId = await resolveTmdbId(payload.movie.ids, 'movie');
       if (!tmdbId) return;
 
       const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'nuvio');
