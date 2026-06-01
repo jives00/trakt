@@ -11,10 +11,8 @@ function userId(request: FastifyRequest): number {
 export async function scrobbleRoutes(app: FastifyInstance) {
   app.post<{ Body: EmbyWebhookPayload }>('/scrobble/emby', { preHandler: authenticateScrobble }, async (request, reply) => {
     try {
-      console.log(`📺 Emby webhook received — event=${(request.body as any)?.Event} type=${(request.body as any)?.Item?.Type}`);
       const parsed = EmbyWebhookPayload.safeParse(request.body);
       if (!parsed.success) {
-        console.log('📺 Emby payload validation failed:', JSON.stringify(parsed.error.issues));
         return reply.status(400).send({ error: 'Invalid payload' });
       }
 

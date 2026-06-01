@@ -6,6 +6,7 @@ config({ path: join(__dirname, '../../../.env') });
 import { buildApp } from './app';
 import { ensureAdminUser } from './services/auth.service';
 import { startBackgroundPoller } from './services/trakt-poll.service';
+import { startEmbyPoller } from './services/emby-poll.service';
 
 async function main() {
   await ensureAdminUser();
@@ -14,6 +15,7 @@ async function main() {
   await app.listen({ port, host: '0.0.0.0' });
   console.log(`API server running on http://localhost:${port}`);
   startBackgroundPoller();
+  startEmbyPoller();
 }
 
 main().catch(err => {

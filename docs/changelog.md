@@ -3,6 +3,7 @@
 ## June 01, 2026
 
 ### Backend
+- Add Emby Sessions poller for live now-playing progress updates every 30s, replacing Trakt.tv background poll for Emby playback `f4378fc`
 - Rewrite Emby scrobble handler for webhook plugin payload: handle `playback.start`/`playback.stop` events, `PositionTicks` field, and resolve show TMDB ID from TVDB episode ID via TMDB `/find` `ede9555`
 - Accept scrobble `api_key` as query parameter fallback for Emby webhook compatibility (Emby webhook plugin has no custom header support) `de563dd`
 - Cache `/dashboard/art` (5 min) and `/dashboard/recent` (60 s) responses in-memory to reduce NAS DB round-trips on repeat loads `ed789e3`
