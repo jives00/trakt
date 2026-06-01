@@ -3,6 +3,7 @@
 ## June 01, 2026
 
 ### Backend
+- Accept scrobble `api_key` as query parameter fallback for Emby webhook compatibility (Emby webhook plugin has no custom header support) `de563dd`
 - Cache `/dashboard/art` (5 min) and `/dashboard/recent` (60 s) responses in-memory to reduce NAS DB round-trips on repeat loads `ed789e3`
 
 ### Frontend – Web
