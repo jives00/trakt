@@ -1,6 +1,6 @@
 # Trakt — Personal Media Tracker
 
-A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, and Stremio. Metadata from TMDB, TVDB, OMDB, and Fanart.tv.
+A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, Stremio, and NuvioTV. Metadata from TMDB, TVDB, OMDB, and Fanart.tv.
 
 **Stack:** Node.js 24 + Fastify API · Next.js 14 web · React Native + Expo Android app · MySQL 8 · Docker Compose
 
@@ -9,7 +9,7 @@ A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, col
 ## Prerequisites
 
 - **Node.js 24+** and **pnpm 9+**
-- **MySQL 8** (local install or remote server)
+- **MySQL 8** (local install or Docker)
 - **Docker + Docker Compose** (for production deployment)
 - **API keys** — see [API Keys](#api-keys) below
 
@@ -17,7 +17,7 @@ A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, col
 
 ## API Keys
 
-You'll need to register for free API keys from each service:
+Register for free API keys from each service:
 
 | Service | URL | Notes |
 |---|---|---|
@@ -25,7 +25,7 @@ You'll need to register for free API keys from each service:
 | TVDB | https://thetvdb.com/api-information | TV metadata |
 | OMDB | https://www.omdbapi.com/apikey.aspx | Ratings (free tier: 1k/day) |
 | Fanart.tv | https://fanart.tv/api-docs/api-docs/ | Artwork |
-| Trakt.tv | https://trakt.tv/oauth/applications/new | Optional — only needed for import |
+| Trakt.tv | https://trakt.tv/oauth/applications/new | Optional — only needed for importing history from trakt.tv |
 
 ---
 
@@ -87,10 +87,6 @@ SCROBBLE_API_KEY=another_random_secret
 # Trakt.tv OAuth (optional — only needed for importing history from trakt.tv)
 TRAKT_CLIENT_ID=
 TRAKT_CLIENT_SECRET=
-
-# Leave these as-is for local dev (Next.js proxies /api/* to the API)
-NEXT_PUBLIC_API_URL=http://localhost:3001
-EXPO_PUBLIC_API_URL=http://localhost:3001
 ```
 
 ### 4. Run database migrations
@@ -116,13 +112,33 @@ Open http://localhost:3001 and log in with your `ADMIN_USERNAME` / `ADMIN_PASSWO
 
 ## Production Deployment (Docker Compose)
 
-This setup runs both the API and web frontend in Docker containers. MySQL must be running on the host (not in Docker) — the API container uses `network_mode: host` to reach it directly.
+This setup runs both the API and web frontend as Docker containers, with MySQL in a separate shared container.
 
-### 1. Server requirements
+### 1. Prerequisites on your server
 
-- Docker and Docker Compose installed
-- MySQL 8 running on the host with the `trakt` database and user created (see step above)
-- A reverse proxy (nginx recommended) in front of the containers
+- Docker and Docker Compose
+- A `shared-db` external Docker network (see below)
+- MySQL 8 running in a Docker container on that network
+
+Create the shared network if it doesn't exist:
+
+```bash
+docker network create shared-db
+```
+
+Run MySQL on that network (or attach an existing container to it):
+
+```bash
+docker run -d \
+  --name shared-mysql \
+  --network shared-db \
+  -e MYSQL_ROOT_PASSWORD=rootpassword \
+  -e MYSQL_DATABASE=trakt \
+  -e MYSQL_USER=trakt \
+  -e MYSQL_PASSWORD=your_password \
+  -v /path/to/mysql/data:/var/lib/mysql \
+  mysql:8
+```
 
 ### 2. Clone and configure
 
@@ -131,19 +147,21 @@ git clone <your-repo-url>
 cd trakt
 cp .env.example .env
 # Edit .env with your production values
+# Set DB_HOST=shared-mysql (the container name on the shared network)
 ```
 
-For production, set `NEXT_PUBLIC_API_URL` to your public API domain (e.g. `https://yourdomain.com`).
-
-### 3. Build and start
+### 3. Pull and start
 
 ```bash
-docker compose up --build -d
+docker compose pull
+docker compose up -d
 ```
 
 Services:
-- **API** — `network_mode: host`, port 3002
-- **Web** — `127.0.0.1:3001:3000` (localhost only, behind reverse proxy)
+- **API** — port 3002, on `shared-db` network, connects to MySQL by hostname `mysql`
+- **Web** — port 3001, on `shared-db` network, proxies `/api/*` to `trakt-api:3002`
+
+> **Note:** The web image has `NEXT_PUBLIC_API_URL` baked in at build time. If you're pulling pre-built images from ghcr.io, this is set to the builder's NAS hostname. To use your own URL, build the images locally with the correct `NEXT_PUBLIC_API_URL` build arg.
 
 ### 4. Run migrations
 
@@ -154,69 +172,34 @@ pnpm --filter api run migrate
 Or exec into the running API container:
 
 ```bash
-docker exec -it trakt-api sh -c "node apps/api/dist/server.js --migrate"
-```
-
-### 5. Nginx configuration
-
-Route traffic to the containers. Minimal example:
-
-```nginx
-server {
-    listen 443 ssl;
-    server_name yourdomain.com;
-
-    ssl_certificate /path/to/fullchain.pem;
-    ssl_certificate_key /path/to/privkey.pem;
-
-    # Web app
-    location / {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # API
-    location /api/ {
-        proxy_pass http://127.0.0.1:3002;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Stremio addon
-    location /stremio-addon/ {
-        proxy_pass http://127.0.0.1:3002;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-
-# Redirect HTTP to HTTPS
-server {
-    listen 80;
-    server_name yourdomain.com;
-    return 301 https://$host$request_uri;
-}
+docker exec -it trakt-api sh -c "pnpm --filter api run migrate"
 ```
 
 ---
 
 ## CI/CD with GitHub Actions
 
-The included workflow (`.github/workflows/deploy.yml`) SSHes to your server on push to `main`, pulls the latest code, and runs `docker compose up --build -d`.
+The included workflow (`.github/workflows/deploy.yml`) builds Docker images on push to `main` and pushes them to GitHub Container Registry. [Watchtower](https://containrrr.dev/watchtower/) on your server then auto-pulls and restarts the containers within ~5 minutes.
 
-Add these secrets to your GitHub repository:
+### Required GitHub Secrets
 
 | Secret | Value |
 |---|---|
-| `EC2_HOST` | Your server's IP or hostname |
-| `EC2_USER` | SSH username (e.g. `ubuntu`) |
-| `EC2_KEY` | Private SSH key (PEM format) |
+| `TAILSCALE_HOSTNAME` | Your server's hostname or IP (baked into the web image as the API URL) |
+| `GMAIL_APP_PASSWORD` | Gmail app password for APK build email notifications |
+| `NOTIFY_EMAIL` | Email address for build notifications |
 
-The `.env` file must already exist on the server before the first deploy — the workflow does not create it.
+### How it works
+
+```
+git push to main
+    ↓
+GitHub Actions builds API + web images → ghcr.io
+    ↓ (~5 min)
+Watchtower detects new images → pulls → restarts containers
+```
+
+No SSH access required — Watchtower handles the deploy automatically.
 
 ---
 
@@ -224,32 +207,33 @@ The `.env` file must already exist on the server before the first deploy — the
 
 ### Emby
 
-In Emby Server → Plugins → Webhooks, add a webhook pointing to:
+In Emby Server → Plugins → Webhooks, add a webhook:
 
 ```
-POST https://yourdomain.com/api/scrobble/emby
+POST http://your-server:3002/api/scrobble/emby
+Header: X-Api-Key: <your SCROBBLE_API_KEY>
 ```
-
-Set a custom header: `X-Api-Key: <your SCROBBLE_API_KEY>`
 
 Enable events: `Playback Progress`, `Playback Stopped`
 
 ### Kodi
 
-Install a webhook plugin and send `POST` requests to:
+Send `POST` requests to:
 
 ```
-POST https://yourdomain.com/api/scrobble/kodi
+POST http://your-server:3002/api/scrobble/kodi
 Header: X-Api-Key: <your SCROBBLE_API_KEY>
 ```
 
 ### Stremio
 
-Stremio scrobbling is handled via the built-in addon. Install the addon in Stremio by pointing it at:
+Install the built-in addon in Stremio by pointing it at:
 
 ```
-https://yourdomain.com/stremio-addon/manifest.json
+https://your-server/stremio-addon/manifest.json
 ```
+
+The Stremio addon requires a public HTTPS URL — use a Cloudflare Tunnel or similar to expose port 3002 publicly.
 
 Progress is polled from the Trakt.tv API (requires `TRAKT_CLIENT_ID` and `TRAKT_CLIENT_SECRET`).
 
@@ -258,6 +242,19 @@ Progress is polled from the Trakt.tv API (requires `TRAKT_CLIENT_ID` and `TRAKT_
 ## Android App
 
 The mobile app requires a separate build step. The API URL is **baked into the APK at build time** and cannot be changed without rebuilding.
+
+### GitHub Actions build (recommended)
+
+Push a tag matching `apk-*` to trigger a Gradle build on GitHub Actions:
+
+```bash
+git tag apk-$(date +%Y%m%d)
+git push origin --tags
+```
+
+The APK downloads as an artifact from the Actions tab (~20–30 min build time).
+
+> Set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` before building, or update the `Write mobile .env` step in `deploy.yml` to point at your server.
 
 ### Local debug build
 
@@ -268,20 +265,7 @@ npx expo run:android
 
 Requires Android Studio and a connected device or emulator.
 
-### EAS cloud build
-
-```bash
-cd apps/mobile
-# Set the API URL secret first
-eas secret:create --name EXPO_PUBLIC_API_URL --value https://yourdomain.com
-
-eas build --platform android --profile preview   # APK for testing
-eas build --platform android --profile production # AAB for Play Store
-```
-
-Requires an Expo account and EAS CLI (`npm install -g eas-cli`).
-
-> **Note:** Always use HTTPS for the API URL in mobile builds. React Native's `fetch` converts POST requests to GET on HTTP 301 redirects, causing silent failures on login.
+> **Note:** Always use HTTPS for the API URL in mobile builds if going over the internet. React Native's `fetch` converts POST to GET on HTTP 301 redirects, causing silent failures on login.
 
 ---
 
@@ -336,7 +320,7 @@ docs/              Design system, security notes, changelog
 | `pnpm dev:web` | Start Next.js dev server |
 | `pnpm test` | Run all tests |
 | `pnpm --filter api run migrate` | Run database migrations |
-| `docker compose up --build -d` | Build and start production containers |
+| `docker compose pull && docker compose up -d` | Pull latest images and start |
 | `docker compose down` | Stop containers |
 | `docker compose logs -f` | Tail container logs |
 

@@ -8,6 +8,7 @@ dist/
 *.aab
 *.tsbuildinfo
 .claude/
+docs/INFRASTRUCTURE.local.md
 docs/codereviews/
 docs/designs/
 docs/plans/
