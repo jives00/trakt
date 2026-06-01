@@ -1,5 +1,10 @@
 # Changelog
 
+## June 01, 2026
+
+### Backend
+- Add console logging to Nuvio scrobble endpoints to confirm requests are arriving `3239faa`
+
 ## May 31, 2026
 
 ### Backend

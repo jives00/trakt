@@ -26,6 +26,9 @@ export async function scrobbleRoutes(app: FastifyInstance) {
 
   app.post<{ Body: NuvioScrobblePayload }>('/scrobble/nuvio/start', { preHandler: authenticateScrobble }, async (request, reply) => {
     try {
+      const body = request.body as any;
+      const title = body?.movie?.title ?? body?.show?.title ?? '?';
+      console.log(`📺 Nuvio start — ${title} @ ${body?.progress ?? 0}%`);
       await handleNuvioScrobble('start', request.body);
       return reply.send({});
     } catch (err) {
@@ -36,6 +39,9 @@ export async function scrobbleRoutes(app: FastifyInstance) {
 
   app.post<{ Body: NuvioScrobblePayload }>('/scrobble/nuvio/stop', { preHandler: authenticateScrobble }, async (request, reply) => {
     try {
+      const body = request.body as any;
+      const title = body?.movie?.title ?? body?.show?.title ?? '?';
+      console.log(`⏹️  Nuvio stop  — ${title} @ ${body?.progress ?? 0}%`);
       await handleNuvioScrobble('stop', request.body);
       return reply.send({});
     } catch (err) {
