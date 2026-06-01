@@ -124,7 +124,7 @@ function HeroSection({ username, alltime, art }: { username: string; alltime: St
                     fill
                     sizes={`${POSTER_WIDTH}px`}
                     className="object-cover"
-                    priority={ri === 1 && i < 5}
+                    priority={i < 15}
                   />
                 </div>
               ))}

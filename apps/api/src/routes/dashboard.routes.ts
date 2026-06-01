@@ -6,6 +6,22 @@ import { getDashboardStats, getRecentItems, getDashboardArt } from '../services/
 import { backfillAirTimes } from '../services/shows.service';
 import { getShowRecommendations, getMovieRecommendations } from '../services/recommendations.service';
 
+interface CacheEntry<T> { data: T; expiresAt: number }
+function makeCache<T>(ttlMs: number) {
+  const store = new Map<string, CacheEntry<T>>();
+  return {
+    get(key: string): T | undefined {
+      const entry = store.get(key);
+      if (!entry || Date.now() > entry.expiresAt) { store.delete(key); return undefined; }
+      return entry.data;
+    },
+    set(key: string, data: T) { store.set(key, { data, expiresAt: Date.now() + ttlMs }); },
+  };
+}
+
+const artCache = makeCache<string[]>(5 * 60 * 1000);      // 5 min
+const recentCache = makeCache<unknown[]>(60 * 1000);       // 60 sec
+
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
 }
@@ -31,7 +47,13 @@ export async function dashboardRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { limit?: string } }>('/dashboard/recent', auth, async (request) => {
     const { limit = '10' } = request.query;
     const l = Math.min(50, Math.max(1, parseInt(limit, 10) || 10));
-    return getRecentItems(userId(request), l);
+    const uid = userId(request);
+    const key = `${uid}:${l}`;
+    const cached = recentCache.get(key);
+    if (cached) return cached;
+    const data = await getRecentItems(uid, l);
+    recentCache.set(key, data);
+    return data;
   });
 
   app.get<{ Querystring: { tzOffset?: string } }>('/dashboard/stats', auth, async (request) => {
@@ -52,7 +74,13 @@ export async function dashboardRoutes(app: FastifyInstance) {
   });
 
   app.get('/dashboard/art', auth, async (request: FastifyRequest) => {
-    return getDashboardArt(userId(request));
+    const uid = userId(request);
+    const key = String(uid);
+    const cached = artCache.get(key);
+    if (cached) return cached;
+    const data = await getDashboardArt(uid);
+    artCache.set(key, data);
+    return data;
   });
 
   app.post('/dashboard/backfill-air-times', auth, async () => {

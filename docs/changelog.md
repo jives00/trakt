@@ -3,6 +3,12 @@
 ## June 01, 2026
 
 ### Backend
+- Cache `/dashboard/art` (5 min) and `/dashboard/recent` (60 s) responses in-memory to reduce NAS DB round-trips on repeat loads `ed789e3`
+
+### Frontend – Web
+- Eager-load first 15 poster images per row in hero banner to eliminate the one-by-one cascade effect `ed789e3`
+
+### Backend
 - Add console logging to Nuvio scrobble endpoints to confirm requests are arriving `3239faa`
 - Log 401 auth failures on scrobble endpoints with key presence indicator `1fdb3aa`
 - Fix Nuvio scrobble: resolve IMDB→TMDB via DB lookup then TMDB /find when payload omits TMDB ID `b27c3b4`
