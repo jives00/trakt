@@ -46,6 +46,7 @@ See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, netwo
 | Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Auth | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
 | Integrations | `SCROBBLE_API_KEY`, `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` |
+| Emby | `EMBY_URL`, `EMBY_API_KEY` — for live now-playing progress polling |
 | Web | `NEXT_PUBLIC_API_URL` — leave unset in dev (next.config.mjs proxies `/api/*`) |
 
 See `.env.example` for template.

@@ -23,6 +23,8 @@ services:
       SCROBBLE_API_KEY: ${SCROBBLE_API_KEY}
       TRAKT_CLIENT_ID: ${TRAKT_CLIENT_ID}
       TRAKT_CLIENT_SECRET: ${TRAKT_CLIENT_SECRET}
+      EMBY_URL: ${EMBY_URL}
+      EMBY_API_KEY: ${EMBY_API_KEY}
     restart: unless-stopped
 
   web:

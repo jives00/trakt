@@ -3,6 +3,7 @@
 ## June 01, 2026
 
 ### Backend
+- Add `EMBY_URL`/`EMBY_API_KEY` env vars to docker-compose for Emby Sessions poller `3ef8fa5`
 - Add Emby Sessions poller for live now-playing progress updates every 30s, replacing Trakt.tv background poll for Emby playback `f4378fc`
 - Rewrite Emby scrobble handler for webhook plugin payload: handle `playback.start`/`playback.stop` events, `PositionTicks` field, and resolve show TMDB ID from TVDB episode ID via TMDB `/find` `ede9555`
 - Accept scrobble `api_key` as query parameter fallback for Emby webhook compatibility (Emby webhook plugin has no custom header support) `de563dd`
