@@ -8,7 +8,8 @@
 
 ### Frontend – Web
 - Add grid/list view toggle (persisted per-list in localStorage) to all list detail pages `63bdc9a`
-- Add list table view: Title, Type badge, Date (theatrical for movies / next episode for shows), Digital, Physical, Watched columns `63bdc9a`
+- Add list table view: Title, Type badge, Date (theatrical for movies / next episode for shows), Digital, Physical columns `63bdc9a`
+- Make all list table columns sortable; click to sort asc/desc, null dates sort to bottom `23d85d4`
 
 ### Frontend – Mobile
 - Fix: apply UTC datetime fix to `WatchActionSheet` — `getTodayString()` now returns full UTC datetime, user-picked/release dates use `dateToUtcNoon()` to prevent midnight-UTC rollback to previous day `f1bba3a`

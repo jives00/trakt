@@ -399,24 +399,84 @@ function ListItemCard({ item, onRemove }: { item: ListItemEntry; onRemove: () =>
   );
 }
 
+type TableCol = "title" | "type" | "date" | "digital" | "physical";
+
+function dateVal(s: string | null | undefined): number {
+  if (!s) return Infinity;
+  const t = new Date(s + "T00:00:00Z").getTime();
+  return isNaN(t) ? Infinity : t;
+}
+
+function sortTableItems(items: ListItemEntry[], col: TableCol, dir: "asc" | "desc"): ListItemEntry[] {
+  const asc = dir === "asc";
+  return [...items].sort((a, b) => {
+    let cmp = 0;
+    if (col === "title") {
+      cmp = stripArticles(a.title ?? "").localeCompare(stripArticles(b.title ?? ""));
+    } else if (col === "type") {
+      cmp = (a.mediaType === "movie" ? 0 : 1) - (b.mediaType === "movie" ? 0 : 1);
+    } else if (col === "date") {
+      const aDate = a.mediaType === "movie" ? a.releaseDate : a.nextEpisodeDate;
+      const bDate = b.mediaType === "movie" ? b.releaseDate : b.nextEpisodeDate;
+      cmp = dateVal(aDate) - dateVal(bDate);
+    } else if (col === "digital") {
+      cmp = dateVal(a.digitalReleaseDate) - dateVal(b.digitalReleaseDate);
+    } else if (col === "physical") {
+      cmp = dateVal(a.physicalReleaseDate) - dateVal(b.physicalReleaseDate);
+    }
+    return asc ? cmp : -cmp;
+  });
+}
+
 function ListTable({ items, onRemove }: { items: ListItemEntry[]; onRemove: (item: ListItemEntry) => void }) {
+  const [sortCol, setSortCol] = useState<TableCol>("title");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
   if (items.length === 0) return null;
+
+  function handleColClick(col: TableCol) {
+    if (sortCol === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortCol(col);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = sortTableItems(items, sortCol, sortDir);
+  const arrow = sortDir === "asc" ? "arrow_upward" : "arrow_downward";
+
+  function ColHeader({ col, label, className = "" }: { col: TableCol; label: string; className?: string }) {
+    const active = sortCol === col;
+    return (
+      <th
+        className={`text-left py-3 pr-4 text-xs font-semibold uppercase tracking-wider whitespace-nowrap cursor-pointer select-none group/th transition-colors ${active ? "text-on-surface" : "text-on-surface/40 hover:text-on-surface/70"} ${className}`}
+        onClick={() => handleColClick(col)}
+      >
+        <span className="inline-flex items-center gap-1">
+          {label}
+          <span className={`material-symbols-outlined text-xs leading-none transition-opacity ${active ? "opacity-100" : "opacity-0 group-hover/th:opacity-40"}`}>
+            {active ? arrow : "arrow_upward"}
+          </span>
+        </span>
+      </th>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-outline-variant/20">
-            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider">Title</th>
-            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Type</th>
-            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Date</th>
-            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Digital</th>
-            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Physical</th>
-            <th className="py-3 w-8"></th>
+            <ColHeader col="title" label="Title" />
+            <ColHeader col="type" label="Type" />
+            <ColHeader col="date" label="Date" />
+            <ColHeader col="digital" label="Digital" />
+            <ColHeader col="physical" label="Physical" />
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => {
+          {sorted.map((item) => {
             const href = item.mediaType === "movie" ? `/movies/${item.tmdbId}` : `/shows/${item.tmdbId}`;
             const date = item.mediaType === "movie" ? item.releaseDate : item.nextEpisodeDate;
             const digital = item.mediaType === "movie" ? item.digitalReleaseDate : null;
@@ -458,11 +518,6 @@ function ListTable({ items, onRemove }: { items: ListItemEntry[]; onRemove: (ite
                 </td>
                 <td className="py-3 pr-4 text-on-surface/70 whitespace-nowrap tabular-nums">
                   {item.mediaType === "movie" ? formatDate(physical) : <span className="text-on-surface/25">—</span>}
-                </td>
-                <td className="py-3 text-right">
-                  {item.isFullyWatched && (
-                    <span className="material-symbols-outlined text-green-500 text-base leading-none" title="Watched">check_circle</span>
-                  )}
                 </td>
               </tr>
             );
