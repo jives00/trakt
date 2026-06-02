@@ -27,6 +27,10 @@ export interface ListItemEntry {
   posterPath: string | null;
   year: number | null;
   isFullyWatched: boolean;
+  releaseDate: string | null;
+  digitalReleaseDate: string | null;
+  physicalReleaseDate: string | null;
+  nextEpisodeDate: string | null;
 }
 
 export interface ListDetail extends UserList {

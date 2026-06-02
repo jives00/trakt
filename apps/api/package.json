@@ -10,7 +10,9 @@
     "migrate": "tsx scripts/migrate.ts",
     "trakt:preview": "tsx scripts/trakt-preview.ts",
     "import:trakt": "tsx scripts/import-trakt.ts",
-    "import:trakt:targeted": "tsx scripts/import-trakt-targeted.ts"
+    "import:trakt:targeted": "tsx scripts/import-trakt-targeted.ts",
+    "backfill:release-dates": "tsx scripts/backfill-release-dates.ts",
+    "backfill:release-dates:watchlist": "tsx scripts/backfill-release-dates.ts --watchlist"
   },
   "dependencies": {
     "@fastify/cookie": "^9",

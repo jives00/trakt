@@ -34,6 +34,14 @@ const ITEMS_SELECT = `
     COALESCE(m.title, ts.title, e.title) AS title,
     COALESCE(m.poster_path, ts.poster_path) AS posterPath,
     COALESCE(m.year, ts.year) AS year,
+    m.release_date AS releaseDate,
+    m.digital_release_date AS digitalReleaseDate,
+    m.physical_release_date AS physicalReleaseDate,
+    (SELECT MIN(e2.air_date)
+     FROM episodes e2
+     JOIN seasons s2 ON s2.id = e2.season_id
+     WHERE e2.show_id = li.media_id AND e2.air_date > CURDATE() AND s2.season_number > 0
+    ) AS nextEpisodeDate,
     ${WATCHED_STATUS_SQL}
   FROM list_items li
   LEFT JOIN movies m ON li.media_type='movie' AND m.id=li.media_id

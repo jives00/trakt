@@ -6,13 +6,16 @@ function dateOrNull(value: any): string | null {
 }
 
 export function transformMovie(raw: Record<string, any>): MovieDetail {
-  // Prefer US theatrical release date (type 3) over the default release_date field
-  const usTheatrical = (raw['release_dates']?.results as Record<string, any>[] | undefined)
+  const usReleaseDates = (raw['release_dates']?.results as Record<string, any>[] | undefined)
     ?.find((r: Record<string, any>) => r['iso_3166_1'] === 'US')
-    ?.release_dates?.find((d: Record<string, any>) => d['type'] === 3)
-    ?.release_date?.slice(0, 10) ?? null;
+    ?.release_dates as Record<string, any>[] | undefined;
 
-  const releaseDate = dateOrNull(usTheatrical) ?? dateOrNull(raw['release_date']);
+  const usDate = (type: number) =>
+    dateOrNull(usReleaseDates?.find((d) => d['type'] === type)?.release_date?.slice(0, 10) ?? null);
+
+  const releaseDate = usDate(3) ?? dateOrNull(raw['release_date']);
+  const digitalReleaseDate = usDate(4);
+  const physicalReleaseDate = usDate(5);
   const tmdbRating = raw['vote_average'] ? Math.round(raw['vote_average'] * 10) : null;
 
   const videos = raw['videos']?.results as Record<string, any>[] | undefined;
@@ -32,6 +35,8 @@ export function transformMovie(raw: Record<string, any>): MovieDetail {
     runtimeMin: raw['runtime'] ?? null,
     genres: (raw['genres'] ?? []).map((g: Record<string, any>) => g['name']),
     releaseDate: releaseDate || null,
+    digitalReleaseDate: digitalReleaseDate || null,
+    physicalReleaseDate: physicalReleaseDate || null,
     originCountry: (raw['origin_country'] as string[] | undefined)?.[0] || null,
     originalLanguage: raw['original_language'] || null,
     productionCompany: (raw['production_companies'] as Record<string, any>[] | undefined)?.[0]?.name || null,

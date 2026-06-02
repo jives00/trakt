@@ -2,6 +2,14 @@
 
 ## June 02, 2026
 
+### Backend
+- Add `digital_release_date` and `physical_release_date` columns to `movies` table (migration 032); extract from TMDB `release_dates` payload (type 4/5) at fetch time with no extra API calls `63bdc9a`
+- Extend list items query to include movie release dates and show next episode air date via subquery `63bdc9a`
+
+### Frontend – Web
+- Add grid/list view toggle (persisted per-list in localStorage) to all list detail pages `63bdc9a`
+- Add list table view: Title, Type badge, Date (theatrical for movies / next episode for shows), Digital, Physical, Watched columns `63bdc9a`
+
 ### Frontend – Mobile
 - Fix: apply UTC datetime fix to `WatchActionSheet` — `getTodayString()` now returns full UTC datetime, user-picked/release dates use `dateToUtcNoon()` to prevent midnight-UTC rollback to previous day `f1bba3a`
 

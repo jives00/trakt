@@ -9,6 +9,8 @@ export interface Movie {
   runtimeMin: number | null;
   genres: string[];
   releaseDate?: string | null;
+  digitalReleaseDate?: string | null;
+  physicalReleaseDate?: string | null;
   tagline?: string | null;
   rtCriticScore?: number | null;
   rtAudienceScore?: number | null;

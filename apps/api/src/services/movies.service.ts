@@ -8,6 +8,7 @@ interface MovieRow extends RowDataPacket {
   id: number; tmdb_id: number; title: string; year: number;
   overview: string; tagline: string | null; poster_path: string | null; backdrop_path: string | null;
   runtime_min: number | null; genres: string; release_date: string | null;
+  digital_release_date: string | null; physical_release_date: string | null;
   origin_country: string | null; original_language: string | null; production_company: string | null;
   rt_critic_score: number | null; rt_audience_score: number | null;
   tmdb_rating: number | null; trailer_youtube_key: string | null;
@@ -37,6 +38,8 @@ function rowToMovie(row: MovieRow, imdbId?: string | null): MovieDetail & { id: 
     runtimeMin: row.runtime_min,
     genres: typeof row.genres === 'string' ? JSON.parse(row.genres) : (row.genres ?? []),
     releaseDate: row.release_date ?? null,
+    digitalReleaseDate: row.digital_release_date ?? null,
+    physicalReleaseDate: row.physical_release_date ?? null,
     originCountry: row.origin_country ?? null,
     originalLanguage: row.original_language ?? null,
     productionCompany: row.production_company ?? null,
@@ -129,11 +132,13 @@ export async function getOrFetchMovie(tmdbId: number): Promise<MovieDetail & { i
   const movieData = await fetchMovie(tmdbId);
   const tmdbRating = movieData.tmdbRating ?? null;
   await pool.query(
-    `INSERT INTO movies (tmdb_id, title, year, release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company, tmdb_rating, trailer_youtube_key)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company), tmdb_rating = VALUES(tmdb_rating), trailer_youtube_key = VALUES(trailer_youtube_key)`,
-    [tmdbId, movieData.title, movieData.year || null, movieData.releaseDate ?? null, movieData.overview,
-     movieData.tagline ?? null, movieData.posterPath, movieData.backdropPath, movieData.runtimeMin, JSON.stringify(movieData.genres),
+    `INSERT INTO movies (tmdb_id, title, year, release_date, digital_release_date, physical_release_date, overview, tagline, poster_path, backdrop_path, runtime_min, genres, origin_country, original_language, production_company, tmdb_rating, trailer_youtube_key)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE tagline = VALUES(tagline), release_date = VALUES(release_date), digital_release_date = VALUES(digital_release_date), physical_release_date = VALUES(physical_release_date), origin_country = VALUES(origin_country), original_language = VALUES(original_language), production_company = VALUES(production_company), tmdb_rating = VALUES(tmdb_rating), trailer_youtube_key = VALUES(trailer_youtube_key)`,
+    [tmdbId, movieData.title, movieData.year || null, movieData.releaseDate ?? null,
+     movieData.digitalReleaseDate ?? null, movieData.physicalReleaseDate ?? null,
+     movieData.overview, movieData.tagline ?? null, movieData.posterPath, movieData.backdropPath,
+     movieData.runtimeMin, JSON.stringify(movieData.genres),
      movieData.originCountry, movieData.originalLanguage, movieData.productionCompany, tmdbRating, movieData.trailerYoutubeKey ?? null],
   );
   const movie = movieData;

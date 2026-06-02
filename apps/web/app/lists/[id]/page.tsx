@@ -12,7 +12,7 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
 type SortOption = "added_date" | "alpha" | "last_updated" | "random";
 type FilterOption = "all" | "movie" | "show";
-type StatusOption = string;
+type ViewOption = "grid" | "list";
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "added_date", label: "Date Added" },
@@ -47,8 +47,14 @@ function sortItems(items: ListItemEntry[], sort: SortOption): ListItemEntry[] {
     }
     return copy;
   }
-  // added_date and last_updated both sort by addedAt desc
   return copy.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
+}
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00Z");
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 export default function ListDetailPage() {
@@ -58,6 +64,7 @@ export default function ListDetailPage() {
   const [error, setError] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added_date");
   const [filter, setFilter] = useState<FilterOption>("all");
+  const [view, setView] = useState<ViewOption>("grid");
   const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
   const [availableStatuses, setAvailableStatuses] = useState<string[]>([]);
   const [showStatusMap, setShowStatusMap] = useState<Map<number, string | null>>(new Map());
@@ -78,11 +85,12 @@ export default function ListDetailPage() {
           initialized.current.add(listId);
           const savedSort = localStorage.getItem(`list-sort-${id}`) as SortOption | null;
           const savedFilter = localStorage.getItem(`list-filter-${id}`) as FilterOption | null;
+          const savedView = localStorage.getItem(`list-view-${id}`) as ViewOption | null;
           if (savedSort) setSortBy(savedSort);
           if (savedFilter) setFilter(savedFilter);
+          if (savedView) setView(savedView);
         }
 
-        // Fetch show statuses for all shows in the list
         const showItems = data.items.filter((item) => item.mediaType === "show" && item.tmdbId);
         const statusMap = new Map<number, string | null>();
         const statuses = new Set<string>();
@@ -121,6 +129,11 @@ export default function ListDetailPage() {
     localStorage.setItem(`list-filter-${id}`, next);
   }
 
+  function changeView(next: ViewOption) {
+    setView(next);
+    localStorage.setItem(`list-view-${id}`, next);
+  }
+
   function toggleStatusFilter(status: string) {
     setSelectedStatuses((prev) => {
       const next = new Set(prev);
@@ -153,7 +166,7 @@ export default function ListDetailPage() {
           : prev
       );
       setEditing(false);
-    } catch (err) {
+    } catch {
       setError("Failed to update list.");
     }
   }
@@ -170,7 +183,6 @@ export default function ListDetailPage() {
 
   let filtered = filter === "all" ? list.items : list.items.filter((i) => i.mediaType === filter);
 
-  // Apply status filter if any are selected
   if (selectedStatuses.size > 0) {
     filtered = filtered.filter((item) => {
       if (item.mediaType !== "show") return true;
@@ -179,7 +191,10 @@ export default function ListDetailPage() {
     });
   }
 
+  // List view only shows movies and shows (not episodes)
+  const tableItems = filtered.filter((i) => i.mediaType === "movie" || i.mediaType === "show");
   const sorted = sortItems(filtered, sortBy);
+  const tableSorted = sortItems(tableItems, sortBy);
 
   return (
     <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full">
@@ -248,7 +263,7 @@ export default function ListDetailPage() {
         </header>
 
         {list.items.length > 0 && (
-          <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-wrap items-center gap-4 mb-6">
             <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.map((opt) => (
                 <button
@@ -301,6 +316,25 @@ export default function ListDetailPage() {
                 ))}
               </div>
             )}
+
+            <div className="ml-auto flex gap-1">
+              <button
+                type="button"
+                onClick={() => changeView("grid")}
+                className={`p-2 rounded-lg transition-colors ${view === "grid" ? "bg-accent text-white" : "bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"}`}
+                aria-label="Grid view"
+              >
+                <span className="material-symbols-outlined text-base leading-none">grid_view</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => changeView("list")}
+                className={`p-2 rounded-lg transition-colors ${view === "list" ? "bg-accent text-white" : "bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface"}`}
+                aria-label="List view"
+              >
+                <span className="material-symbols-outlined text-base leading-none">table_rows</span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -311,11 +345,15 @@ export default function ListDetailPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {sorted.map((item) => (
-            <ListItemCard key={item.id} item={item} onRemove={() => handleRemove(item)} />
-          ))}
-        </div>
+        {view === "grid" ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {sorted.map((item) => (
+              <ListItemCard key={item.id} item={item} onRemove={() => handleRemove(item)} />
+            ))}
+          </div>
+        ) : (
+          <ListTable items={tableSorted} onRemove={handleRemove} />
+        )}
       </div>
     </div>
   );
@@ -357,6 +395,80 @@ function ListItemCard({ item, onRemove }: { item: ListItemEntry; onRemove: () =>
       >
         close
       </button>
+    </div>
+  );
+}
+
+function ListTable({ items, onRemove }: { items: ListItemEntry[]; onRemove: (item: ListItemEntry) => void }) {
+  if (items.length === 0) return null;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm border-collapse">
+        <thead>
+          <tr className="border-b border-outline-variant/20">
+            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider">Title</th>
+            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Type</th>
+            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Date</th>
+            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Digital</th>
+            <th className="text-left py-3 pr-4 text-xs font-semibold text-on-surface/40 uppercase tracking-wider whitespace-nowrap">Physical</th>
+            <th className="py-3 w-8"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => {
+            const href = item.mediaType === "movie" ? `/movies/${item.tmdbId}` : `/shows/${item.tmdbId}`;
+            const date = item.mediaType === "movie" ? item.releaseDate : item.nextEpisodeDate;
+            const digital = item.mediaType === "movie" ? item.digitalReleaseDate : null;
+            const physical = item.mediaType === "movie" ? item.physicalReleaseDate : null;
+
+            return (
+              <tr key={item.id} className="border-b border-outline-variant/10 hover:bg-surface-container/40 group transition-colors">
+                <td className="py-3 pr-4">
+                  <Link href={href} className="flex items-center gap-3 hover:text-accent transition-colors">
+                    {item.posterPath ? (
+                      <Image
+                        src={`${TMDB_IMG}w92${item.posterPath}`}
+                        alt={item.title ?? ""}
+                        width={32}
+                        height={48}
+                        className="rounded object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-8 h-12 rounded bg-surface-container flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-base text-on-surface/20">movie</span>
+                      </div>
+                    )}
+                    <span className="font-semibold text-on-surface group-hover:text-accent transition-colors line-clamp-2 leading-snug">
+                      {item.title}
+                      {item.year && <span className="ml-1.5 text-on-surface/40 font-normal text-xs">({item.year})</span>}
+                    </span>
+                  </Link>
+                </td>
+                <td className="py-3 pr-4 whitespace-nowrap">
+                  <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${item.mediaType === "movie" ? "bg-blue-500/15 text-blue-400" : "bg-purple-500/15 text-purple-400"}`}>
+                    {item.mediaType === "movie" ? "Movie" : "Show"}
+                  </span>
+                </td>
+                <td className="py-3 pr-4 text-on-surface/70 whitespace-nowrap tabular-nums">
+                  {formatDate(date)}
+                </td>
+                <td className="py-3 pr-4 text-on-surface/70 whitespace-nowrap tabular-nums">
+                  {item.mediaType === "movie" ? formatDate(digital) : <span className="text-on-surface/25">—</span>}
+                </td>
+                <td className="py-3 pr-4 text-on-surface/70 whitespace-nowrap tabular-nums">
+                  {item.mediaType === "movie" ? formatDate(physical) : <span className="text-on-surface/25">—</span>}
+                </td>
+                <td className="py-3 text-right">
+                  {item.isFullyWatched && (
+                    <span className="material-symbols-outlined text-green-500 text-base leading-none" title="Watched">check_circle</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
