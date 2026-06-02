@@ -14,8 +14,11 @@ interface Props {
 }
 
 function getTodayString(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return new Date().toISOString().slice(0, 19).replace("T", " ");
+}
+
+function dateToUtcNoon(dateStr: string): string {
+  return new Date(dateStr + "T12:00:00Z").toISOString().slice(0, 19).replace("T", " ");
 }
 
 export function WatchActionSheet({ visible, onClose, watched, releaseDate, releaseDateLabel = "Release Date", onMark, onRemoveLatest, onRemoveAll, latestEntryId }: Props) {
@@ -30,7 +33,7 @@ export function WatchActionSheet({ visible, onClose, watched, releaseDate, relea
 
   function handleConfirmDate() {
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
-      onMark(dateInput);
+      onMark(dateToUtcNoon(dateInput));
       handleClose();
     }
   }
@@ -62,7 +65,7 @@ export function WatchActionSheet({ visible, onClose, watched, releaseDate, relea
             </TouchableOpacity>
 
             {releaseDate ? (
-              <TouchableOpacity style={s.option} onPress={() => { onMark(releaseDate); handleClose(); }}>
+              <TouchableOpacity style={s.option} onPress={() => { onMark(dateToUtcNoon(releaseDate)); handleClose(); }}>
                 <Text style={s.optionText}>{watched ? `Add Watch (${releaseDateLabel})` : releaseDateLabel}</Text>
               </TouchableOpacity>
             ) : null}

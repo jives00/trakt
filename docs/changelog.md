@@ -1,5 +1,10 @@
 # Changelog
 
+## June 02, 2026
+
+### Frontend – Mobile
+- Fix: apply UTC datetime fix to `WatchActionSheet` — `getTodayString()` now returns full UTC datetime, user-picked/release dates use `dateToUtcNoon()` to prevent midnight-UTC rollback to previous day `f1bba3a`
+
 ## June 01, 2026
 
 ### Backend
