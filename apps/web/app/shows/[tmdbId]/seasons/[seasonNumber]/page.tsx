@@ -49,18 +49,19 @@ export default function SeasonDetailPage() {
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
     const id = Number(tmdbId);
-    Promise.all([
+    Promise.allSettled([
       api.getShow(id, token),
       api.getSeason(id, sn, token),
       api.getShowSeasons(id, token),
-    ]).then(([showData, seasonData, seasonsData]) => {
-      setShow(showData.show);
-      setStatus(showData.status);
-      setEpisodes(seasonData.episodes);
-      setWatchedIds(new Set(seasonData.watchedEpisodeIds));
-      const s = seasonsData.seasons.find((s) => s.seasonNumber === sn);
-      setSeasonPoster(s?.posterPath ?? null);
-    }).catch(() => setError("Failed to load season."));
+    ]).then(([showRes, seasonRes, seasonsRes]) => {
+      if (showRes.status === 'fulfilled') { setShow(showRes.value.show); setStatus(showRes.value.status); }
+      if (seasonRes.status === 'fulfilled') { setEpisodes(seasonRes.value.episodes); setWatchedIds(new Set(seasonRes.value.watchedEpisodeIds)); }
+      if (seasonsRes.status === 'fulfilled') {
+        const s = seasonsRes.value.seasons.find((s) => s.seasonNumber === sn);
+        setSeasonPoster(s?.posterPath ?? null);
+      }
+      if (showRes.status === 'rejected' && seasonRes.status === 'rejected') setError("Failed to load season.");
+    });
   }, [isLoading, token, tmdbId, sn]);
 
   useEffect(() => {

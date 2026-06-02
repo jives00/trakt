@@ -27,13 +27,12 @@ export default function DashboardPage() {
   const [alltime, setAlltime] = useState<StatsAllTime | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fetching, setFetching] = useState(true);
-  const [fetchError, setFetchError] = useState("");
   const [nowPlaying, setNowPlaying] = useState<NowPlayingItem | null>(null);
   const [heroArt, setHeroArt] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoading || !token) return;
-    Promise.all([
+    Promise.allSettled([
       api.getProfile(token),
       api.getUpNext(token),
       api.getSchedule(token, 30),
@@ -43,14 +42,17 @@ export default function DashboardPage() {
       api.getShowRecommendations(token),
       api.getMovieRecommendations(token),
       api.getDashboardArt(token),
-    ])
-      .then(([prof, up, sched, stats, recent, at, srecs, mrecs, art]) => {
-        setProfile(prof); setUpNext(up); setSchedule(sched); setDashStats(stats);
-        setRecentItems(recent); setAlltime(at); setShowRecs(srecs); setMovieRecs(mrecs);
-        setHeroArt(art);
-      })
-      .catch(() => setFetchError("Failed to load dashboard."))
-      .finally(() => setFetching(false));
+    ]).then(([profRes, upRes, schedRes, statsRes, recentRes, atRes, srecsRes, mrecsRes, artRes]) => {
+      if (profRes.status === 'fulfilled') setProfile(profRes.value);
+      if (upRes.status === 'fulfilled') setUpNext(upRes.value);
+      if (schedRes.status === 'fulfilled') setSchedule(schedRes.value);
+      if (statsRes.status === 'fulfilled') setDashStats(statsRes.value);
+      if (recentRes.status === 'fulfilled') setRecentItems(recentRes.value);
+      if (atRes.status === 'fulfilled') setAlltime(atRes.value);
+      if (srecsRes.status === 'fulfilled') setShowRecs(srecsRes.value);
+      if (mrecsRes.status === 'fulfilled') setMovieRecs(mrecsRes.value);
+      if (artRes.status === 'fulfilled') setHeroArt(artRes.value);
+    }).finally(() => setFetching(false));
   }, [token, isLoading]);
 
   useEffect(() => {
@@ -62,7 +64,6 @@ export default function DashboardPage() {
   }, [token]);
 
   if (isLoading || fetching) return null;
-  if (fetchError) return <p className="text-error">{fetchError}</p>;
 
   const greeting = profile?.displayName || profile?.username || "there";
 

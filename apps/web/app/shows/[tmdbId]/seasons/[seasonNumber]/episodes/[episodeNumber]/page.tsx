@@ -34,23 +34,20 @@ export default function EpisodeDetailPage() {
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
     const id = Number(tmdbId);
-    Promise.all([
+    Promise.allSettled([
       api.getShow(id, token),
       api.getEpisode(id, sn, ep, token),
       api.getEpisodeCast(id, sn, ep, token),
       api.getShowSeasons(id, token),
       api.getEpisodeHistory(id, sn, ep, token),
-    ])
-      .then(([showData, episodeData, castData, seasonsData, historyData]) => {
-        setShow(showData.show);
-        setStatus(showData.status);
-        setEpisode(episodeData.episode);
-        setWatched(episodeData.watched);
-        setCast(castData.cast);
-        setSeasons(seasonsData.seasons);
-        setHistory(historyData);
-      })
-      .catch(() => setError("Failed to load episode."));
+    ]).then(([showRes, episodeRes, castRes, seasonsRes, historyRes]) => {
+      if (showRes.status === 'fulfilled') { setShow(showRes.value.show); setStatus(showRes.value.status); }
+      if (episodeRes.status === 'fulfilled') { setEpisode(episodeRes.value.episode); setWatched(episodeRes.value.watched); }
+      if (castRes.status === 'fulfilled') setCast(castRes.value.cast);
+      if (seasonsRes.status === 'fulfilled') setSeasons(seasonsRes.value.seasons);
+      if (historyRes.status === 'fulfilled') setHistory(historyRes.value);
+      if (showRes.status === 'rejected' && episodeRes.status === 'rejected') setError("Failed to load episode.");
+    });
   }, [isLoading, token, tmdbId, sn, ep]);
 
   useEffect(() => {

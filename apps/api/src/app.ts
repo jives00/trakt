@@ -3,6 +3,7 @@ import cookiePlugin from '@fastify/cookie';
 import corsPlugin from '@fastify/cors';
 import helmetPlugin from '@fastify/helmet';
 import jwtPlugin from '@fastify/jwt';
+import { healthRoutes } from './routes/health.routes';
 import { authRoutes } from './routes/auth.routes';
 import { searchRoutes } from './routes/search.routes';
 import { moviesRoutes } from './routes/movies.routes';
@@ -25,7 +26,10 @@ import { exportFeedsRoutes } from './routes/export-feeds.routes';
 import { excelExportRoutes } from './routes/excel-export.routes';
 
 export function buildApp(): FastifyInstance {
-  const app = Fastify({ logger: false, trustProxy: true });
+  const app = Fastify({
+    logger: { transport: { target: 'pino-pretty', options: { colorize: true, translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } } },
+    trustProxy: true,
+  });
 
   void app.register(helmetPlugin, {
     contentSecurityPolicy: {
@@ -47,6 +51,7 @@ export function buildApp(): FastifyInstance {
     secret: process.env.JWT_SECRET ?? 'dev-secret-change-me',
   });
 
+  void app.register(healthRoutes);
   void app.register(authRoutes, { prefix: '/api/auth' });
   void app.register(searchRoutes, { prefix: '/api' });
   void app.register(moviesRoutes, { prefix: '/api' });

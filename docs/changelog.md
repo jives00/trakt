@@ -3,10 +3,12 @@
 ## June 02, 2026
 
 ### Backend
+- Add pino-pretty structured logging to Fastify; add health check route; log auth failures with method/URL/code `e9c2b8c`
 - Add `digital_release_date` and `physical_release_date` columns to `movies` table (migration 032); extract from TMDB `release_dates` payload (type 4/5) at fetch time with no extra API calls `63bdc9a`
 - Extend list items query to include movie release dates and show next episode air date via subquery `63bdc9a`
 
 ### Frontend – Web
+- Switch dashboard and show season/episode pages from `Promise.all` to `Promise.allSettled` — partial API failures render empty state instead of blanking the page `e9c2b8c`
 - Add grid/list view toggle (persisted per-list in localStorage) to all list detail pages `63bdc9a`
 - Add list table view: Title, Type badge, Date (theatrical for movies / next episode for shows), Digital, Physical columns `63bdc9a`
 - Make all list table columns sortable; click to sort asc/desc, null dates sort to bottom `23d85d4`

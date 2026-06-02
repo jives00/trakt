@@ -59,13 +59,12 @@ export default function AllSeasonsPage() {
   useEffect(() => {
     if (isLoading || !token || !tmdbId) return;
     const id = Number(tmdbId);
-    Promise.all([api.getShow(id, token), api.getShowSeasons(id, token)])
-      .then(([showData, seasonsData]) => {
-        setShow(showData.show);
-        setStatus(showData.status);
-        setSeasons(seasonsData.seasons);
-      })
-      .catch(() => setError("Failed to load show."));
+    Promise.allSettled([api.getShow(id, token), api.getShowSeasons(id, token)])
+      .then(([showRes, seasonsRes]) => {
+        if (showRes.status === 'fulfilled') { setShow(showRes.value.show); setStatus(showRes.value.status); }
+        if (seasonsRes.status === 'fulfilled') setSeasons(seasonsRes.value.seasons);
+        if (showRes.status === 'rejected' && seasonsRes.status === 'rejected') setError("Failed to load show.");
+      });
   }, [isLoading, token, tmdbId]);
 
   useEffect(() => {

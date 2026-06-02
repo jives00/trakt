@@ -6,6 +6,7 @@ export async function authenticate(request: FastifyRequest, reply: FastifyReply)
   } catch (err) {
     const code = (err as any)?.code as string | undefined;
     if (typeof code === 'string' && code.startsWith('FST_JWT')) {
+      request.log.warn(`auth failed — ${request.method} ${request.url} (${code})`);
       return reply.status(401).send({ error: 'Unauthorized' });
     }
     throw err;
