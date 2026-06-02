@@ -50,7 +50,7 @@ export async function scrobbleRoutes(app: FastifyInstance) {
     }
   });
 
-  app.get('/scrobble/now-playing', { preHandler: authenticate }, async (request, reply) => {
+  app.get('/scrobble/now-playing', { preHandler: authenticate, logLevel: 'silent' }, async (request, reply) => {
     try {
       const item = await getNowPlaying(userId(request));
       if (!item) {

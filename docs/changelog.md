@@ -3,6 +3,8 @@
 ## June 02, 2026
 
 ### Backend
+- Fix: `ON DUPLICATE KEY UPDATE` on `now_playing` now refreshes `updated_at`, preventing stale rows from a prior session from failing the 5-minute staleness check `b8750ca`
+- Silence `GET /api/scrobble/now-playing` request logs (polls every 30s) `b8750ca`
 - Add pino-pretty structured logging to Fastify; add health check route; log auth failures with method/URL/code `e9c2b8c`
 - Add `digital_release_date` and `physical_release_date` columns to `movies` table (migration 032); extract from TMDB `release_dates` payload (type 4/5) at fetch time with no extra API calls `63bdc9a`
 - Extend list items query to include movie release dates and show next episode air date via subquery `63bdc9a`

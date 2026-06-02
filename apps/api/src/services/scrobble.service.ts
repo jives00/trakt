@@ -179,7 +179,8 @@ export async function updateNowPlaying(
        media_type   = VALUES(media_type),
        media_id     = VALUES(media_id),
        progress_pct = VALUES(progress_pct),
-       source       = VALUES(source)`,
+       source       = VALUES(source),
+       updated_at   = NOW()`,
     [userId, mediaType, mediaIdDb, progressPct, source]
   );
 }
