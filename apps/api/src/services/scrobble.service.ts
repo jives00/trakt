@@ -187,6 +187,7 @@ export async function updateNowPlaying(
 
 export async function clearNowPlaying(userId: number): Promise<void> {
   const pool = getPool();
+  console.log(`🗑️  clearNowPlaying called for user ${userId}`, new Error().stack?.split('\n')[2]?.trim());
   await pool.query(`DELETE FROM now_playing WHERE user_id = ?`, [userId]);
 }
 
@@ -219,7 +220,19 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
     [userId]
   );
 
-  if (!(rows as any[]).length) return null;
+  if (!(rows as any[]).length) {
+    const [debugRows] = await pool.query<RowDataPacket[]>(
+      `SELECT updated_at, TIMESTAMPDIFF(SECOND, updated_at, NOW()) AS age_seconds FROM now_playing WHERE user_id = ?`,
+      [userId]
+    );
+    if ((debugRows as any[]).length) {
+      const r = (debugRows as any[])[0];
+      console.log(`🕐 now-playing row exists but failed staleness check — updated_at: ${r.updated_at}, age: ${r.age_seconds}s`);
+    } else {
+      console.log(`❌ now-playing: no row found for user ${userId}`);
+    }
+    return null;
+  }
   const r = (rows as any[])[0];
   const item: NowPlayingItem = {
     mediaType:       r.mediaType,
