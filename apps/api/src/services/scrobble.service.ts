@@ -196,6 +196,8 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
     `SELECT
        np.media_type      AS mediaType,
        np.progress_pct    AS progressPct,
+       np.source          AS source,
+       np.updated_at      AS updatedAt,
        m.tmdb_id          AS movieTmdbId,
        m.title            AS movieTitle,
        m.tagline,
@@ -221,9 +223,21 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
 
   if (!(rows as any[]).length) return null;
   const r = (rows as any[])[0];
+
+  // For sources that don't send periodic updates (nuvio, emby, kodi), estimate current
+  // progress from elapsed time since the start event and the content runtime.
+  let progressPct: number = r.progressPct;
+  if (r.source !== 'stremio') {
+    const runtimeMin: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;
+    if (runtimeMin && runtimeMin > 0) {
+      const elapsedSec = (Date.now() - new Date(r.updatedAt).getTime()) / 1000;
+      progressPct = Math.min(99, r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100);
+    }
+  }
+
   const item: NowPlayingItem = {
     mediaType:       r.mediaType,
-    progressPct:     r.progressPct,
+    progressPct:     Math.round(progressPct),
     movieTmdbId:     r.movieTmdbId     ?? null,
     movieTitle:      r.movieTitle      ?? null,
     tagline:         r.tagline         ?? null,
