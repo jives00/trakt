@@ -3,6 +3,7 @@
 ## June 02, 2026
 
 ### Backend
+- Fix: Trakt background poller no longer clears `now_playing` rows written by Nuvio/Emby/Kodi when Trakt returns 204 (those sources don't scrobble to Trakt.tv) `39867fa`
 - Fix: `ON DUPLICATE KEY UPDATE` on `now_playing` now refreshes `updated_at`, preventing stale rows from a prior session from failing the 5-minute staleness check `b8750ca`
 - Silence `GET /api/scrobble/now-playing` request logs (polls every 30s) `b8750ca`
 - Add pino-pretty structured logging to Fastify; add health check route; log auth failures with method/URL/code `e9c2b8c`

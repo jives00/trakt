@@ -316,7 +316,12 @@ async function pollNow(): Promise<void> {
   }
 
   if (res.status === 204) {
-    await clearNowPlaying(DEFAULT_USER_ID);
+    const pool = getPool();
+    const [rows] = await pool.query(`SELECT source FROM now_playing WHERE user_id = ?`, [DEFAULT_USER_ID]);
+    const source = (rows as any[])[0]?.source;
+    if (!source || source === 'stremio') {
+      await clearNowPlaying(DEFAULT_USER_ID);
+    }
     return;
   }
 
