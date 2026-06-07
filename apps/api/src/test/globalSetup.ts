@@ -1,13 +1,18 @@
 import mysql from 'mysql2/promise';
 import { RowDataPacket } from 'mysql2';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { runMigrations } from './runMigrations';
 
-const NUM_WORKERS = 18;
-const DB_CONFIG = {
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 3306),
-  user: process.env.DB_USER ?? 'trakt',
-  password: process.env.DB_PASSWORD ?? '',
+const env = config({ path: resolve(__dirname, '../../.env') }).parsed ?? {};
+
+const NUM_WORKERS = 4;
+
+const ADMIN_DB_CONFIG = {
+  host: env.DB_HOST ?? 'localhost',
+  port: Number(env.DB_PORT ?? 3306),
+  user: env.DB_TEST_ADMIN_USER ?? 'root',
+  password: env.DB_TEST_ADMIN_PASSWORD ?? '',
 };
 
 async function getTables(conn: mysql.Connection, dbName: string): Promise<string[]> {
@@ -26,7 +31,6 @@ async function cloneSchema(adminConn: mysql.Connection, sourceDb: string, target
       await adminConn.query(
         `CREATE TABLE \`${targetDb}\`.\`${table}\` LIKE \`${sourceDb}\`.\`${table}\``
       );
-      // Copy data for migrations table so schema changes are tracked
       if (table === 'migrations') {
         await adminConn.query(
           `INSERT INTO \`${targetDb}\`.\`migrations\` SELECT * FROM \`${sourceDb}\`.\`migrations\``
@@ -41,14 +45,12 @@ async function cloneSchema(adminConn: mysql.Connection, sourceDb: string, target
 }
 
 export async function setup(): Promise<void> {
-  const adminConn = await mysql.createConnection(DB_CONFIG);
+  const adminConn = await mysql.createConnection(ADMIN_DB_CONFIG);
 
   try {
-    // Ensure trakt_test is migrated first (template database)
     console.log('Ensuring trakt_test is migrated...');
-    await runMigrations('trakt_test', DB_CONFIG);
+    await runMigrations('trakt_test', ADMIN_DB_CONFIG);
 
-    // Clone schema from fully-migrated trakt_test to each worker database
     for (let i = 1; i <= NUM_WORKERS; i++) {
       const dbName = `trakt_test_${i}`;
       try {
@@ -56,19 +58,33 @@ export async function setup(): Promise<void> {
         await adminConn.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
         await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
         await cloneSchema(adminConn, 'trakt_test', dbName);
-        console.log(`✓ ${dbName} ready with cloned migrated schema`);
+        console.log(`✓ ${dbName} ready`);
       } catch (err) {
         console.error(`Failed to set up ${dbName}:`, err);
         throw err;
       }
     }
 
-    console.log('✓ All test databases ready with migrated schema');
+    console.log('✓ All test databases ready');
   } finally {
     await adminConn.end();
   }
 }
 
 export async function teardown(): Promise<void> {
-  // No cleanup needed
+  const adminConn = await mysql.createConnection(ADMIN_DB_CONFIG);
+
+  try {
+    for (let i = 1; i <= NUM_WORKERS; i++) {
+      const dbName = `trakt_test_${i}`;
+      try {
+        await adminConn.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
+      } catch (err) {
+        console.error(`Failed to drop ${dbName}:`, err);
+      }
+    }
+    console.log('✓ Test databases cleaned up');
+  } finally {
+    await adminConn.end();
+  }
 }

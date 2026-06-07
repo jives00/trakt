@@ -9,7 +9,7 @@ git tag apk-<description>
 git push origin apk-<description>
 ```
 
-The APK appears as a downloadable artifact in the GitHub Actions run (`app-release` under the Artifacts section). Builds take ~20–30 minutes. Uses the free GitHub Actions Linux runner (2,000 min/month on private repos; unlimited on public).
+The build creates a GitHub Release (tagged with the `apk-*` tag name) and attaches the APK as a release asset. The email notification includes a direct download link — no GitHub login required. Builds take ~20–30 minutes. Uses the free GitHub Actions Linux runner (2,000 min/month on private repos; unlimited on public).
 
 **Why not EAS?** EAS tokens are limited per month and burn even on failed builds.
 

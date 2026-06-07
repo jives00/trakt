@@ -6,8 +6,8 @@ let pool: mysql.Pool | null = null;
 
 export function getPool(): mysql.Pool {
   if (!pool) {
-    const workerId = process.env.VITEST_WORKER_ID ?? '0';
-    const workerNum = (Number(workerId) % 18) + 1; // Map to 1-18
+    const workerId = process.env.VITEST_WORKER_ID ?? '1';
+    const workerNum = ((Number(workerId) - 1) % 4) + 1; // Map to 1-4
     const dbName = `trakt_test_${workerNum}`;
 
     const DB_CONFIG = {

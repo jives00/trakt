@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, and Stremio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
+Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, Stremio, and Nuvio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
 
 ---
 
@@ -71,11 +71,15 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 **Stremio:** Hybrid approach — subtitle open triggers `startPollLoop`, then polls Trakt's `GET /users/{username}/watching` every 60s until 204. Progress from `data.progress` (0–100); falls back to computing from `started_at`/`expires_at`.
 
+**Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end. Does not send periodic progress updates or scrobble to Trakt.tv.
+
 ### Now Playing
 
 All scrobble sources call `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` regardless of completion threshold. Dashboard hero polls `GET /api/scrobble/now-playing` every 30s.
 
 `now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. 5-minute staleness guard clears ghost sessions if a player crashes.
+
+For sources that don't send periodic updates (Nuvio, Emby, Kodi), `getNowPlaying` extrapolates the current position from elapsed time since `updated_at` and the content runtime. The Trakt background poller only clears `now_playing` when `source = 'stremio'` — it does not interfere with Nuvio/Emby/Kodi sessions.
 
 ### Metadata sourcing
 
@@ -87,7 +91,7 @@ Token-authenticated feeds (no session cookie — safe for external apps). `GET /
 
 ### Exclusions
 
-Per-integration title exclusions (`emby`, `stremio`, `kodi`) prevent scrobbling specific titles. `GET/POST/DELETE /api/settings/exclusions`.
+Per-integration title exclusions (`emby`, `stremio`, `kodi`, `nuvio`) prevent scrobbling specific titles. `GET/POST/DELETE /api/settings/exclusions`.
 
 ### Shared types
 

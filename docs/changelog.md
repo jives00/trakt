@@ -1,5 +1,19 @@
 # Changelog
 
+## June 06, 2026
+
+### Backend
+- Add public `GET /api/app/version` route that fetches the latest GitHub Release and returns `{ tag, apkUrl }` for mobile update checks `42af1a3`
+
+### Frontend – Web
+- Add `sharp` dependency for Next.js standalone image optimization (was logging errors in production) `42af1a3`
+
+### Frontend – Mobile
+- Add in-app update notifications: Zustand store checks `/api/app/version` on startup and foreground resume, dismissible red banner appears when an update is available `42af1a3`
+- Banner taps download the APK via `expo-file-system` and hand it to the Android package installer via `expo-intent-launcher` `42af1a3`
+- Settings screen gains an About section showing the installed build tag and update status with a Download & Install button `42af1a3`
+- CI: APK builds now create a GitHub Release (instead of an Actions artifact) and bake `EXPO_PUBLIC_BUILD_TAG` into the APK; email notification includes a direct download link `42af1a3`
+
 ## June 02, 2026
 
 ### Backend

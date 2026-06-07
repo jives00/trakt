@@ -24,6 +24,7 @@ import { discoverRoutes } from './routes/discover.routes';
 import { exportTokenRoutes } from './routes/export-token.routes';
 import { exportFeedsRoutes } from './routes/export-feeds.routes';
 import { excelExportRoutes } from './routes/excel-export.routes';
+import { appVersionRoutes } from './routes/app-version.routes';
 
 export function buildApp(): FastifyInstance {
   const app = Fastify({
@@ -70,6 +71,7 @@ export function buildApp(): FastifyInstance {
   void app.register(exportTokenRoutes, { prefix: '/api' });
   void app.register(exportFeedsRoutes, { prefix: '/api' });
   void app.register(excelExportRoutes, { prefix: '/api' });
+  void app.register(appVersionRoutes, { prefix: '/api' });
   void app.register(stremioAddonRoutes, { prefix: '/stremio-addon' });
   void app.register(nuvioAddonRoutes, { prefix: '/nuvio-addon' });
 

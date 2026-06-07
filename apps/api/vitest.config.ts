@@ -16,7 +16,6 @@ export default defineConfig({
     maxWorkers: 4,
     minWorkers: 1,
     globalSetup: './src/test/globalSetup.ts',
-    globalTeardown: './src/test/globalTeardown.ts',
     env: {
       ...env,
     },

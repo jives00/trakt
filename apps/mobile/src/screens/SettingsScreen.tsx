@@ -4,6 +4,7 @@ import * as SecureStore from "expo-secure-store";
 import { useAuth } from "../contexts/AuthContext";
 import { api } from "../lib/api";
 import { Ionicons } from "@expo/vector-icons";
+import { useUpdateStore, BUILD_TAG } from "../store/update";
 
 type Theme = "red-dark" | "blue-dark" | "red-light" | "blue-light";
 const THEMES: { value: Theme; label: string; accent: string; bg: string }[] = [
@@ -22,6 +23,9 @@ export default function SettingsScreen() {
   const [theme, setTheme] = useState<Theme>("red-dark");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { updateAvailable, latestTag, checking, downloading, progress, checkForUpdate, startUpdate } = useUpdateStore();
+
+  useEffect(() => { checkForUpdate(); }, []);
 
   async function load() {
     if (!token) return;
@@ -42,7 +46,7 @@ export default function SettingsScreen() {
 
   async function handleRefresh() {
     setRefreshing(true);
-    try { await load(); } finally { setRefreshing(false); }
+    try { await Promise.all([load(), checkForUpdate()]); } finally { setRefreshing(false); }
   }
 
   async function handleSaveDisplayName() {
@@ -174,6 +178,36 @@ export default function SettingsScreen() {
         ))}
       </View>
 
+      {/* About */}
+      <SectionHeader title="About" />
+      <View style={s.fieldRow}>
+        <Text style={s.fieldLabel}>Installed Build</Text>
+        <Text style={[s.fieldValue, s.mono]}>{BUILD_TAG || "(dev build)"}</Text>
+      </View>
+      <View style={[s.fieldRow, { marginBottom: 8 }]}>
+        <Text style={s.fieldLabel}>Update Status</Text>
+        {checking ? (
+          <Text style={s.fieldValue}>Checking…</Text>
+        ) : updateAvailable ? (
+          <Text style={[s.fieldValue, { color: "#e8002d" }]}>Update available — {latestTag}</Text>
+        ) : (
+          <Text style={[s.fieldValue, { color: "#4caf50" }]}>Up to date</Text>
+        )}
+      </View>
+      <TouchableOpacity style={s.actionRow} onPress={checkForUpdate} disabled={checking}>
+        <Text style={s.actionText}>Check for Updates</Text>
+        {checking
+          ? <ActivityIndicator size="small" color="#888" />
+          : <Ionicons name="refresh-outline" size={18} color="#888" />}
+      </TouchableOpacity>
+      {updateAvailable && (
+        <TouchableOpacity style={s.updateBtn} onPress={startUpdate} disabled={downloading}>
+          {downloading
+            ? <Text style={s.updateBtnText}>Downloading… {Math.round(progress * 100)}%</Text>
+            : <Text style={s.updateBtnText}>Download & Install</Text>}
+        </TouchableOpacity>
+      )}
+
       {/* Account */}
       <View style={{ marginTop: 40 }}>
         <TouchableOpacity
@@ -235,4 +269,8 @@ const s = StyleSheet.create({
 
   logoutBtn: { backgroundColor: "#1e2029", borderRadius: 8, paddingVertical: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(232,0,45,0.3)" },
   logoutText: { color: "#e8002d", fontWeight: "700", fontSize: 14 },
+
+  mono: { fontFamily: "monospace", fontSize: 13 },
+  updateBtn: { backgroundColor: "#e8002d", borderRadius: 8, paddingVertical: 13, alignItems: "center", marginBottom: 8 },
+  updateBtnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
 });
