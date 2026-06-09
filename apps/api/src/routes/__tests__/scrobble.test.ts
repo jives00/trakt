@@ -672,6 +672,155 @@ describe('POST /api/scrobble/emby', () => {
     });
   });
 
+  describe('Nuvio scrobble', () => {
+    const nuvioMoviePayload = (progress: number) => ({
+      movie: { title: 'Fight Club', year: 1999, ids: { tmdb: 550 } },
+      progress,
+    });
+
+    const nuvioEpisodePayload = (progress: number) => ({
+      show: { title: 'Game of Thrones', year: 2011, ids: { tmdb: 1399 } },
+      episode: { season: 1, number: 1, ids: {} },
+      progress,
+    });
+
+    it('start populates now_playing for a movie', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(30);
+    });
+
+    it('stop below threshold keeps now_playing alive (pause behavior)', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(32);
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop below threshold does not log watch history for a movie', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32));
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop at threshold clears now_playing and logs watch history for a movie', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(85));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(92));
+
+      const [nowPlaying] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(nowPlaying.length).toBe(0);
+
+      const [movies] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = 550');
+      const movieId = movies[0].id;
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "movie"', [movieId]);
+      expect(history.length).toBe(1);
+      expect(history[0].progress_pct).toBe(92);
+    });
+
+    it('resume after pause (start → stop → start) restores now_playing', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(32);
+    });
+
+    it('stop below threshold keeps now_playing alive for an episode', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(40));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(42));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(42);
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "episode"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop at threshold clears now_playing and logs watch history for an episode', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(85));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(91));
+
+      const [nowPlaying] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(nowPlaying.length).toBe(0);
+
+      const [shows] = await pool.query<any[]>('SELECT id FROM tv_shows WHERE tmdb_id = 1399');
+      const showId = shows[0].id;
+      const [seasons] = await pool.query<any[]>('SELECT id FROM seasons WHERE show_id = ? AND season_number = 1', [showId]);
+      const [episodes] = await pool.query<any[]>('SELECT id FROM episodes WHERE season_id = ? AND episode_number = 1', [seasons[0].id]);
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_id = ? AND media_type = "episode"', [episodes[0].id]);
+      expect(history.length).toBe(1);
+      expect(history[0].progress_pct).toBe(91);
+    });
+  });
+
   describe('Progress calculation', () => {
     it('correctly calculates progress for fractional values', async () => {
       const pool = getPool();

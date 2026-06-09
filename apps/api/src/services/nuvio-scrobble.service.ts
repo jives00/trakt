@@ -69,13 +69,14 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
 
       if (action === 'start') {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct);
-      } else {
+      } else if (!isExcluded && progressPct >= threshold.episode) {
         await clearNowPlaying(DEFAULT_USER_ID);
-        if (!isExcluded && progressPct >= threshold.episode) {
-          await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
-          void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
-            .catch(err => console.error('Watchlist show completion check failed:', err));
-        }
+        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
+        void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
+          .catch(err => console.error('Watchlist show completion check failed:', err));
+      } else {
+        // Pause below threshold: keep now_playing alive so the hero doesn't drop
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct);
       }
     } else {
       const tmdbId = await resolveTmdbId(payload.movie.ids, 'movie');
@@ -86,13 +87,14 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
 
       if (action === 'start') {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct);
-      } else {
+      } else if (!isExcluded && progressPct >= threshold.movie) {
         await clearNowPlaying(DEFAULT_USER_ID);
-        if (!isExcluded && progressPct >= threshold.movie) {
-          await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
-          void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
-            .catch(err => console.error('Watchlist movie completion check failed:', err));
-        }
+        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
+        void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
+          .catch(err => console.error('Watchlist movie completion check failed:', err));
+      } else {
+        // Pause below threshold: keep now_playing alive so the hero doesn't drop
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct);
       }
     }
   } catch (err) {
