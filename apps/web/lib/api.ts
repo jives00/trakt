@@ -247,9 +247,10 @@ export const api = {
     request<NowPlayingItem | null>("/api/scrobble/now-playing", { token }),
 
   // History
-  getHistory: (token: string, type = "all", page = 1, limit = 20, date?: string) => {
+  getHistory: (token: string, type = "all", page = 1, limit = 20, date?: string, tzOffset?: number) => {
     const params = new URLSearchParams({ type, page: String(page), limit: String(limit) });
     if (date) params.append("date", date);
+    if (tzOffset !== undefined) params.append("tzOffset", String(tzOffset));
     return request<{ items: HistoryItem[]; total: number; page: number; limit: number }>(
       `/api/history?${params.toString()}`, { token },
     );

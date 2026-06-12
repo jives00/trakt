@@ -1,5 +1,13 @@
 # Changelog
 
+## June 12, 2026
+
+### Backend
+- Fix: history date filter now applies timezone offset (`CONVERT_TZ`) so it matches the same local-day grouping as the bar chart — items watched after ~6pm Central were appearing on the wrong day `e13560a`
+
+### Frontend – Web
+- Fix: history page passes `tzOffset` to the history API so clicking a bar chart date always shows the correct matching items `e13560a`
+
 ## June 06, 2026
 
 ### Backend

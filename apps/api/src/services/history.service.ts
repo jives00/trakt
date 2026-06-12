@@ -8,11 +8,13 @@ export async function getHistory(
   page: number,
   limit: number,
   date?: string,
+  tzOffset = '+00:00',
 ): Promise<{ items: HistoryItem[]; total: number }> {
   const pool = getPool();
   const offset = (page - 1) * limit;
   const typeWhere = type === 'all' ? '' : ' AND media_type = ?';
-  const dateWhere = date ? ' AND DATE(wh.watched_at) = ?' : '';
+  const localDate = `CONVERT_TZ(wh.watched_at, '+00:00', '${tzOffset}')`;
+  const dateWhere = date ? ` AND DATE(${localDate}) = ?` : '';
   const typeParam = type === 'all' ? [] : [type];
   const dateParam = date ? [date] : [];
 
@@ -38,7 +40,8 @@ export async function getHistory(
     [userId, ...typeParam, ...dateParam, limit, offset],
   );
 
-  const dateWhereFull = date ? ' AND DATE(watched_at) = ?' : '';
+  const localDateSimple = `CONVERT_TZ(watched_at, '+00:00', '${tzOffset}')`;
+  const dateWhereFull = date ? ` AND DATE(${localDateSimple}) = ?` : '';
   const [[countRow]] = await pool.query<RowDataPacket[]>(
     `SELECT COUNT(*) AS total FROM watch_history WHERE user_id=?${typeWhere}${dateWhereFull} AND (completion_progress >= 90 OR playback_stopped_at IS NOT NULL)`,
     [userId, ...typeParam, ...dateParam],

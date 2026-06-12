@@ -57,7 +57,7 @@ export default function HistoryPage() {
   const load = useCallback(async (t: string, f: FilterType, p: number, date: string | undefined, reset = false) => {
     setFetching(true);
     try {
-      const data = await api.getHistory(t, f, p, 20, date);
+      const data = await api.getHistory(t, f, p, 20, date, new Date().getTimezoneOffset());
       setItems((prev) => reset ? data.items : [...prev, ...data.items]);
       setTotal(data.total);
     } catch {
