@@ -169,19 +169,21 @@ export async function updateNowPlaying(
   source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
-  progressPct: number
+  progressPct: number,
+  paused: boolean = false
 ): Promise<void> {
   const pool = getPool();
   await pool.query(
-    `INSERT INTO now_playing (user_id, media_type, media_id, progress_pct, source)
-     VALUES (?, ?, ?, ?, ?)
+    `INSERT INTO now_playing (user_id, media_type, media_id, progress_pct, source, paused)
+     VALUES (?, ?, ?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        media_type   = VALUES(media_type),
        media_id     = VALUES(media_id),
        progress_pct = VALUES(progress_pct),
        source       = VALUES(source),
+       paused       = VALUES(paused),
        updated_at   = NOW()`,
-    [userId, mediaType, mediaIdDb, progressPct, source]
+    [userId, mediaType, mediaIdDb, progressPct, source, paused ? 1 : 0]
   );
 }
 
@@ -197,6 +199,7 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
        np.media_type      AS mediaType,
        np.progress_pct    AS progressPct,
        np.source          AS source,
+       np.paused          AS paused,
        np.updated_at      AS updatedAt,
        m.tmdb_id          AS movieTmdbId,
        m.title            AS movieTitle,
@@ -217,7 +220,10 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
      LEFT JOIN seasons seas ON seas.id = e.season_id
      LEFT JOIN tv_shows s   ON s.id = e.show_id
      WHERE np.user_id = ?
-       AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)`,
+       AND (
+         (np.source = 'stremio' AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE))
+         OR (np.source != 'stremio' AND np.updated_at > DATE_SUB(NOW(), INTERVAL 4 HOUR))
+       )`,
     [userId]
   );
 
@@ -225,13 +231,16 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
   const r = (rows as any[])[0];
 
   // For sources that don't send periodic updates (nuvio, emby, kodi), estimate current
-  // progress from elapsed time since the start event and the content runtime.
+  // progress from elapsed time since the last start event and the content runtime.
+  // Skip estimation while paused — hold the stored progress steady.
   let progressPct: number = r.progressPct;
-  if (r.source !== 'stremio') {
+  if (r.source !== 'stremio' && !r.paused) {
     const runtimeMin: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;
     if (runtimeMin && runtimeMin > 0) {
       const elapsedSec = (Date.now() - new Date(r.updatedAt).getTime()) / 1000;
-      progressPct = Math.min(99, r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100);
+      const estimated = r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100;
+      if (estimated >= 100) return null;
+      progressPct = estimated;
     }
   }
 

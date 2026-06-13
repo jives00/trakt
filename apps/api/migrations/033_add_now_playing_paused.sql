@@ -1,0 +1,2 @@
+ALTER TABLE now_playing
+  ADD COLUMN paused TINYINT(1) NOT NULL DEFAULT 0;

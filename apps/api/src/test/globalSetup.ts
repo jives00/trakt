@@ -4,7 +4,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { runMigrations } from './runMigrations';
 
-const env = config({ path: resolve(__dirname, '../../.env') }).parsed ?? {};
+const env = config({ path: resolve(__dirname, '../../../../.env') }).parsed ?? {};
 
 const NUM_WORKERS = 4;
 

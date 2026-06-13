@@ -68,15 +68,14 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
       const episode = await getOrFetchEpisode(tmdbId, season, episodeNumber);
 
       if (action === 'start') {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, false);
       } else if (!isExcluded && progressPct >= threshold.episode) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
         void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
           .catch(err => console.error('Watchlist show completion check failed:', err));
       } else {
-        // Pause below threshold: keep now_playing alive so the hero doesn't drop
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
       }
     } else {
       const tmdbId = await resolveTmdbId(payload.movie.ids, 'movie');
@@ -86,15 +85,14 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
       const movie = await getOrFetchMovie(tmdbId);
 
       if (action === 'start') {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, false);
       } else if (!isExcluded && progressPct >= threshold.movie) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
         void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
           .catch(err => console.error('Watchlist movie completion check failed:', err));
       } else {
-        // Pause below threshold: keep now_playing alive so the hero doesn't drop
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
       }
     }
   } catch (err) {

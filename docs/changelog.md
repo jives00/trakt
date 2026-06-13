@@ -1,5 +1,11 @@
 # Changelog
 
+## June 13, 2026
+
+### Backend
+- Fix: Nuvio now-playing hero no longer disappears during uninterrupted playback — staleness window extended to 4h for non-Stremio sources; paused state tracked in `now_playing` so progress estimation holds steady while paused `c95d712`
+- Fix: globalSetup `.env` path corrected so local test runs can reach the NAS database `c95d712`
+
 ## June 12, 2026
 
 ### Backend
