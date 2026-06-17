@@ -4,6 +4,7 @@
 
 ### Backend
 - Add nightly background job that proactively refreshes upcoming episode data for all watchlisted shows, fixing cases where new episodes were missing from the Upcoming Schedule until a manual page refresh `27d5d64`
+- Fix: Emby scrobble tests had `PlaybackPositionTicks` typo in all 23 test payloads; renamed to `PositionTicks` to match the type and actual Emby webhook schema `8de2bf0`
 
 ## June 13, 2026
 

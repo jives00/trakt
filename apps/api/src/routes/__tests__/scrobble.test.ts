@@ -48,7 +48,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000,
+          PositionTicks: 64800000000,
         },
       };
 
@@ -71,7 +71,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000,
+          PositionTicks: 64800000000,
         },
       };
 
@@ -107,7 +107,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 75000000000,
+          PositionTicks: 75000000000,
         },
       };
 
@@ -134,7 +134,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000,
+          PositionTicks: 90000000000,
         },
       };
 
@@ -163,7 +163,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000,
+          PositionTicks: 64800000000,
         },
       };
 
@@ -194,7 +194,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000,
+          PositionTicks: 64800000000,
         },
       };
 
@@ -224,7 +224,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 36000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 32400000000,
+          PositionTicks: 32400000000,
         },
       };
 
@@ -267,7 +267,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 65000000000,
+          PositionTicks: 65000000000,
         },
       };
 
@@ -294,7 +294,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000,
+          PositionTicks: 90000000000,
         },
       };
 
@@ -333,7 +333,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 36000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 32400000000,
+          PositionTicks: 32400000000,
         },
       };
 
@@ -366,7 +366,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 36000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 32400000000,
+          PositionTicks: 32400000000,
         },
       };
 
@@ -403,7 +403,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000, // 90%
+          PositionTicks: 90000000000, // 90%
         },
       };
 
@@ -432,7 +432,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000, // 90%
+          PositionTicks: 90000000000, // 90%
         },
       };
 
@@ -461,7 +461,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 100000000000, // 100%
+          PositionTicks: 100000000000, // 100%
         },
       };
 
@@ -490,7 +490,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000, // 90%
+          PositionTicks: 90000000000, // 90%
         },
       };
 
@@ -516,7 +516,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 95000000000, // 95%
+          PositionTicks: 95000000000, // 95%
         },
       };
 
@@ -540,7 +540,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000, // 90%
+          PositionTicks: 90000000000, // 90%
         },
       };
 
@@ -571,7 +571,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 0,
+          PositionTicks: 0,
         },
       };
 
@@ -596,7 +596,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 72000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 64800000000,
+          PositionTicks: 64800000000,
         },
       };
 
@@ -626,7 +626,7 @@ describe('POST /api/scrobble/emby', () => {
       const progressPayload: EmbyWebhookPayload = {
         Event: 'PlaybackProgress',
         Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
-        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+        PlaybackInfo: { PositionTicks: 90000000000 },
       };
       await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(progressPayload);
 
@@ -641,7 +641,7 @@ describe('POST /api/scrobble/emby', () => {
       const stoppedPayload: EmbyWebhookPayload = {
         Event: 'PlaybackStopped',
         Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
-        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+        PlaybackInfo: { PositionTicks: 90000000000 },
       };
       await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(stoppedPayload);
       // checkMovieWatchlistCompletion is fire-and-forget in scrobble handler; wait for it to settle
@@ -656,7 +656,7 @@ describe('POST /api/scrobble/emby', () => {
       const progressPayload: EmbyWebhookPayload = {
         Event: 'PlaybackProgress',
         Item: { Type: 'Movie', ProviderIds: { Tmdb: '550' }, RunTimeTicks: 100000000000 },
-        PlaybackInfo: { PlaybackPositionTicks: 90000000000 },
+        PlaybackInfo: { PositionTicks: 90000000000 },
       };
       await supertest(app.server).post('/api/scrobble/emby').set('X-Api-Key', SCROBBLE_API_KEY).send(progressPayload);
 
@@ -832,7 +832,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 90000000000, // 90%
+          PositionTicks: 90000000000, // 90%
         },
       };
 
@@ -859,7 +859,7 @@ describe('POST /api/scrobble/emby', () => {
           RunTimeTicks: 100000000000,
         },
         PlaybackInfo: {
-          PlaybackPositionTicks: 92333333333, // 92.333...% → rounds to 92%
+          PositionTicks: 92333333333, // 92.333...% → rounds to 92%
         },
       };
 
