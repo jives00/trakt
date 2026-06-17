@@ -1,5 +1,10 @@
 # Changelog
 
+## June 17, 2026
+
+### Backend
+- Add nightly background job that proactively refreshes upcoming episode data for all watchlisted shows, fixing cases where new episodes were missing from the Upcoming Schedule until a manual page refresh `27d5d64`
+
 ## June 13, 2026
 
 ### Backend

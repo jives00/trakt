@@ -7,6 +7,7 @@ import { buildApp } from './app';
 import { ensureAdminUser } from './services/auth.service';
 import { startBackgroundPoller } from './services/trakt-poll.service';
 import { startEmbyPoller } from './services/emby-poll.service';
+import { startScheduleRefresh } from './services/schedule-refresh.service';
 
 async function main() {
   await ensureAdminUser();
@@ -16,6 +17,7 @@ async function main() {
   console.log(`API server running on http://localhost:${port}`);
   startBackgroundPoller();
   startEmbyPoller();
+  startScheduleRefresh();
 }
 
 main().catch(err => {
