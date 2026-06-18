@@ -187,6 +187,38 @@ function ScheduleDayPair({ day, entries }: { day: string; entries: ScheduleItem[
   );
 }
 
+type EntryGroup =
+  | { type: 'single'; entry: ScheduleItem; flatIndex: number }
+  | { type: 'multi'; showTmdbId: number; showTitle: string; episodes: { entry: ScheduleItem; flatIndex: number }[] };
+
+function groupEntries(entries: ScheduleItem[]): EntryGroup[] {
+  const showCounts = new Map<number, number>();
+  for (const e of entries) {
+    if (e.mediaType === 'episode' && e.showTmdbId) {
+      showCounts.set(e.showTmdbId, (showCounts.get(e.showTmdbId) ?? 0) + 1);
+    }
+  }
+
+  const groups: EntryGroup[] = [];
+  const multiGroups = new Map<number, EntryGroup & { type: 'multi' }>();
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    if (entry.mediaType === 'episode' && entry.showTmdbId && showCounts.get(entry.showTmdbId)! > 1) {
+      if (!multiGroups.has(entry.showTmdbId)) {
+        const group: EntryGroup & { type: 'multi' } = { type: 'multi', showTmdbId: entry.showTmdbId, showTitle: entry.showTitle!, episodes: [] };
+        multiGroups.set(entry.showTmdbId, group);
+        groups.push(group);
+      }
+      multiGroups.get(entry.showTmdbId)!.episodes.push({ entry, flatIndex: i });
+    } else {
+      groups.push({ type: 'single', entry, flatIndex: i });
+    }
+  }
+
+  return groups;
+}
+
 function ScheduleColumn({
   day,
   entries,
@@ -198,6 +230,8 @@ function ScheduleColumn({
   showHeader?: boolean;
   onHover?: (i: number) => void;
 }) {
+  const groups = groupEntries(entries);
+
   return (
     <div className="flex flex-col">
       {showHeader && (
@@ -207,14 +241,64 @@ function ScheduleColumn({
       )}
 
       <div className={`flex flex-col ${!showHeader ? 'mt-6' : ''}`}>
-        {entries.map((entry, i) => (
-          <div key={i} onMouseEnter={() => onHover?.(i)}>
-            {i > 0 && (
-              <div className="h-px bg-on-surface/10 my-4" />
+        {groups.map((group, gi) => (
+          <div key={group.type === 'multi' ? `multi-${group.showTmdbId}` : group.flatIndex}>
+            {gi > 0 && <div className="h-px bg-on-surface/10 my-4" />}
+            {group.type === 'multi' ? (
+              <MultiEpisodeEntry group={group} onHover={onHover} />
+            ) : (
+              <div onMouseEnter={() => onHover?.(group.flatIndex)}>
+                <ScheduleEntry entry={group.entry} />
+              </div>
             )}
-            <ScheduleEntry entry={entry} />
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function MultiEpisodeEntry({
+  group,
+  onHover,
+}: {
+  group: EntryGroup & { type: 'multi' };
+  onHover?: (i: number) => void;
+}) {
+  const first = group.episodes[0].entry;
+  return (
+    <div>
+      <Link href={`/shows/${group.showTmdbId}`} className="group">
+        <p className="text-lg font-bold leading-tight text-on-surface group-hover:text-primary-container mb-1">
+          {group.showTitle}
+        </p>
+      </Link>
+      {(first.airTime || first.network) && (
+        <p className="text-xs text-on-surface-variant mb-2">
+          {first.airTime && formatTime(first.airTime)}{first.airTime && first.network ? ' on ' : ''}{first.network}
+        </p>
+      )}
+      <div className="flex flex-col gap-3">
+        {group.episodes.map(({ entry, flatIndex }) => {
+          const episodeHref = `/shows/${entry.showTmdbId}/seasons/${entry.seasonNumber}/episodes/${entry.episodeNumber}`;
+          const isSeasonPremiere = entry.episodeNumber === 1;
+          const isSeasonFinale = entry.episodeType === 'finale';
+          return (
+            <div key={flatIndex} onMouseEnter={() => onHover?.(flatIndex)}>
+              {(isSeasonPremiere || isSeasonFinale) && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-accent block">
+                  {isSeasonPremiere ? 'Premiere' : 'Finale'}
+                </span>
+              )}
+              <Link href={episodeHref} className="group">
+                <p className="text-sm text-on-surface-variant group-hover:text-primary-container">
+                  S{String(entry.seasonNumber).padStart(2, '0')}E{String(entry.episodeNumber).padStart(2, '0')}
+                  {entry.episodeTitle && ` · ${entry.episodeTitle}`}
+                </p>
+              </Link>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -253,7 +337,7 @@ function ScheduleEntry({ entry }: { entry: ScheduleItem }) {
           </span>
         )}
         <Link href={episodeHref} className="group">
-          <p className="text-xs text-on-surface-variant group-hover:text-primary-container">
+          <p className="text-sm text-on-surface-variant group-hover:text-primary-container">
             S{String(entry.seasonNumber).padStart(2, "0")}E{String(entry.episodeNumber).padStart(2, "0")}
             {entry.episodeTitle && ` · ${entry.episodeTitle}`}
           </p>

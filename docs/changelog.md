@@ -1,5 +1,11 @@
 # Changelog
 
+## June 18, 2026
+
+### Frontend – Web
+- Upcoming Schedule: group multiple episodes from the same show airing on the same day — show name and network appear once, episodes listed below as S01E01 · Title with gap-3 spacing `fb6094b`
+- Bump episode label text from `text-xs` to `text-sm` across both single and grouped schedule entries `fb6094b`
+
 ## June 17, 2026
 
 ### Backend

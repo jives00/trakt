@@ -96,6 +96,18 @@ describe("ScheduleSection", () => {
     expect(images.length).toBeGreaterThan(0);
   });
 
+  it("groups multiple episodes from the same show on the same day under one show title", () => {
+    const entries = [
+      makeEntry({ date: todayStr(), showTmdbId: 5, showTitle: "The Wire", episodeNumber: 1, episodeTitle: "The Target" }),
+      makeEntry({ date: todayStr(), showTmdbId: 5, showTitle: "The Wire", episodeNumber: 2, episodeTitle: "The Detail" }),
+    ];
+    render(<ScheduleSection entries={entries} />);
+    const titles = screen.getAllByText("The Wire");
+    expect(titles).toHaveLength(1);
+    expect(screen.getByText(/S01E01.*The Target/)).toBeInTheDocument();
+    expect(screen.getByText(/S01E02.*The Detail/)).toBeInTheDocument();
+  });
+
   it("shows at most 5 days of content", () => {
     const entries = [
       makeEntry({ date: todayStr(), showTitle: "Day 0" }),
