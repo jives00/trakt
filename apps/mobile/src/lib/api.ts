@@ -21,7 +21,41 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(
+interface TokenHandlers {
+  getRefreshToken?: () => Promise<string | null>;
+  onRefresh?: (accessToken: string) => void;
+  onLogout?: () => void;
+}
+
+let tokenHandlers: TokenHandlers = {};
+
+export function setTokenHandlers(handlers: TokenHandlers): void {
+  tokenHandlers = handlers;
+}
+
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const stored = await tokenHandlers.getRefreshToken?.();
+      if (!stored) throw new ApiError(401, "No refresh token available");
+      const res = await rawRequest<{ accessToken: string }>("/api/auth/refresh", {
+        method: "POST",
+        body: JSON.stringify({ refreshToken: stored }),
+      });
+      tokenHandlers.onRefresh?.(res.accessToken);
+      return res.accessToken;
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout"];
+
+async function rawRequest<T>(
   path: string,
   options: RequestInit & { token?: string } = {}
 ): Promise<T> {
@@ -39,6 +73,28 @@ async function request<T>(
   const text = await res.text();
   if (!text) return undefined as T;
   return JSON.parse(text) as T;
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit & { token?: string } = {}
+): Promise<T> {
+  try {
+    return await rawRequest<T>(path, options);
+  } catch (err) {
+    const isAuthEndpoint = AUTH_ENDPOINTS.includes(path);
+    if (err instanceof ApiError && err.status === 401 && !isAuthEndpoint && options.token) {
+      let newToken: string;
+      try {
+        newToken = await refreshAccessToken();
+      } catch (refreshErr) {
+        tokenHandlers.onLogout?.();
+        throw refreshErr;
+      }
+      return rawRequest<T>(path, { ...options, token: newToken });
+    }
+    throw err;
+  }
 }
 
 export const api = {

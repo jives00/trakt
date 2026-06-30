@@ -44,7 +44,36 @@ export function cancelAllRequests(): void {
   activeControllers.clear();
 }
 
-async function request<T>(
+interface TokenHandlers {
+  onRefresh?: (accessToken: string) => void;
+  onLogout?: () => void;
+}
+
+let tokenHandlers: TokenHandlers = {};
+
+export function setTokenHandlers(handlers: TokenHandlers): void {
+  tokenHandlers = handlers;
+}
+
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = rawRequest<{ accessToken: string }>("/api/auth/refresh", { method: "POST" })
+      .then((res) => {
+        tokenHandlers.onRefresh?.(res.accessToken);
+        return res.accessToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
+const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout"];
+
+async function rawRequest<T>(
   path: string,
   options: RequestInit & { token?: string; signal?: AbortSignal } = {}
 ): Promise<T> {
@@ -74,6 +103,28 @@ async function request<T>(
         if (c.signal === signal) activeControllers.delete(c);
       });
     }
+  }
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit & { token?: string; signal?: AbortSignal } = {}
+): Promise<T> {
+  try {
+    return await rawRequest<T>(path, options);
+  } catch (err) {
+    const isAuthEndpoint = AUTH_ENDPOINTS.includes(path);
+    if (err instanceof ApiError && err.status === 401 && !isAuthEndpoint && options.token) {
+      let newToken: string;
+      try {
+        newToken = await refreshAccessToken();
+      } catch (refreshErr) {
+        tokenHandlers.onLogout?.();
+        throw refreshErr;
+      }
+      return rawRequest<T>(path, { ...options, token: newToken });
+    }
+    throw err;
   }
 }
 

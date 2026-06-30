@@ -1,7 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { api } from "./api";
+import { api, setTokenHandlers } from "./api";
+
+const PROACTIVE_REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes, safely before the 15-min JWT expiry
 
 interface AuthState {
   token: string | null;
@@ -18,6 +20,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshedRef = useRef(false);
 
   useEffect(() => {
+    setTokenHandlers({
+      onRefresh: (accessToken) => setToken(accessToken),
+      onLogout: () => setToken(null),
+    });
+    return () => setTokenHandlers({});
+  }, []);
+
+  useEffect(() => {
     if (refreshedRef.current) return;
     refreshedRef.current = true;
     api
@@ -29,6 +39,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      api
+        .refresh()
+        .then((res) => setToken(res.accessToken))
+        .catch((err) => {
+          console.error("Proactive token refresh failed:", err);
+          setToken(null);
+        });
+    }, PROACTIVE_REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [token]);
 
   const login = useCallback(async (username: string, password: string) => {
     const res = await api.login(username, password);

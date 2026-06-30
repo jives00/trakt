@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "../auth-context";
 const mockLogin = vi.fn();
 const mockLogout = vi.fn();
 const mockRefresh = vi.fn();
+const mockSetTokenHandlers = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   api: {
@@ -13,6 +14,7 @@ vi.mock("@/lib/api", () => ({
     logout: (...args: unknown[]) => mockLogout(...args),
     refresh: () => mockRefresh(),
   },
+  setTokenHandlers: (...args: unknown[]) => mockSetTokenHandlers(...args),
 }));
 
 function TestConsumer() {
