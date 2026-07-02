@@ -1,5 +1,13 @@
 # Changelog
 
+## July 1, 2026
+
+### Frontend – Web
+- Fix blank-page logout: `AuthProvider` now redirects to `/login` when a refresh fails and loading has finished, instead of leaving every page stuck rendering with no token and no content `b633f4f`
+
+### Backend
+- Log the rejected token prefix when `/api/auth/refresh` fails validation, to help root-cause premature logout reports `b633f4f`
+
 ## June 30, 2026
 
 ### Frontend – Web

@@ -8,6 +8,11 @@ const mockLogout = vi.fn();
 const mockRefresh = vi.fn();
 const mockSetTokenHandlers = vi.fn();
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn() }),
+  usePathname: () => "/",
+}));
+
 vi.mock("@/lib/api", () => ({
   api: {
     login: (...args: unknown[]) => mockLogin(...args),

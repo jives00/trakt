@@ -49,7 +49,10 @@ export async function authRoutes(app: FastifyInstance) {
     if (!token) return reply.status(401).send({ error: 'No refresh token' });
 
     const userId = await validateRefreshToken(token);
-    if (!userId) return reply.status(401).send({ error: 'Invalid or expired refresh token' });
+    if (!userId) {
+      request.log.warn({ tokenPrefix: token.slice(0, 8) }, 'refresh rejected: token not found or expired');
+      return reply.status(401).send({ error: 'Invalid or expired refresh token' });
+    }
 
     return { accessToken: createAccessToken(userId) };
   });

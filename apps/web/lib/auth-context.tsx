@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { api, setTokenHandlers } from "./api";
 
 const PROACTIVE_REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes, safely before the 15-min JWT expiry
@@ -18,6 +19,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const refreshedRef = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setTokenHandlers({
@@ -26,6 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     return () => setTokenHandlers({});
   }, []);
+
+  // Redirect to login whenever we land on a token-less state post-load, since
+  // pages only check `token` before fetching and never redirect on their own.
+  useEffect(() => {
+    if (isLoading || token || pathname === "/login") return;
+    router.replace("/login");
+  }, [isLoading, token, pathname, router]);
 
   useEffect(() => {
     if (refreshedRef.current) return;
