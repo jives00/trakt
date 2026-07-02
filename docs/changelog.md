@@ -7,6 +7,7 @@
 
 ### Backend
 - Log the rejected token prefix when `/api/auth/refresh` fails validation, to help root-cause premature logout reports `b633f4f`
+- Rename refresh-token cookie to `trakt_refreshToken` — the previous generic `refreshToken` name collided in the browser with other apps served from the same NAS hostname, causing sporadic forced logouts unrelated to actual token expiry `f01111f`
 
 ## June 30, 2026
 
