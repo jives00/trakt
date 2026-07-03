@@ -1,6 +1,6 @@
 # Trakt — Personal Media Tracker
 
-A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, Stremio, and NuvioTV. Metadata from TMDB, TVDB, OMDB, and Fanart.tv.
+A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, Stremio, and NuvioTV. Metadata from TMDB, TVDB, and OMDB.
 
 **Stack:** Node.js 24 + Fastify API · Next.js 14 web · React Native + Expo Android app · MySQL 8 · Docker Compose
 
@@ -24,7 +24,6 @@ Register for free API keys from each service:
 | TMDB | https://www.themoviedb.org/settings/api | Primary metadata source |
 | TVDB | https://thetvdb.com/api-information | TV metadata |
 | OMDB | https://www.omdbapi.com/apikey.aspx | Ratings (free tier: 1k/day) |
-| Fanart.tv | https://fanart.tv/api-docs/api-docs/ | Artwork |
 | Trakt.tv | https://trakt.tv/oauth/applications/new | Optional — only needed for importing history from trakt.tv |
 
 ---
@@ -67,7 +66,6 @@ cp .env.example .env
 TMDB_API_KEY=your_tmdb_key
 TVDB_API_KEY=your_tvdb_key
 OMDB_API_KEY=your_omdb_key
-FANART_API_KEY=your_fanart_key
 
 # Database
 DB_HOST=localhost

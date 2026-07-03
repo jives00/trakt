@@ -54,6 +54,7 @@ export interface UpNextItem {
   airDate: string | null;
   watchedCount: number;
   totalAired: number;
+  lastWatchedAt: string | null;
 }
 
 export interface ScheduleItem {

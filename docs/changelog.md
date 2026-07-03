@@ -1,5 +1,11 @@
 # Changelog
 
+## July 3, 2026
+
+### Backend
+- Sort Up Next by most recently watched show (falls back to alphabetical for shows with no watch history yet, e.g. rewatch shows not yet started) `de04c3a`
+- CLAUDE.md/README.md: remove references to the unused Fanart.tv integration, correct dev workflow commands `de04c3a`
+
 ## July 1, 2026
 
 ### Frontend – Web

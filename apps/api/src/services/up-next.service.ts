@@ -14,6 +14,7 @@ export interface UpNextItem {
   airDate: string | null;
   watchedCount: number;
   totalAired: number;
+  lastWatchedAt: string | null;
 }
 
 // Shows in watchlist or rewatch, excluding dropped
@@ -41,7 +42,8 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        episodeNumber,
        episodeId,
        episodeTitle,
-       airDate
+       airDate,
+       lastWatchedAt
      FROM (
        SELECT
          s.id AS show_id,
@@ -54,6 +56,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
          e.id       AS episodeId,
          e.title    AS episodeTitle,
          e.air_date AS airDate,
+         last_watched.watched_at AS lastWatchedAt,
          ROW_NUMBER() OVER (
            PARTITION BY s.id
            ORDER BY
@@ -82,6 +85,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
          SELECT seas2.show_id,
                 seas2.season_number,
                 e2.episode_number,
+                wh2.watched_at,
                 ROW_NUMBER() OVER (PARTITION BY seas2.show_id ORDER BY wh2.watched_at DESC) AS rn2
          FROM watch_history wh2
          JOIN episodes e2   ON e2.id = wh2.media_id
@@ -99,7 +103,7 @@ export async function getUpNext(userId: number): Promise<UpNextItem[]> {
        AND (last_watched.show_id IS NOT NULL OR rw_info.show_id IS NOT NULL)
      ) sub
      WHERE rn = 1
-     ORDER BY showTitle
+     ORDER BY lastWatchedAt IS NULL, lastWatchedAt DESC, showTitle
      LIMIT 20`,
     [userId, userId, userId, userId, userId, userId],
   );

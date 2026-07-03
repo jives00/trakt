@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, Stremio, and Nuvio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, OMDB, and Fanart.tv. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
+Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, Stremio, and Nuvio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, and OMDB. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
 
 ---
 
@@ -42,7 +42,7 @@ See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, netwo
 
 | Group | Variables |
 |---|---|
-| Metadata APIs | `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY`, `FANART_API_KEY` |
+| Metadata APIs | `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY` (`FANART_API_KEY` is legacy — no code uses it) |
 | Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Auth | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
 | Integrations | `SCROBBLE_API_KEY`, `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` |
@@ -115,9 +115,10 @@ All DTOs and DB model types in `packages/types/`. No barrel re-exports unless ne
 ## Development Workflow
 
 ```
-pnpm dev:api                      # Fastify API
-pnpm dev:web                      # Next.js web
-pnpm test                         # All tests
+pnpm dev                          # All apps in parallel (only root script)
+pnpm --filter api dev             # Fastify API alone
+pnpm --filter web dev             # Next.js web alone
+pnpm --filter api test            # API tests (no root test script yet)
 pnpm --filter api run migrate     # Run DB migrations
 ```
 
@@ -133,8 +134,6 @@ npx expo run:android
 ```
 
 **Release APK:** push an `apk-*` tag — GitHub Actions builds on Ubuntu via Gradle (~20–30 min), APK downloads from the Actions tab. See **[docs/ANDROID_BUILD.md](docs/ANDROID_BUILD.md)** for the full workflow, pre-build checklist, and local fallback instructions.
-
-EC2 deploy: `apps/mobile/` is excluded via git sparse checkout in `deploy.yml` — it never lands on the server.
 
 ---
 
