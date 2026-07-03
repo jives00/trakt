@@ -85,6 +85,13 @@ export interface RecommendationItem {
   overview: string;
 }
 
+export interface DashboardHeroItem {
+  mediaType: 'movie' | 'show';
+  tmdbId: number;
+  title: string;
+  backdropPath: string;
+}
+
 export interface RecentItem {
   id: number;
   mediaType: 'movie' | 'episode';

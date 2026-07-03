@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/lib/auth-context";
 import { api } from "@/lib/api";
-import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, RecommendationItem, StatsAllTime, UserProfile, NowPlayingItem } from "@trakt/types";
+import type { UpNextItem, ScheduleItem, DashboardStats, DashboardDailyStats, DashboardSummary, DashboardGenre, RecentItem, RecommendationItem, StatsAllTime, UserProfile, NowPlayingItem, DashboardHeroItem } from "@trakt/types";
 import { UpNextSection } from "@/components/up-next-section";
 import { ScheduleSection } from "@/components/schedule-section";
 
@@ -28,7 +28,8 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [fetching, setFetching] = useState(true);
   const [nowPlaying, setNowPlaying] = useState<NowPlayingItem | null>(null);
-  const [heroArt, setHeroArt] = useState<string[]>([]);
+  const [heroArt, setHeroArt] = useState<DashboardHeroItem[]>([]);
+  const heroSeedRef = useRef(Math.floor(Math.random() * 1_000_000));
 
   useEffect(() => {
     if (isLoading || !token) return;
@@ -41,7 +42,7 @@ export default function DashboardPage() {
       api.getStatsAllTime(token),
       api.getShowRecommendations(token),
       api.getMovieRecommendations(token),
-      api.getDashboardArt(token),
+      api.getDashboardHeroArt(token),
     ]).then(([profRes, upRes, schedRes, statsRes, recentRes, atRes, srecsRes, mrecsRes, artRes]) => {
       if (profRes.status === 'fulfilled') setProfile(profRes.value);
       if (upRes.status === 'fulfilled') setUpNext(upRes.value);
@@ -69,7 +70,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col flex-1">
-      {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} art={heroArt} />}
+      {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} art={heroArt} seed={heroSeedRef.current} />}
       <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
         <UpNextSection items={upNext} />
         <ScheduleSection entries={schedule} />
@@ -81,29 +82,26 @@ export default function DashboardPage() {
   );
 }
 
-const POSTER_HEIGHT = 110; // px per row — 3 rows ≈ 330px, slightly overflows hero for top/bottom crop effect
-const POSTER_WIDTH = Math.round(POSTER_HEIGHT * (2 / 3)); // 2:3 ratio ≈ 73px
-const POSTERS_PER_ROW = 28; // 28 × 73px = 2044px, covers wide viewports
-
-function HeroSection({ username, alltime, art }: { username: string; alltime: StatsAllTime | null; art: string[] }) {
-  // Divide the pool into 3 non-overlapping slices, one per row
-  const fill = (offset: number) => {
-    if (art.length === 0) return [];
-    const out: string[] = [];
-    while (out.length < POSTERS_PER_ROW) out.push(art[(offset + out.length) % art.length]);
-    return out;
-  };
-  const third = Math.floor(art.length / 3);
-  const rowA = fill(0);
-  const rowB = fill(third);
-  const rowC = fill(third * 2);
-
-  const useStaticFallback = art.length < 6;
+function HeroSection({ username, alltime, art, seed }: { username: string; alltime: StatsAllTime | null; art: DashboardHeroItem[]; seed: number }) {
+  const hero = art.length > 0 ? art[seed % art.length] : null;
+  const heroHref = hero ? (hero.mediaType === "movie" ? `/movies/${hero.tmdbId}` : `/shows/${hero.tmdbId}`) : null;
 
   return (
-    <section className="relative overflow-hidden bg-black" style={{ minHeight: 220 }}>
-      {/* Background: dynamic poster grid or static fallback */}
-      {useStaticFallback ? (
+    <section className="relative overflow-hidden bg-black min-h-[260px] md:min-h-[320px]">
+      {hero && (
+        <div className="absolute right-0 top-0 h-full w-3/5">
+          <Image
+            src={`${TMDB_IMG}original${hero.backdropPath}`}
+            alt={hero.title}
+            fill
+            sizes="80vw"
+            className="object-cover object-center"
+            priority
+          />
+        </div>
+      )}
+
+      {!hero && (
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -113,31 +111,13 @@ function HeroSection({ username, alltime, art }: { username: string; alltime: St
             filter: 'blur(3px) brightness(0.5)',
           }}
         />
-      ) : (
-        <div className="absolute inset-0 z-0 overflow-hidden" style={{ filter: 'blur(1px) brightness(0.75)' }}>
-          {[rowA, rowB, rowC].map((row, ri) => (
-            <div key={ri} className="flex" style={{ height: POSTER_HEIGHT }}>
-              {row.map((path, i) => (
-                <div key={i} className="flex-none relative" style={{ width: POSTER_WIDTH, height: POSTER_HEIGHT }}>
-                  <Image
-                    src={`${TMDB_IMG}w185${path}`}
-                    alt=""
-                    fill
-                    sizes={`${POSTER_WIDTH}px`}
-                    className="object-cover"
-                    priority={i < 15}
-                  />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/10 z-0" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/30 z-0" />
+      {/* Fade from solid black on the left into the fanart on the right */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-r from-black from-[40%] via-black/30 via-[65%] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-24 z-[1] bg-gradient-to-t from-black/60 to-transparent" />
 
-      <div className="px-margin-page py-12 md:py-16 relative z-10">
+      <div className="px-margin-page py-8 md:py-10 relative z-10 h-full flex flex-col justify-end">
         <div className="flex flex-col md:flex-row justify-between items-end gap-8">
           <div>
             <h1 className="text-h1 font-black tracking-tight text-white mb-4 capitalize">Hello, {username}</h1>
@@ -151,6 +131,15 @@ function HeroSection({ username, alltime, art }: { username: string; alltime: St
           </div>
         </div>
       </div>
+
+      {hero && heroHref && (
+        <Link
+          href={heroHref}
+          className="absolute bottom-3 right-4 z-10 text-sm font-bold text-white/50 hover:text-white/80 transition-colors"
+        >
+          {hero.title}
+        </Link>
+      )}
     </section>
   );
 }

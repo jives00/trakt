@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { authenticate } from '../middleware/auth';
 import { getUpNext } from '../services/up-next.service';
 import { getSchedule } from '../services/schedule.service';
-import { getDashboardStats, getRecentItems, getDashboardArt } from '../services/stats-summary.service';
+import { getDashboardStats, getRecentItems, getDashboardHeroArt } from '../services/stats-summary.service';
 import { backfillAirTimes } from '../services/shows.service';
 import { getShowRecommendations, getMovieRecommendations } from '../services/recommendations.service';
 
@@ -19,7 +19,7 @@ function makeCache<T>(ttlMs: number) {
   };
 }
 
-const artCache = makeCache<string[]>(5 * 60 * 1000);      // 5 min
+const artCache = makeCache<Awaited<ReturnType<typeof getDashboardHeroArt>>>(5 * 60 * 1000);      // 5 min
 const recentCache = makeCache<unknown[]>(60 * 1000);       // 60 sec
 
 function userId(request: FastifyRequest): number {
@@ -73,12 +73,12 @@ export async function dashboardRoutes(app: FastifyInstance) {
     return getMovieRecommendations(userId(request));
   });
 
-  app.get('/dashboard/art', auth, async (request: FastifyRequest) => {
+  app.get('/dashboard/hero', auth, async (request: FastifyRequest) => {
     const uid = userId(request);
     const key = String(uid);
     const cached = artCache.get(key);
     if (cached) return cached;
-    const data = await getDashboardArt(uid);
+    const data = await getDashboardHeroArt(uid);
     artCache.set(key, data);
     return data;
   });

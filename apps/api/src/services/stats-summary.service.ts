@@ -1,7 +1,7 @@
 import { RowDataPacket } from 'mysql2/promise';
 import { getPool } from '../db';
 import { batchApplyImageOverrides } from './image-overrides.service';
-import { DashboardStats, DashboardGenre, RecentItem } from '@trakt/types';
+import { DashboardStats, DashboardGenre, RecentItem, DashboardHeroItem } from '@trakt/types';
 import { RUNTIME_EXPR, MEDIA_JOINS } from './stats-helpers';
 
 export async function getDashboardStats(userId: number, tzOffset: string = '+00:00'): Promise<DashboardStats> {
@@ -91,42 +91,56 @@ export async function getDashboardStats(userId: number, tzOffset: string = '+00:
   };
 }
 
-export async function getDashboardArt(userId: number): Promise<string[]> {
+export async function getDashboardHeroArt(userId: number): Promise<DashboardHeroItem[]> {
   const pool = getPool();
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT DISTINCT poster_path FROM (
-       SELECT m.poster_path
+    `SELECT DISTINCT media_type, tmdb_id, title, backdrop_path FROM (
+       SELECT 'movie' AS media_type, m.tmdb_id, m.title, m.backdrop_path
        FROM watch_history wh
        JOIN movies m ON wh.media_type='movie' AND m.id=wh.media_id
-       WHERE wh.user_id=? AND m.poster_path IS NOT NULL
+       WHERE wh.user_id=? AND m.backdrop_path IS NOT NULL
        UNION
-       SELECT ts.poster_path
+       SELECT 'show' AS media_type, ts.tmdb_id, ts.title, ts.backdrop_path
        FROM watch_history wh
        JOIN episodes e ON wh.media_type='episode' AND e.id=wh.media_id
        JOIN tv_shows ts ON e.show_id=ts.id
-       WHERE wh.user_id=? AND ts.poster_path IS NOT NULL
+       WHERE wh.user_id=? AND ts.backdrop_path IS NOT NULL
        UNION
-       SELECT m.poster_path
+       SELECT 'movie' AS media_type, m.tmdb_id, m.title, m.backdrop_path
        FROM list_items li
        JOIN lists l ON l.id=li.list_id
        JOIN movies m ON li.media_type='movie' AND m.id=li.media_id
-       WHERE l.user_id=? AND m.poster_path IS NOT NULL
+       WHERE l.user_id=? AND m.backdrop_path IS NOT NULL
        UNION
-       SELECT ts.poster_path
+       SELECT 'show' AS media_type, ts.tmdb_id, ts.title, ts.backdrop_path
        FROM list_items li
        JOIN lists l ON l.id=li.list_id
        JOIN tv_shows ts ON li.media_type='show' AND ts.id=li.media_id
-       WHERE l.user_id=? AND ts.poster_path IS NOT NULL
+       WHERE l.user_id=? AND ts.backdrop_path IS NOT NULL
      ) AS combined`,
     [userId, userId, userId, userId],
   );
-  const paths = (rows as RowDataPacket[]).map(r => r.poster_path as string);
-  // shuffle in-place (Fisher-Yates)
-  for (let i = paths.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [paths[i], paths[j]] = [paths[j], paths[i]];
+  const items = (rows as RowDataPacket[]).map(r => ({
+    mediaType: r.media_type as 'movie' | 'show',
+    tmdbId: r.tmdb_id as number,
+    title: r.title as string,
+    backdropPath: r.backdrop_path as string,
+  }));
+
+  const overrides = await batchApplyImageOverrides(
+    items.map(i => ({ mediaType: i.mediaType, tmdbId: i.tmdbId })),
+  );
+  for (const item of items) {
+    const ovr = overrides.get(`${item.mediaType}:${item.tmdbId}`);
+    if (ovr?.backdropPath) item.backdropPath = ovr.backdropPath;
   }
-  return paths;
+
+  // shuffle in-place (Fisher-Yates)
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+  return items;
 }
 
 export async function getRecentItems(userId: number, limit = 10): Promise<RecentItem[]> {

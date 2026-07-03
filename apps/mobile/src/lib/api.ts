@@ -248,8 +248,6 @@ export const api = {
     request<RecentItem[]>(`/api/dashboard/recent?limit=${limit}`, { token }),
   getDashboardStats: (token: string) =>
     request<DashboardStats>("/api/dashboard/stats", { token }),
-  getDashboardArt: (token: string) =>
-    request<string[]>("/api/dashboard/art", { token }),
   getShowRecommendations: (token: string) =>
     request<RecommendationItem[]>("/api/dashboard/recommendations/shows", { token }),
   getMovieRecommendations: (token: string) =>

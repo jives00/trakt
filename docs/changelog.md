@@ -2,7 +2,11 @@
 
 ## July 3, 2026
 
+### Frontend – Web
+- Dashboard hero now shows a single random fanart backdrop cropped to a wide right-aligned panel, fading in from black on the left, with the title linking to the detail page — replaces the tiled poster grid `ed2172b`
+
 ### Backend
+- Replace `GET /api/dashboard/art` (shuffled poster paths) with `GET /api/dashboard/hero` (shuffled `{ mediaType, tmdbId, title, backdropPath }`, with `hero` image overrides applied) to support the new single-image dashboard hero `ed2172b`
 - Sort Up Next by most recently watched show (falls back to alphabetical for shows with no watch history yet, e.g. rewatch shows not yet started) `de04c3a`
 - CLAUDE.md/README.md: remove references to the unused Fanart.tv integration, correct dev workflow commands `de04c3a`
 
