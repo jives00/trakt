@@ -4,11 +4,14 @@
 
 ### Frontend – Web
 - Dashboard hero image now fetched independently of the other 7 dashboard calls and requested at `w1280` instead of `original` resolution, so it starts loading immediately instead of waiting on the slowest sibling request (recommendations) and transferring an oversized backdrop `0a02baf`
+- Now-playing hero restyled to match the idle dashboard hero — same right-aligned backdrop panel, black gradient fade, and section height, with the progress bar/watched-time anchored to the bottom edge instead of stacked under the title `25df0de`
+- Both hero backdrops now anchor to the top of the image (`object-top`) instead of centering, so any crop happens at the bottom `25df0de`
 
 ### Backend
 - Dashboard recommendations (`/dashboard/recommendations/shows` and `/movies`) now cached 30 min via the existing `makeCache` helper, instead of hitting TMDB live (5 parallel calls) on every dashboard load `b2410d5`
 - `prefetchAllSeasons` now fetches seasons 4-at-a-time via `Promise.all` instead of one at a time in a serial loop, cutting prefetch time for long-running shows `b2410d5`
 - MySQL pool: explicit `connectionLimit`/`waitForConnections` instead of implicit mysql2 defaults `b2410d5`
+- Fix now-playing progress estimation for Nuvio/Emby/Kodi sources parsing `updated_at` in the host machine's local timezone instead of UTC, which produced negative watched-time/percentage on non-UTC hosts (e.g. local dev) while prod's UTC container masked the bug `25df0de`
 
 ## July 3, 2026
 

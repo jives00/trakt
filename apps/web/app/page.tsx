@@ -103,7 +103,7 @@ function HeroSection({ username, alltime, art, seed }: { username: string; allti
             alt={hero.title}
             fill
             sizes="80vw"
-            className="object-cover object-center"
+            className="object-cover object-top"
             priority
           />
         </div>
@@ -429,11 +429,15 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
   const fmt = (m: number) => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 
   return (
-    <section className="relative overflow-hidden bg-black">
-      {bgUrl && <Image src={bgUrl} alt={title ?? ''} fill sizes="100vw" className="object-cover object-center" priority />}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/10" />
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
-      <div className="relative z-10 px-margin-page pt-10 pb-6 flex flex-col justify-between min-h-[220px] md:min-h-[300px]">
+    <section className="relative overflow-hidden bg-black min-h-[260px] md:min-h-[320px]">
+      {bgUrl && (
+        <div className="absolute right-0 top-0 h-full w-3/5">
+          <Image src={bgUrl} alt={title ?? ''} fill sizes="80vw" className="object-cover object-top" priority />
+        </div>
+      )}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-r from-black from-[40%] via-black/30 via-[65%] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-24 z-[1] bg-gradient-to-t from-black/60 to-transparent" />
+      <div className="relative z-10 px-margin-page py-8 md:py-10 h-full flex flex-col justify-end">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -456,19 +460,19 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
             )
           )}
         </div>
-        <div className="mt-6">
-          <div className="flex justify-between items-baseline mb-2">
-            {watchedMin != null
-              ? <span className="text-xs text-white/50 tabular-nums">{fmt(watchedMin)} watched</span>
-              : <span />}
-            <span className="text-xs font-black text-white tabular-nums">{item.progressPct}%</span>
-            {remainingMin != null
-              ? <span className="text-xs text-white/50 tabular-nums">{fmt(remainingMin)} left</span>
-              : <span />}
-          </div>
-          <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-accent rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
-          </div>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 z-10 px-margin-page pb-3">
+        <div className="flex justify-between items-baseline mb-2">
+          {watchedMin != null
+            ? <span className="text-xs text-white/50 tabular-nums">{fmt(watchedMin)} watched</span>
+            : <span />}
+          <span className="text-xs font-black text-white tabular-nums">{item.progressPct}%</span>
+          {remainingMin != null
+            ? <span className="text-xs text-white/50 tabular-nums">{fmt(remainingMin)} left</span>
+            : <span />}
+        </div>
+        <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+          <div className="h-full bg-accent rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
         </div>
       </div>
     </section>

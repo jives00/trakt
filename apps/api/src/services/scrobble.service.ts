@@ -237,7 +237,7 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
   if (r.source !== 'stremio' && !r.paused) {
     const runtimeMin: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;
     if (runtimeMin && runtimeMin > 0) {
-      const elapsedSec = (Date.now() - new Date(r.updatedAt).getTime()) / 1000;
+      const elapsedSec = (Date.now() - new Date(r.updatedAt.replace(' ', 'T') + 'Z').getTime()) / 1000;
       const estimated = r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100;
       if (estimated >= 100) return null;
       progressPct = estimated;
