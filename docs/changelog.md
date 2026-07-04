@@ -2,6 +2,9 @@
 
 ## July 4, 2026
 
+### Frontend – Web
+- Dashboard hero image now fetched independently of the other 7 dashboard calls and requested at `w1280` instead of `original` resolution, so it starts loading immediately instead of waiting on the slowest sibling request (recommendations) and transferring an oversized backdrop `0a02baf`
+
 ### Backend
 - Dashboard recommendations (`/dashboard/recommendations/shows` and `/movies`) now cached 30 min via the existing `makeCache` helper, instead of hitting TMDB live (5 parallel calls) on every dashboard load `b2410d5`
 - `prefetchAllSeasons` now fetches seasons 4-at-a-time via `Promise.all` instead of one at a time in a serial loop, cutting prefetch time for long-running shows `b2410d5`

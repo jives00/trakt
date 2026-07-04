@@ -33,6 +33,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isLoading || !token) return;
+    // Fetched on its own, ahead of the batch below, so the hero <Image> can
+    // start its network request immediately instead of waiting on the
+    // slowest of the other dashboard calls (recommendations in particular).
+    api.getDashboardHeroArt(token).then(setHeroArt).catch(() => {});
+  }, [token, isLoading]);
+
+  useEffect(() => {
+    if (isLoading || !token) return;
     Promise.allSettled([
       api.getProfile(token),
       api.getUpNext(token),
@@ -42,8 +50,7 @@ export default function DashboardPage() {
       api.getStatsAllTime(token),
       api.getShowRecommendations(token),
       api.getMovieRecommendations(token),
-      api.getDashboardHeroArt(token),
-    ]).then(([profRes, upRes, schedRes, statsRes, recentRes, atRes, srecsRes, mrecsRes, artRes]) => {
+    ]).then(([profRes, upRes, schedRes, statsRes, recentRes, atRes, srecsRes, mrecsRes]) => {
       if (profRes.status === 'fulfilled') setProfile(profRes.value);
       if (upRes.status === 'fulfilled') setUpNext(upRes.value);
       if (schedRes.status === 'fulfilled') setSchedule(schedRes.value);
@@ -52,7 +59,6 @@ export default function DashboardPage() {
       if (atRes.status === 'fulfilled') setAlltime(atRes.value);
       if (srecsRes.status === 'fulfilled') setShowRecs(srecsRes.value);
       if (mrecsRes.status === 'fulfilled') setMovieRecs(mrecsRes.value);
-      if (artRes.status === 'fulfilled') setHeroArt(artRes.value);
     }).finally(() => setFetching(false));
   }, [token, isLoading]);
 
@@ -64,20 +70,22 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, [token]);
 
-  if (isLoading || fetching) return null;
+  if (isLoading) return null;
 
   const greeting = profile?.displayName || profile?.username || "there";
 
   return (
     <div className="flex flex-col flex-1">
       {nowPlaying ? <NowPlayingHero item={nowPlaying} /> : <HeroSection username={greeting} alltime={alltime} art={heroArt} seed={heroSeedRef.current} />}
-      <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
-        <UpNextSection items={upNext} />
-        <ScheduleSection entries={schedule} />
-        {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} onBarClick={(date) => router.push(`/history?date=${date}`)} />}
-        <RecentSection items={recentItems} />
-        <RecommendationsSection showRecs={showRecs} movieRecs={movieRecs} />
-      </div>
+      {!fetching && (
+        <div className="max-w-page mx-auto px-margin-page py-stack-lg flex-1 w-full flex flex-col gap-stack-lg">
+          <UpNextSection items={upNext} />
+          <ScheduleSection entries={schedule} />
+          {dashStats && <StatsBarChart data={dashStats.daily} summary={dashStats.summary} genres={dashStats.genres} onBarClick={(date) => router.push(`/history?date=${date}`)} />}
+          <RecentSection items={recentItems} />
+          <RecommendationsSection showRecs={showRecs} movieRecs={movieRecs} />
+        </div>
+      )}
     </div>
   );
 }
@@ -91,7 +99,7 @@ function HeroSection({ username, alltime, art, seed }: { username: string; allti
       {hero && (
         <div className="absolute right-0 top-0 h-full w-3/5">
           <Image
-            src={`${TMDB_IMG}original${hero.backdropPath}`}
+            src={`${TMDB_IMG}w1280${hero.backdropPath}`}
             alt={hero.title}
             fill
             sizes="80vw"
@@ -399,7 +407,7 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
   const isEpisode = item.mediaType === 'episode';
   const title = isEpisode ? item.showTitle : item.movieTitle;
   const rawBg = isEpisode ? (item.showBackdropPath ?? item.stillPath) : item.backdropPath;
-  const bgUrl = rawBg ? `${TMDB_IMG}original${rawBg}` : null;
+  const bgUrl = rawBg ? `${TMDB_IMG}w1280${rawBg}` : null;
 
   const titleHref = isEpisode && item.showTmdbId
     ? `/shows/${item.showTmdbId}`
