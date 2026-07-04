@@ -22,6 +22,8 @@ export function getPool(): mysql.Pool {
       password: process.env.DB_PASSWORD ?? '',
       dateStrings: true,
       timezone: '+00:00',
+      connectionLimit: 20,
+      waitForConnections: true,
     });
   }
   return pool;

@@ -1,5 +1,12 @@
 # Changelog
 
+## July 4, 2026
+
+### Backend
+- Dashboard recommendations (`/dashboard/recommendations/shows` and `/movies`) now cached 30 min via the existing `makeCache` helper, instead of hitting TMDB live (5 parallel calls) on every dashboard load `b2410d5`
+- `prefetchAllSeasons` now fetches seasons 4-at-a-time via `Promise.all` instead of one at a time in a serial loop, cutting prefetch time for long-running shows `b2410d5`
+- MySQL pool: explicit `connectionLimit`/`waitForConnections` instead of implicit mysql2 defaults `b2410d5`
+
 ## July 3, 2026
 
 ### Frontend – Web

@@ -21,6 +21,7 @@ function makeCache<T>(ttlMs: number) {
 
 const artCache = makeCache<Awaited<ReturnType<typeof getDashboardHeroArt>>>(5 * 60 * 1000);      // 5 min
 const recentCache = makeCache<unknown[]>(60 * 1000);       // 60 sec
+const recommendationsCache = makeCache<unknown[]>(30 * 60 * 1000);  // 30 min — hits TMDB per seed
 
 function userId(request: FastifyRequest): number {
   return (request.user as { sub: number }).sub;
@@ -66,11 +67,23 @@ export async function dashboardRoutes(app: FastifyInstance) {
   });
 
   app.get('/dashboard/recommendations/shows', auth, async (request: FastifyRequest) => {
-    return getShowRecommendations(userId(request));
+    const uid = userId(request);
+    const key = `shows:${uid}`;
+    const cached = recommendationsCache.get(key);
+    if (cached) return cached;
+    const data = await getShowRecommendations(uid);
+    recommendationsCache.set(key, data);
+    return data;
   });
 
   app.get('/dashboard/recommendations/movies', auth, async (request: FastifyRequest) => {
-    return getMovieRecommendations(userId(request));
+    const uid = userId(request);
+    const key = `movies:${uid}`;
+    const cached = recommendationsCache.get(key);
+    if (cached) return cached;
+    const data = await getMovieRecommendations(uid);
+    recommendationsCache.set(key, data);
+    return data;
   });
 
   app.get('/dashboard/hero', auth, async (request: FastifyRequest) => {

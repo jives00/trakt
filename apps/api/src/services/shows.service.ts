@@ -384,10 +384,14 @@ export async function getShowSeasonList(showTmdbId: number) {
   return rows.map((r: any) => ({ seasonNumber: r.season_number, episodeCount: Number(r.episode_count), posterPath: r.poster_path }));
 }
 
+const PREFETCH_CONCURRENCY = 4;
+
 export async function prefetchAllSeasons(showTmdbId: number): Promise<void> {
   const { seasonCount } = await fetchShowWithSeasonCount(showTmdbId);
-  for (let n = 1; n <= seasonCount; n++) {
-    await getOrFetchSeason(showTmdbId, n).catch(() => {});
+  const seasonNumbers = Array.from({ length: seasonCount }, (_, i) => i + 1);
+  for (let i = 0; i < seasonNumbers.length; i += PREFETCH_CONCURRENCY) {
+    const batch = seasonNumbers.slice(i, i + PREFETCH_CONCURRENCY);
+    await Promise.all(batch.map((n) => getOrFetchSeason(showTmdbId, n).catch(() => {})));
   }
 }
 
