@@ -673,15 +673,17 @@ describe('POST /api/scrobble/emby', () => {
   });
 
   describe('Nuvio scrobble', () => {
-    const nuvioMoviePayload = (progress: number) => ({
+    const nuvioMoviePayload = (progress: number, paused?: boolean) => ({
       movie: { title: 'Fight Club', year: 1999, ids: { tmdb: 550 } },
       progress,
+      ...(paused !== undefined ? { paused } : {}),
     });
 
-    const nuvioEpisodePayload = (progress: number) => ({
+    const nuvioEpisodePayload = (progress: number, paused?: boolean) => ({
       show: { title: 'Game of Thrones', year: 2011, ids: { tmdb: 1399 } },
       episode: { season: 1, number: 1, ids: {} },
       progress,
+      ...(paused !== undefined ? { paused } : {}),
     });
 
     it('start populates now_playing for a movie', async () => {
@@ -696,7 +698,43 @@ describe('POST /api/scrobble/emby', () => {
       expect(rows[0].progress_pct).toBe(30);
     });
 
-    it('stop below threshold keeps now_playing alive (pause behavior)', async () => {
+    it('stop below threshold with paused:true keeps now_playing alive (pause behavior)', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32, true));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(32);
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop below threshold with paused:true does not log watch history for a movie', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(30));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(32, true));
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop below threshold without paused clears now_playing (real stop)', async () => {
       const pool = getPool();
       await supertest(app.server)
         .post('/api/scrobble/nuvio/start')
@@ -709,24 +747,7 @@ describe('POST /api/scrobble/emby', () => {
         .send(nuvioMoviePayload(32));
 
       const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
-      expect(rows.length).toBe(1);
-      expect(rows[0].progress_pct).toBe(32);
-
-      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
-      expect(history.length).toBe(0);
-    });
-
-    it('stop below threshold does not log watch history for a movie', async () => {
-      const pool = getPool();
-      await supertest(app.server)
-        .post('/api/scrobble/nuvio/start')
-        .set('X-Api-Key', SCROBBLE_API_KEY)
-        .send(nuvioMoviePayload(30));
-
-      await supertest(app.server)
-        .post('/api/scrobble/nuvio/stop')
-        .set('X-Api-Key', SCROBBLE_API_KEY)
-        .send(nuvioMoviePayload(32));
+      expect(rows.length).toBe(0);
 
       const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
       expect(history.length).toBe(0);
@@ -754,7 +775,7 @@ describe('POST /api/scrobble/emby', () => {
       expect(history[0].progress_pct).toBe(92);
     });
 
-    it('resume after pause (start → stop → start) restores now_playing', async () => {
+    it('resume after pause (start → stop paused → start) restores now_playing', async () => {
       const pool = getPool();
       await supertest(app.server)
         .post('/api/scrobble/nuvio/start')
@@ -764,7 +785,7 @@ describe('POST /api/scrobble/emby', () => {
       await supertest(app.server)
         .post('/api/scrobble/nuvio/stop')
         .set('X-Api-Key', SCROBBLE_API_KEY)
-        .send(nuvioMoviePayload(32));
+        .send(nuvioMoviePayload(32, true));
 
       await supertest(app.server)
         .post('/api/scrobble/nuvio/start')
@@ -776,7 +797,27 @@ describe('POST /api/scrobble/emby', () => {
       expect(rows[0].progress_pct).toBe(32);
     });
 
-    it('stop below threshold keeps now_playing alive for an episode', async () => {
+    it('stop below threshold with paused:true keeps now_playing alive for an episode', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(40));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioEpisodePayload(42, true));
+
+      const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(rows.length).toBe(1);
+      expect(rows[0].progress_pct).toBe(42);
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "episode"');
+      expect(history.length).toBe(0);
+    });
+
+    it('stop below threshold without paused clears now_playing for an episode (real stop)', async () => {
       const pool = getPool();
       await supertest(app.server)
         .post('/api/scrobble/nuvio/start')
@@ -789,11 +830,7 @@ describe('POST /api/scrobble/emby', () => {
         .send(nuvioEpisodePayload(42));
 
       const [rows] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
-      expect(rows.length).toBe(1);
-      expect(rows[0].progress_pct).toBe(42);
-
-      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "episode"');
-      expect(history.length).toBe(0);
+      expect(rows.length).toBe(0);
     });
 
     it('stop at threshold clears now_playing and logs watch history for an episode', async () => {

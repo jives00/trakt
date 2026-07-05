@@ -16,6 +16,7 @@ interface NuvioMoviePayload {
   movie: { title: string; year?: number; ids: NuvioIds };
   progress: number;
   app_version?: string;
+  paused?: boolean;
 }
 
 interface NuvioEpisodePayload {
@@ -23,6 +24,7 @@ interface NuvioEpisodePayload {
   episode: { title?: string; season: number; number: number; ids: NuvioIds };
   progress: number;
   app_version?: string;
+  paused?: boolean;
 }
 
 export type NuvioScrobblePayload = NuvioMoviePayload | NuvioEpisodePayload;
@@ -74,8 +76,10 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
         void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
           .catch(err => console.error('Watchlist show completion check failed:', err));
-      } else {
+      } else if (payload.paused) {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
+      } else {
+        await clearNowPlaying(DEFAULT_USER_ID);
       }
     } else {
       const tmdbId = await resolveTmdbId(payload.movie.ids, 'movie');
@@ -91,8 +95,10 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
         void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
           .catch(err => console.error('Watchlist movie completion check failed:', err));
-      } else {
+      } else if (payload.paused) {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
+      } else {
+        await clearNowPlaying(DEFAULT_USER_ID);
       }
     }
   } catch (err) {
