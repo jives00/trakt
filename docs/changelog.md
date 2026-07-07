@@ -1,5 +1,13 @@
 # Changelog
 
+## July 7, 2026
+
+### API
+- **Passwordless network auto-login** — new `POST /api/auth/session` issues the normal access token + `trakt_refreshToken` cookie for the admin when the request comes from a trusted network (no Cloudflare tunnel headers + private/Tailscale socket IP); public tunnel traffic (Stremio addon) is rejected and everything else falls back to password / api-key / export-token auth `0f86c28`
+
+### Frontend – Web
+- **Skip the login screen on trusted networks** — the web app tries `/api/auth/session` on load (after a failed silent refresh) and drops straight into the app on LAN/Tailscale, showing a brief "Signing you in…" splash; falls back to the password form when untrusted `0f86c28`
+
 ## July 4, 2026
 
 ### Frontend – Web

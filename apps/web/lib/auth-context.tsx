@@ -40,14 +40,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (refreshedRef.current) return;
     refreshedRef.current = true;
-    api
-      .refresh()
-      .then((res) => setToken(res.accessToken))
-      .catch((err) => {
-        console.error("Token refresh failed:", err);
-        setToken(null);
-      })
-      .finally(() => setIsLoading(false));
+    // Silent refresh via the httpOnly cookie; if there's no valid session, fall back to
+    // passwordless network auto-login (trusted LAN / Tailscale) before giving up.
+    (async () => {
+      try {
+        const res = await api.refresh();
+        setToken(res.accessToken);
+      } catch {
+        try {
+          const res = await api.session();
+          setToken(res.accessToken);
+        } catch {
+          setToken(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {

@@ -1,4 +1,17 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
+import { isTrustedClient } from '../utils/trustedNetwork';
+
+// True when the request comes from a trusted network (home LAN / Tailscale / docker-internal)
+// and carries no Cloudflare tunnel headers. Uses the raw socket peer address (not request.ip)
+// so a spoofed X-Forwarded-For cannot fake trust. The Cloudflare-header check keeps public
+// tunnel traffic (trakt.berek.xyz → trakt-api) from ever minting a passwordless session.
+export function isTrustedRequest(request: FastifyRequest): boolean {
+  return isTrustedClient(
+    request.headers as Record<string, unknown>,
+    request.socket.remoteAddress,
+    process.env.TRUSTED_CIDRS,
+  );
+}
 
 export async function authenticate(request: FastifyRequest, reply: FastifyReply) {
   try {

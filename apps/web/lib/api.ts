@@ -71,7 +71,7 @@ function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout"];
+const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/api/auth/session"];
 
 async function rawRequest<T>(
   path: string,
@@ -137,6 +137,10 @@ export const api = {
     }),
   refresh: () =>
     request<{ accessToken: string }>("/api/auth/refresh", { method: "POST" }),
+  // Passwordless auto-login for trusted networks (LAN / Tailscale). Sets the refresh
+  // cookie and resolves with an access token; rejects (401) when untrusted.
+  session: () =>
+    request<{ accessToken: string }>("/api/auth/session", { method: "POST" }),
   logout: (token: string) =>
     request<void>("/api/auth/logout", { method: "POST", token }),
 

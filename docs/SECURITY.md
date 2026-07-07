@@ -6,6 +6,8 @@
 
 **@fastify/rate-limit** (`apps/api/src/routes/auth.routes.ts:16-19`): `POST /api/auth/login` capped at 10 attempts per 15 minutes per IP.
 
+**Trusted-network auto-login** (`POST /api/auth/session`, `isTrustedRequest` in `apps/api/src/middleware/auth.ts` + `apps/api/src/utils/trustedNetwork.ts`): issues the normal access token + `trakt_refreshToken` cookie without a password when the request is trusted — i.e. it carries **no Cloudflare headers** (`cf-connecting-ip`/`cf-ray`) **and** its raw socket peer IP is in a private/Tailscale range (`request.ip`/X-Forwarded-For is deliberately ignored so it can't be spoofed). Because `trakt-api` is also public via the Cloudflare tunnel, the CF-header check is what guarantees public/tunnel traffic (Stremio addon included) can never mint a user session — it falls through to the existing password / `x-api-key` / export-token paths.
+
 ## Web — Abort Controllers
 
 All fetch calls use AbortSignal to cancel in-flight requests on unmount or navigation. Key utilities in `apps/web/lib/`:
