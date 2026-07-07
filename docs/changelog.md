@@ -8,6 +8,9 @@
 ### Frontend – Web
 - **Skip the login screen on trusted networks** — the web app tries `/api/auth/session` on load (after a failed silent refresh) and drops straight into the app on LAN/Tailscale, showing a brief "Signing you in…" splash; falls back to the password form when untrusted `0f86c28`
 
+### Frontend – Mobile
+- **Passwordless auto-login + LAN base fallback** — on launch the app tries silent refresh then network auto-login (`/api/auth/session`) before the login screen; and resolves the API base across candidates (Tailscale host + home-LAN IP) with an 8s timeout, so it keeps working on the LAN when Tailscale is down `2fbac2f`
+
 ## July 4, 2026
 
 ### Frontend – Web

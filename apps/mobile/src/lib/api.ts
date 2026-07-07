@@ -11,7 +11,7 @@ import type {
   UserProfile,
   DiscoverResponse, MovieDiscoverCategory, ShowDiscoverCategory, DiscoverPeriod,
 } from "@trakt/types";
-import { API_BASE } from "./constants";
+import { apiBaseCandidates, markBaseReachable, resetApiBase } from "./apiBase";
 
 export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem, HistoryItem };
 
@@ -53,7 +53,39 @@ function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout"];
+const AUTH_ENDPOINTS = ["/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/api/auth/session"];
+
+// Bounds a fetch so an unreachable host fails in seconds instead of hanging on the OS
+// TCP-connect timeout (30–75s). Generous enough for legitimate slow LAN requests.
+const REQUEST_TIMEOUT_MS = 8000;
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Try each candidate base until one responds (a response of any status means the base is
+// reachable). Caches the winner; resets on total failure so the next call re-tries all.
+async function fetchAcrossBases(path: string, init: RequestInit): Promise<Response> {
+  const candidates = apiBaseCandidates();
+  let lastErr: unknown;
+  for (const base of candidates) {
+    try {
+      const res = await fetchWithTimeout(`${base}${path}`, init);
+      markBaseReachable(base);
+      return res;
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  resetApiBase();
+  throw lastErr instanceof Error ? lastErr : new ApiError(0, "Network request failed");
+}
 
 async function rawRequest<T>(
   path: string,
@@ -64,7 +96,7 @@ async function rawRequest<T>(
   if (init.body) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  const res = await fetchAcrossBases(path, { ...init, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, (body as { error?: string }).error ?? res.statusText);
@@ -108,6 +140,12 @@ export const api = {
     request<{ accessToken: string }>("/api/auth/refresh", {
       method: "POST",
       body: JSON.stringify({ refreshToken }),
+    }),
+  // Passwordless auto-login for trusted networks (LAN / Tailscale). Returns the access
+  // token + a refresh token to persist in SecureStore; rejects (401) if untrusted.
+  session: () =>
+    request<{ accessToken: string; refreshToken: string }>("/api/auth/session", {
+      method: "POST",
     }),
   logout: (token: string, refreshToken: string) =>
     request<void>("/api/auth/logout", {

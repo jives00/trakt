@@ -64,15 +64,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (refreshedRef.current) return;
     refreshedRef.current = true;
 
-    SecureStore.getItemAsync(REFRESH_TOKEN_KEY)
-      .then(async (stored) => {
-        if (!stored) return;
+    (async () => {
+      try {
+        const stored = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+        if (!stored) throw new Error("no stored refresh token");
         const res = await api.refresh(stored);
         lastRefreshAtRef.current = Date.now();
         setToken(res.accessToken);
-      })
-      .catch(() => setToken(null))
-      .finally(() => setIsLoading(false));
+      } catch {
+        // No valid stored session — try passwordless network auto-login
+        // (trusted LAN / Tailscale) before falling back to the login screen.
+        try {
+          const res = await api.session();
+          await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, res.refreshToken);
+          lastRefreshAtRef.current = Date.now();
+          setToken(res.accessToken);
+        } catch {
+          setToken(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    })();
   }, []);
 
   useEffect(() => {
