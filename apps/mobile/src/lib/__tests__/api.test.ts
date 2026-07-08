@@ -1,4 +1,5 @@
 import { api, ApiError } from "../api";
+import { markBaseReachable } from "../apiBase";
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3002";
 
@@ -12,6 +13,12 @@ function mockFetch(status: number, body: unknown, ok = status >= 200 && status <
     statusText: "Error",
   } as unknown as Response);
 }
+
+beforeEach(() => {
+  // Seed the resolved base so the API base resolver doesn't fire an extra /health fetch
+  // (keeps the single-fetch mocks below valid).
+  markBaseReachable(BASE);
+});
 
 afterEach(() => {
   jest.resetAllMocks();

@@ -10,6 +10,7 @@
 
 ### Frontend – Mobile
 - **Passwordless auto-login + LAN base fallback** — on launch the app tries silent refresh then network auto-login (`/api/auth/session`) before the login screen; and resolves the API base across candidates (Tailscale host + home-LAN IP) with an 8s timeout, so it keeps working on the LAN when Tailscale is down `2fbac2f`
+- **Fix ~10s gray screen / "aborted" off-network** — replaced the sequential candidate wait (which timed out the dead Tailscale host first) with a parallel `/health` probe resolved inside the request path; uses the first reachable base and fails fast when none respond `f869027`
 
 ## July 4, 2026
 

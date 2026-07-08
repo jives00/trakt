@@ -11,7 +11,7 @@ import type {
   UserProfile,
   DiscoverResponse, MovieDiscoverCategory, ShowDiscoverCategory, DiscoverPeriod,
 } from "@trakt/types";
-import { apiBaseCandidates, markBaseReachable, resetApiBase } from "./apiBase";
+import { resolveApiBase, resetApiBase } from "./apiBase";
 
 export type { Movie, MovieDetail, ShowDetail, EpisodeItem, EpisodeDetail, CastMember, ShowEpisodeSummary, SeasonSummary, MovieCastMember, CrewMember, MovieStatus, ShowStatus, UpNextItem, ScheduleItem, NowPlayingItem, HistoryItem };
 
@@ -69,24 +69,6 @@ async function fetchWithTimeout(url: string, init: RequestInit): Promise<Respons
   }
 }
 
-// Try each candidate base until one responds (a response of any status means the base is
-// reachable). Caches the winner; resets on total failure so the next call re-tries all.
-async function fetchAcrossBases(path: string, init: RequestInit): Promise<Response> {
-  const candidates = apiBaseCandidates();
-  let lastErr: unknown;
-  for (const base of candidates) {
-    try {
-      const res = await fetchWithTimeout(`${base}${path}`, init);
-      markBaseReachable(base);
-      return res;
-    } catch (err) {
-      lastErr = err;
-    }
-  }
-  resetApiBase();
-  throw lastErr instanceof Error ? lastErr : new ApiError(0, "Network request failed");
-}
-
 async function rawRequest<T>(
   path: string,
   options: RequestInit & { token?: string } = {}
@@ -96,7 +78,20 @@ async function rawRequest<T>(
   if (init.body) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetchAcrossBases(path, { ...init, headers });
+  // Resolve a reachable base (parallel /health probe, cached). Fail fast when nothing
+  // is reachable instead of hanging on a dead host.
+  const base = await resolveApiBase();
+  if (!base) throw new ApiError(0, "Can't reach the server (off-network without Tailscale?)");
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(`${base}${path}`, { ...init, headers });
+  } catch (err) {
+    // Cached base went stale (network changed) — re-probe once and retry.
+    resetApiBase();
+    const next = await resolveApiBase();
+    if (!next || next === base) throw err;
+    res = await fetchWithTimeout(`${next}${path}`, { ...init, headers });
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(res.status, (body as { error?: string }).error ?? res.statusText);
