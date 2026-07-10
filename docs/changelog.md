@@ -1,5 +1,10 @@
 # Changelog
 
+## July 9, 2026
+
+### API
+- **Nuvio addon hides caught-up shows** — the series catalog now only lists shows with at least one aired, unwatched episode, so unreleased shows and fully-watched shows (including those with unaired episodes pending) drop out, and a finished show reappears once a new episode airs; season 0 and specials are ignored, matching the aired-episode convention in `up-next.service.ts` `f7668b1`
+
 ## July 7, 2026
 
 ### API

@@ -49,6 +49,27 @@ export async function getExportableLists(userId: number): Promise<ExportableList
   }));
 }
 
+export async function filterShowsWithUnwatchedEpisodes(
+  userId: number,
+  showIds: number[],
+): Promise<Set<number>> {
+  if (showIds.length === 0) return new Set();
+  const [rows] = await getPool().query<RowDataPacket[]>(
+    `SELECT DISTINCT e.show_id AS showId
+     FROM episodes e
+     JOIN seasons s ON s.id = e.season_id
+       AND s.season_number > 0 AND (s.season_type IS NULL OR s.season_type != 'special')
+     WHERE e.show_id IN (${showIds.map(() => '?').join(',')})
+       AND e.air_date IS NOT NULL AND e.air_date <= CURDATE()
+       AND NOT EXISTS (
+         SELECT 1 FROM watch_history wh
+         WHERE wh.media_type = 'episode' AND wh.media_id = e.id AND wh.user_id = ?
+       )`,
+    [...showIds, userId],
+  );
+  return new Set(rows.map((r) => r.showId as number));
+}
+
 export async function getExportableList(
   userId: number,
   slugOrId: string,
