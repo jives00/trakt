@@ -1,5 +1,10 @@
 # Changelog
 
+## August 1, 2026
+
+### API
+- **A paused Nuvio scrobble no longer marks an item watched** — `handleNuvioScrobble` checked the watch threshold before `payload.paused`, so pausing at or above the threshold (default 90%) cleared `now_playing` and logged watch history, discarding the client's explicit pause signal; the paused branch now runs first in both the episode and movie paths, while real stops (playback end, stream switch, player exit) still send `paused:false` and mark watched as before `28280db`
+
 ## July 9, 2026
 
 ### API

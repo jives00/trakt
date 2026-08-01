@@ -71,7 +71,7 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 **Stremio:** Hybrid approach — subtitle open triggers `startPollLoop`, then polls Trakt's `GET /users/{username}/watching` every 60s until 204. Progress from `data.progress` (0–100); falls back to computing from `started_at`/`expires_at`.
 
-**Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates or scrobble to Trakt.tv. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive," omitted/`false` means a real stop (clears `now_playing` immediately unless the completion threshold was hit, in which case it clears and records history regardless).
+**Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates or scrobble to Trakt.tv. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
 
 ### Now Playing
 

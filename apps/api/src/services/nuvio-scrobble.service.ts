@@ -71,13 +71,16 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
 
       if (action === 'start') {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, false);
+      } else if (payload.paused) {
+        // A pause is never a completion, even past the watch threshold. The client
+        // sends paused:true only for genuine user pauses and seek restarts; real
+        // stops (playback end, stream switch, player exit) send paused:false.
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
       } else if (!isExcluded && progressPct >= threshold.episode) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
         void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
           .catch(err => console.error('Watchlist show completion check failed:', err));
-      } else if (payload.paused) {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
       }
@@ -90,13 +93,14 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
 
       if (action === 'start') {
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, false);
+      } else if (payload.paused) {
+        // See the episode branch: a pause never completes, regardless of progress.
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
       } else if (!isExcluded && progressPct >= threshold.movie) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
         void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
           .catch(err => console.error('Watchlist movie completion check failed:', err));
-      } else if (payload.paused) {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
       }
