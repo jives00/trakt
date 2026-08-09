@@ -2,6 +2,9 @@
 
 ## August 8, 2026
 
+### Infrastructure
+- **API container crash-looped on `Cannot find module '@trakt/types'`** — both Dockerfiles installed pnpm unpinned, so a build picked up pnpm 11.20.0 (11.18.0 last worked) whose legacy `pnpm deploy` no longer injects workspace packages into `/deploy/node_modules`; `tsc` still compiled against the workspace source so CI passed and Watchtower deployed the broken image. pnpm is now pinned, `@trakt/types` is copied into the runtime tree explicitly, and a `require.resolve` check fails the build rather than the container `3530a3d`
+
 ### API
 - **Now-playing sessions with no stored runtime never expired** — `getNowPlaying` drops a session once its time-extrapolated progress passes 100%, but that whole branch was gated on a runtime > 0, so titles with runtime 0 (unreleased, partial metadata) skipped estimation and a Nuvio session that never sent a stop sat in the dashboard hero at its start progress until the 4-hour staleness guard caught it; a per-media-type fallback runtime now applies when none is stored `c00c62c`
 
