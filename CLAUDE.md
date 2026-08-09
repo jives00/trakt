@@ -77,9 +77,9 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 All scrobble sources call `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` regardless of completion threshold. Dashboard hero polls `GET /api/scrobble/now-playing` every 30s.
 
-`now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. 5-minute staleness guard clears ghost sessions if a player crashes.
+`now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. Staleness guard clears ghost sessions if a player crashes: 5 minutes for `stremio` (polled every 60s), 4 hours for all other sources.
 
-For sources that don't send periodic updates (Nuvio, Emby, Kodi), `getNowPlaying` extrapolates the current position from elapsed time since `updated_at` and the content runtime. The Trakt background poller only clears `now_playing` when `source = 'stremio'` — it does not interfere with Nuvio/Emby/Kodi sessions.
+For sources that don't send periodic updates (Nuvio, Emby, Kodi), `getNowPlaying` extrapolates the current position from elapsed time since `updated_at` and the content runtime, and returns nothing once the estimate passes 100% — this, not the staleness guard, is what normally ends a session that never sent a stop. Titles with no stored runtime (unreleased, partial metadata) fall back to `FALLBACK_RUNTIME_MIN` so they still age out. The Trakt background poller only clears `now_playing` when `source = 'stremio'` — it does not interfere with Nuvio/Emby/Kodi sessions.
 
 ### Metadata sourcing
 

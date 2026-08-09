@@ -1,5 +1,10 @@
 # Changelog
 
+## August 8, 2026
+
+### API
+- **Now-playing sessions with no stored runtime never expired** — `getNowPlaying` drops a session once its time-extrapolated progress passes 100%, but that whole branch was gated on a runtime > 0, so titles with runtime 0 (unreleased, partial metadata) skipped estimation and a Nuvio session that never sent a stop sat in the dashboard hero at its start progress until the 4-hour staleness guard caught it; a per-media-type fallback runtime now applies when none is stored `c00c62c`
+
 ## August 1, 2026
 
 ### API

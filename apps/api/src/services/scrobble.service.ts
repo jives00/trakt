@@ -164,6 +164,8 @@ export async function upsertWatchHistory(
   }
 }
 
+const FALLBACK_RUNTIME_MIN = { movie: 120, episode: 45 } as const;
+
 export async function updateNowPlaying(
   userId: number,
   source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
@@ -235,13 +237,14 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
   // Skip estimation while paused — hold the stored progress steady.
   let progressPct: number = r.progressPct;
   if (r.source !== 'stremio' && !r.paused) {
-    const runtimeMin: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;
-    if (runtimeMin && runtimeMin > 0) {
-      const elapsedSec = (Date.now() - new Date(r.updatedAt.replace(' ', 'T') + 'Z').getTime()) / 1000;
-      const estimated = r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100;
-      if (estimated >= 100) return null;
-      progressPct = estimated;
-    }
+    // Unreleased or partially-fetched titles can have runtime 0/null; fall back to a
+    // typical runtime so the session still ages out instead of lingering forever.
+    const stored: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;
+    const runtimeMin = stored && stored > 0 ? stored : FALLBACK_RUNTIME_MIN[r.mediaType as 'movie' | 'episode'];
+    const elapsedSec = (Date.now() - new Date(r.updatedAt.replace(' ', 'T') + 'Z').getTime()) / 1000;
+    const estimated = r.progressPct + (elapsedSec / (runtimeMin * 60)) * 100;
+    if (estimated >= 100) return null;
+    progressPct = estimated;
   }
 
   const item: NowPlayingItem = {
