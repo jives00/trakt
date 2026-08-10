@@ -73,6 +73,8 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 **Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates or scrobble to Trakt.tv. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
 
+Id resolution is local-first: a scrobble only needs the DB row id, so anything already in the library resolves straight from `tv_shows`/`seasons`/`episodes` (or `movies`) and never touches TMDB. The `getOrFetch*` path runs only for titles not yet cached — so a TMDB outage or bad key can no longer drop a session for content you already have.
+
 ### Now Playing
 
 All scrobble sources call `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` regardless of completion threshold. Dashboard hero polls `GET /api/scrobble/now-playing` every 30s.

@@ -1,5 +1,10 @@
 # Changelog
 
+## August 9, 2026
+
+### API
+- **A TMDB outage no longer drops Nuvio sessions for titles already in the library** — `handleNuvioScrobble` resolved ids through `getOrFetchShow`/`getOrFetchEpisode`/`getOrFetchMovie` before writing `now_playing`, so any TMDB failure threw before the row existed and the session vanished with no hero and no DB row (an invalid `TMDB_API_KEY` in production 500'd every episode start, while movies survived only when already cached and unexpired); ids now resolve local-first from `tv_shows`/`seasons`/`episodes` and `movies`, with the get-or-fetch path reserved for titles not yet cached `c25ac2c`
+
 ## August 8, 2026
 
 ### Infrastructure

@@ -52,6 +52,28 @@ async function resolveTmdbId(ids: NuvioIds, mediaType: 'movie' | 'show'): Promis
   return results?.[0]?.id ?? null;
 }
 
+// Local-first id resolution. A scrobble only needs the DB row id, and metadata for
+// anything already in the library is already stored — so skip the get-or-fetch path
+// when we can, and a TMDB outage stops costing us the session.
+async function findLocalEpisode(showTmdbId: number, season: number, episodeNumber: number): Promise<{ episodeId: number; showId: number } | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<any[]>(
+    `SELECT e.id AS episodeId, s.id AS showId
+     FROM tv_shows s
+     JOIN seasons se ON se.show_id = s.id AND se.season_number = ?
+     JOIN episodes e ON e.season_id = se.id AND e.episode_number = ?
+     WHERE s.tmdb_id = ? LIMIT 1`,
+    [season, episodeNumber, showTmdbId]
+  );
+  return rows[0] ?? null;
+}
+
+async function findLocalMovie(tmdbId: number): Promise<number | null> {
+  const pool = getPool();
+  const [rows] = await pool.query<any[]>('SELECT id FROM movies WHERE tmdb_id = ? LIMIT 1', [tmdbId]);
+  return rows[0]?.id ?? null;
+}
+
 export async function handleNuvioScrobble(action: 'start' | 'stop', payload: NuvioScrobblePayload): Promise<void> {
   try {
     const progressPct = Math.round(payload.progress);
@@ -66,20 +88,25 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
 
       const isExcluded = await isScrobbleExcluded(tmdbId, 'episode', 'nuvio');
 
-      const show = await getOrFetchShow(tmdbId);
-      const episode = await getOrFetchEpisode(tmdbId, season, episodeNumber);
+      let resolved = await findLocalEpisode(tmdbId, season, episodeNumber);
+      if (!resolved) {
+        const show = await getOrFetchShow(tmdbId);
+        const episode = await getOrFetchEpisode(tmdbId, season, episodeNumber);
+        resolved = { episodeId: episode.episodeId, showId: show.id };
+      }
+      const { episodeId, showId } = resolved;
 
       if (action === 'start') {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, false);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episodeId, progressPct, false);
       } else if (payload.paused) {
         // A pause is never a completion, even past the watch threshold. The client
         // sends paused:true only for genuine user pauses and seek restarts; real
         // stops (playback end, stream switch, player exit) send paused:false.
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episodeId, progressPct, true);
       } else if (!isExcluded && progressPct >= threshold.episode) {
         await clearNowPlaying(DEFAULT_USER_ID);
-        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episode.episodeId, progressPct, true);
-        void checkShowWatchlistCompletion(DEFAULT_USER_ID, show.id)
+        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episodeId, progressPct, true);
+        void checkShowWatchlistCompletion(DEFAULT_USER_ID, showId)
           .catch(err => console.error('Watchlist show completion check failed:', err));
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
@@ -89,17 +116,17 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
       if (!tmdbId) return;
 
       const isExcluded = await isScrobbleExcluded(tmdbId, 'movie', 'nuvio');
-      const movie = await getOrFetchMovie(tmdbId);
+      const movieId = (await findLocalMovie(tmdbId)) ?? (await getOrFetchMovie(tmdbId)).id;
 
       if (action === 'start') {
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, false);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movieId, progressPct, false);
       } else if (payload.paused) {
         // See the episode branch: a pause never completes, regardless of progress.
-        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
+        await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movieId, progressPct, true);
       } else if (!isExcluded && progressPct >= threshold.movie) {
         await clearNowPlaying(DEFAULT_USER_ID);
-        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movie.id, progressPct, true);
-        void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movie.id)
+        await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movieId, progressPct, true);
+        void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movieId)
           .catch(err => console.error('Watchlist movie completion check failed:', err));
       } else {
         await clearNowPlaying(DEFAULT_USER_ID);
