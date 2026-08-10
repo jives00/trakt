@@ -1,5 +1,10 @@
 # Changelog
 
+## August 10, 2026
+
+### API
+- **Movies with no TMDB runtime dropped out of the Last 30 Days card** — TMDB stores unreleased or partially-catalogued titles with runtime 0 rather than NULL, so the `COALESCE` in `RUNTIME_EXPR` kept the zero and a manually-marked movie aggregated to 0 hours, rendering a zero-height bar that read as a missing play (13 movies in the library carry runtime 0); the runtime is now `NULLIF`'d before the fallback, the fallback splits by media type (120 min movies, 45 min episodes) to match `FALLBACK_RUNTIME_MIN` in `scrobble.service`, and `getDashboardStats` first refreshes metadata for any movie watched in the last 30 days whose runtime is still missing — throttled per title — so a real runtime is used whenever TMDB has since published one `4868674`
+
 ## August 9, 2026
 
 ### API

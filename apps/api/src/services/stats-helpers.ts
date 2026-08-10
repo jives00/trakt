@@ -3,10 +3,12 @@ import { getPool } from '../db';
 import { TopShow, TopGenre } from '@trakt/types';
 
 export const DEFAULT_RUNTIME = 45;
+export const DEFAULT_MOVIE_RUNTIME = 120;
 
+// NULLIF because TMDB stores unreleased/partial titles with runtime 0, which COALESCE would keep.
 export const RUNTIME_EXPR = `COALESCE(
-  CASE WHEN wh.media_type='movie' THEN m.runtime_min ELSE e.runtime_min END,
-  ${DEFAULT_RUNTIME}
+  NULLIF(CASE WHEN wh.media_type='movie' THEN m.runtime_min ELSE e.runtime_min END, 0),
+  CASE WHEN wh.media_type='movie' THEN ${DEFAULT_MOVIE_RUNTIME} ELSE ${DEFAULT_RUNTIME} END
 )`;
 
 export const MEDIA_JOINS = `

@@ -3,9 +3,11 @@ import { getPool } from '../db';
 import { batchApplyImageOverrides } from './image-overrides.service';
 import { DashboardStats, DashboardGenre, RecentItem, DashboardHeroItem } from '@trakt/types';
 import { RUNTIME_EXPR, MEDIA_JOINS } from './stats-helpers';
+import { backfillMovieRuntimes } from './runtime-backfill.service';
 
 export async function getDashboardStats(userId: number, tzOffset: string = '+00:00'): Promise<DashboardStats> {
   const pool = getPool();
+  await backfillMovieRuntimes(userId);
   const localDate = `CONVERT_TZ(wh.watched_at, '+00:00', '${tzOffset}')`;
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT DATE_FORMAT(DATE(${localDate}), '%Y-%m-%d') AS date,
