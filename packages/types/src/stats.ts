@@ -97,7 +97,8 @@ export interface RecentItem {
   mediaType: 'movie' | 'episode';
   mediaId: number;
   watchedAt: string;
-  source: 'manual' | 'emby' | 'stremio' | 'kodi';
+  // 'stremio' and 'trakt.tv' are historical only — those integrations are removed.
+  source: 'manual' | 'emby' | 'kodi' | 'nuvio' | 'stremio' | 'trakt.tv';
   tmdbId: number | null;
   title: string | null;
   posterPath: string | null;

@@ -1,6 +1,6 @@
 # Trakt — Personal Media Tracker
 
-A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, Stremio, and NuvioTV. Metadata from TMDB, TVDB, and OMDB.
+A self-hosted media tracking app inspired by Trakt.tv. Tracks watch history, collections, and lists for TV shows and movies. Scrobbles automatically from Emby, Kodi, and NuvioTV. Metadata from TMDB, TVDB, and OMDB.
 
 **Stack:** Node.js 24 + Fastify API · Next.js 14 web · React Native + Expo Android app · MySQL 8 · Docker Compose
 
@@ -24,7 +24,6 @@ Register for free API keys from each service:
 | TMDB | https://www.themoviedb.org/settings/api | Primary metadata source |
 | TVDB | https://thetvdb.com/api-information | TV metadata |
 | OMDB | https://www.omdbapi.com/apikey.aspx | Ratings (free tier: 1k/day) |
-| Trakt.tv | https://trakt.tv/oauth/applications/new | Optional — only needed for importing history from trakt.tv |
 
 ---
 
@@ -79,12 +78,8 @@ JWT_SECRET=a_long_random_string_at_least_32_chars
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=your_admin_password
 
-# Scrobble API key — any secret string; used by Emby/Kodi/Stremio to authenticate
+# Scrobble API key — any secret string; used by Emby/Kodi/NuvioTV to authenticate
 SCROBBLE_API_KEY=another_random_secret
-
-# Trakt.tv OAuth (optional — only needed for importing history from trakt.tv)
-TRAKT_CLIENT_ID=
-TRAKT_CLIENT_SECRET=
 ```
 
 ### 4. Run database migrations
@@ -223,17 +218,18 @@ POST http://your-server:3002/api/scrobble/kodi
 Header: X-Api-Key: <your SCROBBLE_API_KEY>
 ```
 
-### Stremio
+### NuvioTV
 
-Install the built-in addon in Stremio by pointing it at:
+NuvioTV scrobbles directly to this app — no third-party account needed. It posts to
+`/api/scrobble/nuvio/start` and `/stop` with the `X-Api-Key` header.
+
+Personal lists are exposed to NuvioTV as browsable catalogs via the built-in addon:
 
 ```
-https://your-server/stremio-addon/manifest.json
+http://your-server:3002/nuvio-addon/manifest.json
 ```
 
-The Stremio addon requires a public HTTPS URL — use a Cloudflare Tunnel or similar to expose port 3002 publicly.
-
-Progress is polled from the Trakt.tv API (requires `TRAKT_CLIENT_ID` and `TRAKT_CLIENT_SECRET`).
+Toggle which lists appear in Settings → Integrations → Configuration.
 
 ---
 

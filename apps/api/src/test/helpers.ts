@@ -27,7 +27,7 @@ const TABLES = [
   'credits', 'people', 'external_ids', 'scrobble_exclusions',
   'notes', 'ratings', 'list_items', 'lists', 'watch_history',
   'episodes', 'seasons', 'tv_shows', 'movies',
-  'refresh_tokens', 'users', 'trakt_tokens',
+  'refresh_tokens', 'users',
 ];
 
 const SEED_SQL = readFileSync(

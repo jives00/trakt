@@ -51,7 +51,7 @@ export async function authRoutes(app: FastifyInstance) {
   // Passwordless auto-login for trusted networks (LAN / Tailscale). Issues the same
   // access token + refresh cookie as /login for the single admin (ADMIN_USERNAME) when
   // the request is trusted; otherwise 401. Public Cloudflare-tunnel traffic is rejected
-  // by isTrustedRequest (cf-ray / cf-connecting-ip present), so the Stremio addon and any
+  // by isTrustedRequest (cf-ray / cf-connecting-ip present), so the Nuvio addon and any
   // public hit can never obtain a user session.
   app.post('/session', async (request: FastifyRequest, reply: FastifyReply) => {
     if (!isTrustedRequest(request)) {

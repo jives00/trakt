@@ -5,7 +5,6 @@ config({ path: join(__dirname, '../../../.env') });
 
 import { buildApp } from './app';
 import { ensureAdminUser } from './services/auth.service';
-import { startBackgroundPoller } from './services/trakt-poll.service';
 import { startEmbyPoller } from './services/emby-poll.service';
 import { startScheduleRefresh } from './services/schedule-refresh.service';
 
@@ -15,7 +14,6 @@ async function main() {
   const port = Number(process.env.API_PORT ?? 3002);
   await app.listen({ port, host: '0.0.0.0' });
   console.log(`API server running on http://localhost:${port}`);
-  startBackgroundPoller();
   startEmbyPoller();
   startScheduleRefresh();
 }

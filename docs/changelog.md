@@ -1,5 +1,19 @@
 # Changelog
 
+## August 15, 2026
+
+### API
+- **Removed the trakt.tv integration and the Stremio addon** — trakt.tv is no longer used for scrobbling, and Stremio scrobbling only ever worked by polling trakt.tv's `GET /users/{username}/watching`, so both were dead: `trakt-poll.service.ts` (OAuth token storage/refresh, hourly history sync, the 60s background poller and the subtitle-triggered poll loop), `trakt-oauth.service.ts` (device-code flow), the five `/api/settings/trakt-auth*` endpoints, the `startBackgroundPoller()` boot call, and `stremio-addon.routes.ts` with its `/stremio-addon` mount are all gone. `now_playing` staleness is now a single 4-hour guard (the 5-minute `stremio` branch is moot) and progress extrapolation applies to every source. `TRAKT_CLIENT_ID`/`TRAKT_CLIENT_SECRET` dropped from `docker-compose.yml` and `.env.example`; `emby`/`kodi`/`nuvio` are the remaining exclusion integrations. The `trakt_tokens` table and the `'stremio'`/`'trakt.tv'` values in the `watch_history.source` enum are deliberately kept — existing history rows depend on them. `00adeef`
+
+### Web
+- **Settings: dropped the Trakt Connection card, OAuth modal, and Stremio setup guide** — all three drove the removed integration. The catalog toggle panel is now labelled "Nuvio Catalogs" (it always fed both, and Nuvio is the only consumer left), and the `/stremio-addon/*` rewrite is removed from `next.config.mjs`. History source labels for `stremio` and `trakt.tv` stay, since old rows still carry them. `00adeef`
+
+### Types
+- **`packages/types/src/stremio.ts` → `addon.ts`** — dropped the trakt-only `TraktWatchingResponse`; `Stremio{CatalogEntry,MetaObject,Manifest}` renamed to `Addon*` since the Nuvio addon is now their only consumer. Also corrected the `source` unions in `history.ts`/`watch.ts`/`stats.ts`, which had drifted — they omitted `'nuvio'` and `'trakt.tv'` despite the DB producing both. `00adeef`
+
+### Infrastructure
+- **The Cloudflare Tunnel is no longer required** — it existed solely to give Stremio an HTTPS addon URL. Nothing depends on public access now; the tunnel is still running and can be torn down at will. Noted in `docs/INFRASTRUCTURE.md`. `00adeef`
+
 ## August 10, 2026
 
 ### API

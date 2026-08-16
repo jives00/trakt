@@ -113,7 +113,7 @@ export async function handleEmbyScrobble(payload: EmbyWebhookPayload): Promise<v
 export async function isScrobbleExcluded(
   tmdbId: number,
   mediaType: 'movie' | 'episode',
-  integration: 'emby' | 'stremio' | 'kodi' | 'nuvio'
+  integration: 'emby' | 'kodi' | 'nuvio'
 ): Promise<boolean> {
   const pool = getPool();
   const exclusionMediaType = mediaType === 'episode' ? 'show' : 'movie';
@@ -127,7 +127,7 @@ export async function isScrobbleExcluded(
 
 export async function upsertWatchHistory(
   userId: number,
-  source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
+  source: 'emby' | 'kodi' | 'nuvio',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
   progressPct: number,
@@ -168,7 +168,7 @@ const FALLBACK_RUNTIME_MIN = { movie: 120, episode: 45 } as const;
 
 export async function updateNowPlaying(
   userId: number,
-  source: 'emby' | 'stremio' | 'kodi' | 'nuvio',
+  source: 'emby' | 'kodi' | 'nuvio',
   mediaType: 'movie' | 'episode',
   mediaIdDb: number,
   progressPct: number,
@@ -222,21 +222,18 @@ export async function getNowPlaying(userId: number): Promise<NowPlayingItem | nu
      LEFT JOIN seasons seas ON seas.id = e.season_id
      LEFT JOIN tv_shows s   ON s.id = e.show_id
      WHERE np.user_id = ?
-       AND (
-         (np.source = 'stremio' AND np.updated_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE))
-         OR (np.source != 'stremio' AND np.updated_at > DATE_SUB(NOW(), INTERVAL 4 HOUR))
-       )`,
+       AND np.updated_at > DATE_SUB(NOW(), INTERVAL 4 HOUR)`,
     [userId]
   );
 
   if (!(rows as any[]).length) return null;
   const r = (rows as any[])[0];
 
-  // For sources that don't send periodic updates (nuvio, emby, kodi), estimate current
-  // progress from elapsed time since the last start event and the content runtime.
+  // No source sends periodic updates, so estimate current progress from elapsed time
+  // since the last start event and the content runtime.
   // Skip estimation while paused — hold the stored progress steady.
   let progressPct: number = r.progressPct;
-  if (r.source !== 'stremio' && !r.paused) {
+  if (!r.paused) {
     // Unreleased or partially-fetched titles can have runtime 0/null; fall back to a
     // typical runtime so the session still ages out instead of lingering forever.
     const stored: number | null = r.runtimeMin ?? r.showRuntimeMin ?? null;

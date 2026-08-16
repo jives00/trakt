@@ -9,7 +9,6 @@ This document describes how Trakt is hosted and deployed. Copy `docs/INFRASTRUCT
 Trakt runs on a home NAS via Docker. Access is split into two layers:
 
 - **Tailscale** — private access for the web UI and API from your own devices
-- **Cloudflare Tunnel** — public HTTPS access for the Stremio addon URL only (required because Stremio rejects HTTP addon URLs)
 
 ---
 
@@ -20,7 +19,6 @@ Trakt runs on a home NAS via Docker. Access is split into two layers:
 | Trakt API | Home NAS | Docker container (`trakt-api`) |
 | Trakt Web | Home NAS | Docker container (`trakt-web`) |
 | MySQL | Home NAS | Shared Docker container (`shared-mysql-1`) |
-| Cloudflare Tunnel | Home NAS | `cloudflared` binary, runs as a service |
 | CI/CD | GitHub Actions | Builds images, pushes to ghcr.io |
 | Image registry | GitHub Container Registry | `ghcr.io/<user>/trakt-api`, `ghcr.io/<user>/trakt-web` |
 
@@ -32,7 +30,7 @@ Trakt runs on a home NAS via Docker. Access is split into two layers:
 |---|---|---|
 | Web UI | `http://<nas-hostname>:3001/trakt` | Tailscale required |
 | API | `http://<nas-hostname>:3002` | Tailscale required |
-| Stremio addon | `https://<your-tunnel-domain>/stremio-addon/manifest.json` | Public via Cloudflare Tunnel |
+| Nuvio addon | `http://<nas-hostname>:3002/nuvio-addon/manifest.json` | Tailscale required |
 | Adminer (DB UI) | `http://<nas-hostname>:8081` | Tailscale required |
 
 ---
@@ -49,18 +47,10 @@ Home NAS
     ├── trakt-api (port 3002) ── Fastify API
     └── shared-mysql-1 (port 3306, internal only)
 
-Stremio (on any device)
-    │
-    │  HTTPS
-    ▼
-Cloudflare Tunnel → <your-tunnel-domain>
-    │
-    │  cloudflared (running on NAS)
-    ▼
-localhost:3002 (trakt-api)
+
 ```
 
-The web container proxies `/api/*` and `/stremio-addon/*` to `trakt-api:3002` via the `shared-db` Docker network. This is configured in `apps/web/next.config.mjs` using the `API_URL` build arg (baked in at image build time as `http://trakt-api:3002`).
+The web container proxies `/api/*` and `/nuvio-addon/*` to `trakt-api:3002` via the `shared-db` Docker network. This is configured in `apps/web/next.config.mjs` using the `API_URL` build arg (baked in at image build time as `http://trakt-api:3002`).
 
 ---
 
@@ -114,6 +104,8 @@ If the NAS hostname or API port ever changes, update the `TAILSCALE_HOSTNAME` se
 
 The tunnel exposes `localhost:3002` (the Trakt API) publicly at your tunnel domain. This is the only publicly accessible endpoint — everything else is Tailscale-only.
 
+> **No longer required.** The tunnel existed solely so Stremio could reach the addon over HTTPS. That addon has been removed — nothing depends on public access any more. The tunnel can be torn down whenever you like; it is documented here only because it is still running.
+
 **Tunnel is managed via:**
 - Cloudflare Zero Trust dashboard → Networks → Tunnels
 - `cloudflared` binary installed on the NAS
@@ -145,7 +137,7 @@ This runs against whatever `DB_HOST` is set to in your local `.env`.
 | Source | How it works |
 |---|---|
 | Emby | Webhook → `POST http://<nas-hostname>:3002/api/scrobble/emby` (Tailscale) |
-| Stremio | Addon installed via tunnel URL — polls API for now-playing |
+| NuvioTV | `POST http://<nas-hostname>:3002/api/scrobble/nuvio/{start,stop}` with `X-Api-Key` header |
 | Kodi | `POST http://<nas-hostname>:3002/api/scrobble/kodi` with `X-Api-Key` header |
 
 ---
@@ -161,11 +153,6 @@ This runs against whatever `DB_HOST` is set to in your local `.env`.
 1. Check `shared-mysql-1` is running: `sudo docker ps | grep mysql`
 2. Check API logs: `sudo docker logs trakt-api`
 3. Verify `DB_HOST=mysql` in your NAS `.env`
-
-**Stremio addon not working:**
-1. Test your tunnel URL in browser — should return JSON
-2. If timeout: check Cloudflare tunnel status (`sudo systemctl status cloudflared`)
-3. If tunnel is down: `sudo systemctl restart cloudflared`
 
 **New image not deploying automatically:**
 1. Check Watchtower logs: `sudo docker logs shared-watchtower-1`

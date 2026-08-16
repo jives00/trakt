@@ -1,8 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { RowDataPacket } from 'mysql2/promise';
 import { authenticate } from '../middleware/auth';
-import { getTraktToken, setTraktToken, clearTraktToken } from '../services/trakt-poll.service';
-import { initiateDeviceCodeFlow, checkAuthorizationStatus } from '../services/trakt-oauth.service';
 import { getPool } from '../db';
 
 function userId(request: FastifyRequest): number {
@@ -18,70 +16,6 @@ export async function settingsRoutes(app: FastifyInstance) {
       return reply.status(500).send({ error: 'API key not configured' });
     }
     return reply.send({ scrobbleApiKey: apiKey });
-  });
-
-  app.get('/settings/trakt-auth', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    const token = await getTraktToken();
-    const isConnected = token && new Date(token.expiresAt) > new Date();
-    return reply.send({ isConnected });
-  });
-
-  app.post<{ Body: { accessToken?: string; refreshToken?: string; expiresAt?: string } }>(
-    '/settings/trakt-auth',
-    auth,
-    async (request: FastifyRequest<{ Body: { accessToken?: string; refreshToken?: string; expiresAt?: string } }>, reply: FastifyReply) => {
-      const { accessToken, refreshToken, expiresAt } = request.body as { accessToken?: string; refreshToken?: string; expiresAt?: string };
-
-      if (!accessToken || !refreshToken || !expiresAt) {
-        return reply.status(400).send({ error: 'Missing required fields' });
-      }
-
-      try {
-        await setTraktToken({
-          accessToken,
-          refreshToken,
-          expiresAt: new Date(expiresAt),
-        });
-        return reply.status(201).send({ isConnected: true });
-      } catch (err) {
-        return reply.status(500).send({ error: 'Failed to store token' });
-      }
-    }
-  );
-
-  app.delete('/settings/trakt-auth', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      await clearTraktToken();
-      return reply.send({ isConnected: false });
-    } catch (err) {
-      return reply.status(500).send({ error: 'Failed to disconnect' });
-    }
-  });
-
-  // Start device code OAuth flow
-  app.post('/settings/trakt-auth/start', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      console.log('Starting Trakt OAuth flow...');
-      const { userCode, expiresIn } = await initiateDeviceCodeFlow();
-      console.log('OAuth flow initiated, user code:', userCode);
-      return reply.status(200).send({ userCode, expiresIn, verificationUrl: 'https://trakt.tv/activate' });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      console.error('Failed to initiate device code flow:', message);
-      console.error('Full error:', err);
-      return reply.status(500).send({ error: message });
-    }
-  });
-
-  // Check device code authorization status
-  app.post('/settings/trakt-auth/check', auth, async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const status = await checkAuthorizationStatus();
-      return reply.send(status);
-    } catch (err) {
-      console.error('Failed to check authorization:', err);
-      return reply.status(500).send({ error: 'Failed to check authorization status' });
-    }
   });
 
   app.get('/settings/preferences', auth, async (request: FastifyRequest, reply: FastifyReply) => {

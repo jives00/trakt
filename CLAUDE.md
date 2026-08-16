@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, Stremio, and Nuvio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, and OMDB. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
+Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch history, collections, and lists for TV shows and movies. Scrobbling API lets Emby, Kodi, and Nuvio push watch events automatically. Single-user, no social features. Metadata from TMDB, TVDB, and OMDB. User data in MySQL on Synology NAS. Production live with automated GitHub deployment.
 
 ---
 
@@ -10,7 +10,7 @@ Personal media tracking app inspired by Trakt.tv (pre-redesign UI). Tracks watch
 
 ```
 apps/api/             Fastify API server (Node 24, TypeScript)
-  - src/routes/       Route handlers (stremio-addon mounted at /stremio-addon)
+  - src/routes/       Route handlers (nuvio-addon mounted at /nuvio-addon)
   - src/services/     Business logic
   - migrations/       SQL migration files
   - scripts/          migrate.ts — CLI migration runner
@@ -31,7 +31,7 @@ docs/                 Documentation (DESIGN.md, SECURITY.md, changelog.md)
 | Mobile | React Native + Expo SDK 54 + NativeWind 4 (Android) |
 | Database | MySQL 8 — shared Docker container on Synology NAS |
 | Monorepo | pnpm workspaces |
-| Infra | Docker Compose on Synology NAS; Tailscale for private access; Cloudflare Tunnel for Stremio addon HTTPS |
+| Infra | Docker Compose on Synology NAS; Tailscale for private access |
 | CI/CD | GitHub Actions → ghcr.io → Watchtower auto-deploy |
 
 See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, networking, and troubleshooting details.
@@ -45,7 +45,7 @@ See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, netwo
 | Metadata APIs | `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY` (`FANART_API_KEY` is legacy — no code uses it) |
 | Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Auth | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
-| Integrations | `SCROBBLE_API_KEY`, `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET` |
+| Integrations | `SCROBBLE_API_KEY` |
 | Emby | `EMBY_URL`, `EMBY_API_KEY` — for live now-playing progress polling |
 | Web | `NEXT_PUBLIC_API_URL` — leave unset in dev (next.config.mjs proxies `/api/*`) |
 
@@ -69,9 +69,7 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 **Emby:** `POST /api/scrobble/emby` webhook on `PlaybackProgress`/`PlaybackStopped`. Upsert on `(user_id, media_type, media_id, DATE(watched_at))` — one row per viewing day. 90% completion threshold.
 
-**Stremio:** Hybrid approach — subtitle open triggers `startPollLoop`, then polls Trakt's `GET /users/{username}/watching` every 60s until 204. Progress from `data.progress` (0–100); falls back to computing from `started_at`/`expires_at`.
-
-**Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates or scrobble to Trakt.tv. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
+**Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
 
 Id resolution is local-first: a scrobble only needs the DB row id, so anything already in the library resolves straight from `tv_shows`/`seasons`/`episodes` (or `movies`) and never touches TMDB. The `getOrFetch*` path runs only for titles not yet cached — so a TMDB outage or bad key can no longer drop a session for content you already have.
 
@@ -79,9 +77,9 @@ Id resolution is local-first: a scrobble only needs the DB row id, so anything a
 
 All scrobble sources call `updateNowPlaying(source, mediaType, mediaIdDb, progressPct)` regardless of completion threshold. Dashboard hero polls `GET /api/scrobble/now-playing` every 30s.
 
-`now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. Staleness guard clears ghost sessions if a player crashes: 5 minutes for `stremio` (polled every 60s), 4 hours for all other sources.
+`now_playing` table: `(user_id, media_type, media_id, progress_pct, source, updated_at)`. UNIQUE on `user_id`. Staleness guard clears ghost sessions if a player crashes: 4 hours since the last update.
 
-For sources that don't send periodic updates (Nuvio, Emby, Kodi), `getNowPlaying` extrapolates the current position from elapsed time since `updated_at` and the content runtime, and returns nothing once the estimate passes 100% — this, not the staleness guard, is what normally ends a session that never sent a stop. Titles with no stored runtime (unreleased, partial metadata) fall back to `FALLBACK_RUNTIME_MIN` so they still age out. The Trakt background poller only clears `now_playing` when `source = 'stremio'` — it does not interfere with Nuvio/Emby/Kodi sessions.
+No source sends periodic updates, so `getNowPlaying` extrapolates the current position from elapsed time since `updated_at` and the content runtime, and returns nothing once the estimate passes 100% — this, not the staleness guard, is what normally ends a session that never sent a stop. Titles with no stored runtime (unreleased, partial metadata) fall back to `FALLBACK_RUNTIME_MIN` so they still age out.
 
 ### Metadata sourcing
 
@@ -93,7 +91,7 @@ Token-authenticated feeds (no session cookie — safe for external apps). `GET /
 
 ### Exclusions
 
-Per-integration title exclusions (`emby`, `stremio`, `kodi`, `nuvio`) prevent scrobbling specific titles. `GET/POST/DELETE /api/settings/exclusions`.
+Per-integration title exclusions (`emby`, `kodi`, `nuvio`) prevent scrobbling specific titles. `GET/POST/DELETE /api/settings/exclusions`.
 
 ### Shared types
 

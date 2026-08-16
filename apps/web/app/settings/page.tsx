@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 type MainTab = "account" | "appearance" | "integrations" | "export";
 type IntegrationTab = "config" | "instructions";
-type Integration = "emby" | "stremio" | "kodi" | "nuvio";
+type Integration = "emby" | "kodi" | "nuvio";
 
 interface Exclusion {
   id: number;
@@ -50,7 +50,6 @@ export default function SettingsPage() {
   const [showExportToken, setShowExportToken] = useState(false);
   const [rotatingToken, setRotatingToken] = useState(false);
   const [exportableLists, setExportableLists] = useState<{ id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]>([]);
-  const [traktConnected, setTraktConnected] = useState(false);
   const [exclusions, setExclusions] = useState<Exclusion[]>([]);
   const [sourceStats, setSourceStats] = useState<Record<string, number> | null>(null);
   const [preferences, setPreferences] = useState<{ watchThresholdMovie: number; watchThresholdEpisode: number } | null>(null);
@@ -59,9 +58,6 @@ export default function SettingsPage() {
   const [savingThreshold, setSavingThreshold] = useState(false);
   const [thresholdSaved, setThresholdSaved] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [traktOAuthOpen, setTraktOAuthOpen] = useState(false);
-  const [oauthUserCode, setOAuthUserCode] = useState<string | null>(null);
-  const [oauthAuthorizing, setOAuthAuthorizing] = useState(false);
 
   const authHeaders = useMemo(() => {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -86,11 +82,10 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [keyRes, exportRes, listsRes, authRes, statsRes, prefRes] = await Promise.all([
+        const [keyRes, exportRes, listsRes, statsRes, prefRes] = await Promise.all([
           fetch("/api/settings/api-key", { credentials: "include", headers: authHeaders }),
           fetch("/api/settings/export-token", { credentials: "include", headers: authHeaders }),
           fetch("/api/lists", { credentials: "include", headers: authHeaders }),
-          fetch("/api/settings/trakt-auth", { credentials: "include", headers: authHeaders }),
           fetch("/api/settings/source-stats", { credentials: "include", headers: authHeaders }),
           fetch("/api/settings/preferences", { credentials: "include", headers: authHeaders }),
         ]);
@@ -103,7 +98,6 @@ export default function SettingsPage() {
             (data as { id: number; slug: string; name: string; stremioCatalog: boolean; stremioSort: string }[]).filter((l) => l.slug)
           );
         }
-        if (authRes.ok) setTraktConnected((await authRes.json()).isConnected);
         if (statsRes.ok) setSourceStats(await statsRes.json());
         if (prefRes.ok) {
           const pref = await prefRes.json();
@@ -234,78 +228,6 @@ export default function SettingsPage() {
     }
   };
 
-  const handleTraktConnect = async () => {
-    try {
-      setOAuthAuthorizing(true);
-      const res = await fetch("/api/settings/trakt-auth/start", {
-        method: "POST",
-        credentials: "include",
-        headers: authHeaders,
-        body: JSON.stringify({}),
-      });
-
-      if (!res.ok) {
-        alert(`Authentication failed: ${res.status}`);
-        return;
-      }
-
-      const data = await res.json();
-      setOAuthUserCode(data.userCode);
-      setTraktOAuthOpen(true);
-      pollAuthorizationStatus();
-    } catch (err) {
-      console.error("Failed to start Trakt OAuth:", err);
-      alert("Failed to start Trakt authentication");
-    } finally {
-      setOAuthAuthorizing(false);
-    }
-  };
-
-  const handleTraktDisconnect = async () => {
-    if (!confirm("Disconnect from Trakt? Watch history syncing will stop until you reconnect.")) return;
-    try {
-      const { "Content-Type": _, ...headersNoContentType } = authHeaders;
-      const res = await fetch("/api/settings/trakt-auth", {
-        method: "DELETE",
-        credentials: "include",
-        headers: headersNoContentType,
-      });
-      if (res.ok) setTraktConnected(false);
-    } catch (err) {
-      console.error("Failed to disconnect Trakt:", err);
-    }
-  };
-
-  const pollAuthorizationStatus = async () => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const res = await fetch("/api/settings/trakt-auth/check", {
-          method: "POST",
-          credentials: "include",
-          headers: authHeaders,
-          body: JSON.stringify({}),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.status === "authorized") {
-            clearInterval(pollInterval);
-            setTraktOAuthOpen(false);
-            setOAuthUserCode(null);
-            setTraktConnected(true);
-          } else if (data.status === "expired" || data.status === "denied") {
-            clearInterval(pollInterval);
-            setTraktOAuthOpen(false);
-            setOAuthUserCode(null);
-            alert(`Trakt authentication ${data.status}`);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to check authorization:", err);
-      }
-    }, 2000);
-  };
-
   if (isLoading) return null;
 
   const mainTabs: { id: MainTab; label: string; description: string }[] = [
@@ -316,7 +238,7 @@ export default function SettingsPage() {
   ];
 
   const SOURCE_LABELS: Record<string, string> = {
-    trakt: "From Trakt",
+    "trakt.tv": "From Trakt.tv (imported)",
     manual: "Manual entries",
     emby: "From Emby",
     stremio: "From Stremio",
@@ -528,35 +450,6 @@ export default function SettingsPage() {
 
               {intTab === "config" && (
                 <div className="space-y-6">
-                  {/* Trakt Connection */}
-                  <div className="glass-panel rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-on-surface">Trakt Connection</h3>
-                      {traktConnected ? (
-                        <div className="flex items-center gap-2">
-                          <span className="px-3 py-2 rounded-lg text-sm font-bold bg-green-600/20 text-green-400 border border-green-600/30">
-                            ✓ Connected
-                          </span>
-                          <button
-                            onClick={handleTraktDisconnect}
-                            className="px-3 py-2 rounded-lg text-sm font-bold bg-on-surface/10 text-on-surface/60 hover:bg-red-500/20 hover:text-red-400 transition-colors"
-                          >
-                            Disconnect
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleTraktConnect}
-                          disabled={oauthAuthorizing}
-                          className="px-4 py-2 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {oauthAuthorizing ? "Starting..." : "Connect Trakt"}
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-on-surface-variant">Required for watch history syncing from Trakt and Stremio.</p>
-                  </div>
-
                   {/* Watch History Sources */}
                   <div className="glass-panel rounded-xl p-6">
                     <h3 className="font-bold text-on-surface mb-4">Watch History</h3>
@@ -674,10 +567,10 @@ export default function SettingsPage() {
                     )}
                   </div>
 
-                  {/* Stremio & Nuvio Catalogs */}
+                  {/* Nuvio Catalogs */}
                   <div className="glass-panel rounded-xl p-6">
-                    <h3 className="font-bold text-on-surface mb-1">Stremio & Nuvio Catalogs</h3>
-                    <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in Stremio and NuvioTV.</p>
+                    <h3 className="font-bold text-on-surface mb-1">Nuvio Catalogs</h3>
+                    <p className="text-xs text-on-surface-variant mb-4">Choose which lists appear as catalogs in NuvioTV.</p>
                     <div className="space-y-2">
                       {exportableLists.map((list) => (
                         <div key={list.id} className="flex items-center justify-between bg-surface-container rounded-lg px-4 py-3 border border-outline-variant/40 gap-3">
@@ -754,16 +647,11 @@ export default function SettingsPage() {
               {intTab === "instructions" && (
                 <div className="space-y-6">
                   <EmbyGuide apiKey={apiKey} />
-                  <StremioGuide traktConnected={traktConnected} />
                   <NuvioGuide />
                   <ExportGuide exportToken={exportToken} lists={exportableLists} />
                 </div>
               )}
 
-              {/* Trakt OAuth Modal */}
-              {traktOAuthOpen && oauthUserCode && (
-                <TraktOAuthModal userCode={oauthUserCode} onClose={() => setTraktOAuthOpen(false)} />
-              )}
             </div>
           )}
 
@@ -858,41 +746,6 @@ function EmbyGuide({ apiKey }: { apiKey: string | null }) {
   );
 }
 
-function StremioGuide({ traktConnected }: { traktConnected: boolean }) {
-  const manifestUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/stremio-addon/manifest.json`
-    : 'http://localhost:3001/stremio-addon/manifest.json';
-
-  return (
-    <div className="glass-panel rounded-xl p-6">
-      <h2 className="text-h3 font-bold text-on-surface mb-6">Stremio Setup Guide</h2>
-      <div className="flex flex-col gap-6">
-        <Step n={1} title="Connect Trakt">
-          <p>Go to the <strong className="text-on-surface">Configuration</strong> tab and click <strong className="text-on-surface">Connect Trakt</strong>. This is required for watch history syncing from Stremio.</p>
-          {traktConnected && (
-            <p className="text-green-400 font-medium">✓ Trakt is connected</p>
-          )}
-        </Step>
-        <Step n={2} title="Install the Addon">
-          <p>Launch Stremio and click the <strong className="text-on-surface">puzzle piece (Addons)</strong> icon. Click <strong className="text-on-surface">Install from URL</strong> and paste:</p>
-          <CodeBlock>{manifestUrl}</CodeBlock>
-          <p>Click <strong className="text-on-surface">Install</strong> (or <strong className="text-on-surface">Update</strong> if already installed). This single addon handles both scrobbling and personal catalogs.</p>
-        </Step>
-        <Step n={3} title="Browse Your Lists">
-          <p>Your enabled lists appear as browsable sections under the <strong className="text-on-surface">Discover</strong> tab. Toggle which lists appear as catalogs in the <strong className="text-on-surface">Configuration</strong> tab.</p>
-        </Step>
-        <Step n={4} title="Start Watching">
-          <p>Play any content in Stremio. When you open the subtitles menu, this app will start tracking your playback via Trakt. Watch progress and completion will be automatically synced to your History.</p>
-        </Step>
-        <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
-          <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
-          Playback progress is synced from Trakt (updated every minute). Make sure Stremio is configured to send playback data to Trakt.
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface SearchResult {
   tmdbId: number;
   mediaType: 'movie' | 'show';
@@ -903,7 +756,6 @@ interface SearchResult {
 
 const INTEGRATION_LABELS: Record<Integration, string> = {
   emby: "Emby",
-  stremio: "Stremio",
   kodi: "Kodi",
   nuvio: "NuvioTV",
 };
@@ -990,7 +842,7 @@ function UnifiedExclusionPanel({
     if (!result) return;
 
     const integrations: Integration[] = selectedIntegration === "all"
-      ? ["emby", "stremio", "kodi", "nuvio"]
+      ? ["emby", "kodi", "nuvio"]
       : [selectedIntegration];
 
     setAdding(true);
@@ -1154,7 +1006,7 @@ function NuvioGuide() {
         </Step>
         <div className="bg-accent/10 border border-accent/20 rounded-xl p-4 text-sm text-on-surface/60">
           <span className="material-symbols-outlined text-accent text-base align-middle mr-2">info</span>
-          List catalogs are shared with the Stremio addon — manage them in the Configuration tab.
+          Manage which lists appear as catalogs in the Configuration tab.
         </div>
       </div>
     </div>
@@ -1300,65 +1152,6 @@ function ExportTab({ authHeaders }: { authHeaders: Record<string, string> }) {
           <span className="material-symbols-outlined text-base">{exporting ? "hourglass_empty" : "download"}</span>
           {exporting ? "Exporting..." : "Download Excel"}
         </button>
-      </div>
-    </div>
-  );
-}
-
-function TraktOAuthModal({ userCode, onClose }: { userCode: string; onClose: () => void }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(userCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-surface-container rounded-xl border border-outline-variant/40 p-6 max-w-md w-full mx-4">
-        <h3 className="text-h3 font-bold text-on-surface mb-4">Authorize Trakt Access</h3>
-
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-on-surface/60 mb-2">1. Visit this URL on any device:</p>
-            <a
-              href="https://trakt.tv/activate"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-accent hover:underline text-sm font-mono break-all"
-            >
-              https://trakt.tv/activate
-            </a>
-          </div>
-
-          <div>
-            <p className="text-sm text-on-surface/60 mb-2">2. Enter this code:</p>
-            <div className="flex items-center gap-2 bg-surface-container-lowest rounded-lg px-4 py-3 border border-accent/30">
-              <code className="text-lg font-bold text-accent tracking-widest flex-grow">{userCode}</code>
-              <button
-                onClick={handleCopy}
-                className="text-on-surface/40 hover:text-on-surface transition-colors material-symbols-outlined text-base"
-              >
-                {copied ? "check" : "content_copy"}
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-3">
-            <p className="text-xs text-on-surface/60">
-              <span className="material-symbols-outlined text-accent text-sm align-middle mr-1">info</span>
-              Waiting for authorization... This usually takes less than 30 seconds.
-            </p>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="w-full px-4 py-2 bg-on-surface/10 text-on-surface rounded-lg hover:bg-on-surface/20 transition-colors text-sm font-bold"
-          >
-            Cancel
-          </button>
-        </div>
       </div>
     </div>
   );

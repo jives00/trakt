@@ -5,14 +5,14 @@ import {
   getExportableList,
   filterShowsWithUnwatchedEpisodes,
 } from '../services/export.service';
-import type { StremioCatalogEntry, StremioMetaObject } from '@trakt/types';
+import type { AddonCatalogEntry, AddonMetaObject } from '@trakt/types';
 
 const SINGLE_USER_ID = 1;
 
 export async function nuvioAddonRoutes(app: FastifyInstance) {
   app.get('/manifest.json', async (_request: FastifyRequest, reply: FastifyReply) => {
     const lists = await getExportableLists(SINGLE_USER_ID);
-    const catalogs: StremioCatalogEntry[] = [];
+    const catalogs: AddonCatalogEntry[] = [];
     for (const list of lists) {
       if (list.movieCount > 0) catalogs.push({ type: 'movie',  id: `personal-${list.slug}-movie`,  name: `Trakt App - ${list.name}` });
       if (list.showCount  > 0) catalogs.push({ type: 'series', id: `personal-${list.slug}-series`, name: `Trakt App - ${list.name}` });
@@ -57,7 +57,7 @@ export async function nuvioAddonRoutes(app: FastifyInstance) {
         items = items.filter((item) => unwatched.has(item.mediaId));
       }
 
-      const metas: StremioMetaObject[] = items
+      const metas: AddonMetaObject[] = items
         .map((item) => ({
           id: item.imdbId ?? `tmdb:${item.tmdbId}`,
           type: stremioType,

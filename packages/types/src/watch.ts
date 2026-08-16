@@ -14,7 +14,8 @@ export interface WatchHistoryEntry {
   mediaId: number;
   watchedAt: string;
   progressPct: number;
-  source: 'manual' | 'emby' | 'stremio' | 'kodi';
+  // 'stremio' and 'trakt.tv' are historical only — those integrations are removed.
+  source: 'manual' | 'emby' | 'kodi' | 'nuvio' | 'stremio' | 'trakt.tv';
 }
 
 export interface ContinueWatchingItem {

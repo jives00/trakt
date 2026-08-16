@@ -13,7 +13,6 @@ const nextConfig = {
     return {
       beforeFiles: [
         { source: "/api/:path*", destination: `${apiUrl}/api/:path*`, basePath: false },
-        { source: "/stremio-addon/:path*", destination: `${apiUrl}/stremio-addon/:path*`, basePath: false },
         { source: "/nuvio-addon/:path*", destination: `${apiUrl}/nuvio-addon/:path*`, basePath: false },
       ],
     };

@@ -48,7 +48,7 @@ describe('GET /api/settings/exclusions', () => {
     await pool.query(
       `INSERT INTO scrobble_exclusions (integration, tmdb_id, media_type, title) VALUES
        (?, ?, ?, ?), (?, ?, ?, ?), (?, ?, ?, ?)`,
-      ['emby', 550, 'movie', 'Fight Club', 'stremio', 1399, 'show', 'Breaking Bad', 'kodi', 90001, 'movie', 'Test Movie Alpha'],
+      ['emby', 550, 'movie', 'Fight Club', 'nuvio', 1399, 'show', 'Breaking Bad', 'kodi', 90001, 'movie', 'Test Movie Alpha'],
     );
 
     const res = await supertest(app.server)
@@ -66,7 +66,7 @@ describe('GET /api/settings/exclusions', () => {
     await pool.query(
       `INSERT INTO scrobble_exclusions (integration, tmdb_id, media_type, title) VALUES
        (?, ?, ?, ?), (?, ?, ?, ?), (?, ?, ?, ?)`,
-      ['emby', 550, 'movie', 'Fight Club', 'stremio', 1399, 'show', 'Breaking Bad', 'emby', 90001, 'movie', 'Test Movie Alpha'],
+      ['emby', 550, 'movie', 'Fight Club', 'nuvio', 1399, 'show', 'Breaking Bad', 'emby', 90001, 'movie', 'Test Movie Alpha'],
     );
 
     const res = await supertest(app.server)
