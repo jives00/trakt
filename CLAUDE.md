@@ -48,6 +48,7 @@ See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, netwo
 | Integrations | `SCROBBLE_API_KEY` |
 | Emby | `EMBY_URL`, `EMBY_API_KEY` — for live now-playing progress polling |
 | Web | `NEXT_PUBLIC_API_URL` — leave unset in dev (next.config.mjs proxies `/api/*`) |
+| Web | `NEXT_PUBLIC_LAN_HOST` — host substituted into the integration URLs shown on the settings page, so Sonarr/Radarr/Emby containers get a name they can resolve (defaults to the NAS LAN IP) |
 
 See `.env.example` for template.
 
@@ -151,6 +152,12 @@ Tests co-located with source: `src/routes/__tests__/`, `src/services/__tests__/`
 
 ## Coding Standards
 
+0. **Never connect to the database without explicit permission** — the MySQL instance is reachable
+   from the dev machine with no tunnel (`synology:3307`), so nothing stops an ad-hoc connection.
+   Ask first and wait for a yes, every time. This covers read-only `SELECT`s, the `mysql` CLI, and
+   throwaway `mysql2` scripts, against `trakt` and `trakt_test` alike. To answer a question without
+   asking, use the HTTP API, the logs, or read the schema from `apps/api/migrations/` — those are
+   files, not connections.
 1. **Think before coding** — state assumptions, ask when uncertain, name ambiguity before proceeding.
 2. **Simplicity first** — minimum code for the problem. No extra abstractions, no impossible-scenario error handling.
 3. **Goal-driven** — for multi-step tasks, state a verifiable plan before starting.

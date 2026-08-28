@@ -184,7 +184,7 @@ export async function getOrFetchShow(tmdbId: number) {
 
 interface ExternalIdRow extends RowDataPacket { external_id: string }
 
-async function getOrCacheTvdbId(showInternalId: number, showTmdbId: number): Promise<number | null> {
+export async function getOrCacheTvdbId(showInternalId: number, showTmdbId: number): Promise<number | null> {
   const pool = getPool();
   const [rows] = await pool.query<ExternalIdRow[]>(
     `SELECT external_id FROM external_ids WHERE media_type = 'show' AND media_id = ? AND source = 'tvdb'`,

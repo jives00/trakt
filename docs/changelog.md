@@ -1,5 +1,13 @@
 # Changelog
 
+## August 27, 2026
+
+### API
+- **Shows with no cached TVDB id were silently missing from the Sonarr import list, and cancelled shows never left the watchlist** — the Sonarr feed filters on `tvdbId`, but that id was only ever written as a side effect of `getOrCacheTvdbId` running during a season-episode fetch or the air-time backfill, so a show added straight from search and never opened had none and was dropped from the feed with no error (9 shows across the watchlist and TV Shows lists, all with zero cached seasons). Separately, `checkShowWatchlistCompletion` already removed an Ended/Canceled show whose aired non-special episodes were all watched, but it only fired on a watch event — a show cancelled *after* you finished it was never re-checked and sat on the watchlist forever. New `watchlist-maintenance.service.ts` runs daily (90s after boot, then every 24h, alongside `startScheduleRefresh`): it refreshes watchlist show metadata through the TTL-gated `getOrFetchShow` so a cancellation surfaces, re-runs the completion rule and logs each title it prunes, then backfills missing TVDB ids for shows on any list. Each item is individually try/caught so one bad TMDB or TVDB lookup can't abort the run; `getOrCacheTvdbId` is now exported `413e2c6`
+
+### Web
+- **Integration URLs on the settings page named a host that external clients can't resolve** — the Sonarr, Radarr, Emby webhook, and NuvioTV manifest URLs were built from `window.location.origin`, so they echoed back whatever hostname the browser used (`synology:3001`). Those URLs are fetched by Sonarr, Radarr, and Emby from inside their own containers, where `synology` doesn't resolve — Sonarr reported `Unable to connect to import list: Name does not resolve (synology:3001)`. New `externalOrigin()` in `lib/utils.ts` substitutes the LAN IP while preserving protocol and port, leaving the origin alone when it's already an IP or `localhost` so dev is unaffected; overridable via `NEXT_PUBLIC_LAN_HOST` `413e2c6`
+
 ## August 15, 2026
 
 ### API

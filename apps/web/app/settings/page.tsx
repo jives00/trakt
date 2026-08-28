@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme, THEMES } from "@/lib/theme-context";
 import { api } from "@/lib/api";
+import { externalOrigin } from "@/lib/utils";
 import type { UserProfile } from "@trakt/types";
 
 export const dynamic = "force-dynamic";
@@ -693,9 +694,7 @@ function CodeBlock({ children }: { children: string }) {
 
 function EmbyGuide({ apiKey }: { apiKey: string | null }) {
   const [showUrl, setShowUrl] = useState(false);
-  const webhookUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/api/scrobble/emby`
-    : '/api/scrobble/emby';
+  const webhookUrl = `${externalOrigin()}/api/scrobble/emby`;
   const fullUrl = apiKey ? `${webhookUrl}?api_key=${apiKey}` : `${webhookUrl}?api_key=<your-api-key>`;
   const maskedUrl = apiKey ? `${webhookUrl}?api_key=••••••••••••••••••••••••` : fullUrl;
 
@@ -985,9 +984,7 @@ function ListSelect({ lists, value, onChange }: { lists: { slug: string; name: s
 }
 
 function NuvioGuide() {
-  const manifestUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/nuvio-addon/manifest.json`
-    : '/nuvio-addon/manifest.json';
+  const manifestUrl = `${externalOrigin()}/nuvio-addon/manifest.json`;
 
   return (
     <div className="glass-panel rounded-xl p-6">
@@ -1014,7 +1011,7 @@ function NuvioGuide() {
 }
 
 function ExportGuide({ exportToken, lists }: { exportToken: string | null; lists: { id: number; slug: string; name: string; stremioCatalog: boolean }[] }) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001';
+  const origin = externalOrigin();
   const defaultSlug = lists.find((l) => l.slug === 'watchlist')?.slug ?? lists[0]?.slug ?? 'watchlist';
   const [radarrSlug, setRadarrSlug] = useState(defaultSlug);
   const [sonarrSlug, setSonarrSlug] = useState(defaultSlug);
