@@ -102,19 +102,32 @@ If the NAS hostname or API port ever changes, update the `TAILSCALE_HOSTNAME` se
 
 ## Cloudflare Tunnel
 
-The tunnel exposes `localhost:3002` (the Trakt API) publicly at your tunnel domain. This is the only publicly accessible endpoint — everything else is Tailscale-only.
+The tunnel publishes two hostnames, and these are the only publicly accessible endpoints — everything else is Tailscale-only:
 
-> **No longer required.** The tunnel existed solely so Stremio could reach the addon over HTTPS. That addon has been removed — nothing depends on public access any more. The tunnel can be torn down whenever you like; it is documented here only because it is still running.
+| Hostname | Origin | Exposed |
+|---|---|---|
+| your tunnel domain | `localhost:3002` (Trakt API) | all paths |
+| Vault's hostname | `localhost:3010` (Vault web) | `/vault/plaid/oauth-return` and `/vault/_next/.*` only |
+
+> ⚠️ **Do not tear this tunnel down.** It was originally built so Stremio could reach the addon over HTTPS, and that addon is gone — but three other things have since taken a dependency on it:
+>
+> - **`Nuvio-Fork`** (Android TV) and **`NuvioDesktop-Fork`** (Windows) scrobble to `<tunnel domain>/api/scrobble/nuvio/*`, authenticating with `SCROBBLE_API_KEY` as `X-Api-Key`. That URL is **compiled into each build with no fallback**, and they live in separate repos, so nothing here fails to compile if the tunnel goes away. Failure is silent — a rejected or unreachable scrobble is only logged client-side. Removing the tunnel means rebuilding *and reinstalling* both clients.
+> - **`Vault`** (personal finance tracker, separate repo) uses its own hostname on this tunnel as Plaid's OAuth redirect target. Plaid requires a registered, publicly-resolvable HTTPS URL, so this is the only way OAuth banks and brokerages can be linked at all. Everything outside those two paths 404s at the tunnel, and the CF-header check in `trustedNetwork.ts` stops the hostname minting a session.
+>
+> A prior revision of this file said the tunnel was "no longer required." That was wrong; see `Development/.claude/NASDocumentation.md`, which has tracked the Nuvio dependency all along.
 
 **Tunnel is managed via:**
-- Cloudflare Zero Trust dashboard → Networks → Tunnels
-- `cloudflared` binary installed on the NAS
+- Cloudflare Zero Trust dashboard → Networks → Tunnels → `nas-trakt`
+- **Remotely-managed**: the systemd unit runs `cloudflared tunnel run --token …` and there is **no `config.yml` anywhere on the NAS**. Ingress rules live in Cloudflare, on the tunnel's **Published application routes** tab (formerly "Public Hostnames" — the similarly-named "Hostname routes" tab is a different, unused feature).
+- `cloudflared` binary installed at `/usr/local/bin/cloudflared` on the NAS
 - Runs as a system service — starts automatically on NAS reboot
 
 **If the tunnel goes down:**
 1. SSH into NAS: `sudo systemctl status cloudflared`
 2. Restart if needed: `sudo systemctl restart cloudflared`
 3. Check the tunnel status in Cloudflare Zero Trust dashboard
+
+**Symptom to recognize:** playback on the Android TV or Windows Nuvio client stops appearing in watch history, with nothing logged server-side. The clients only log scrobble failures locally, so a dead tunnel looks like "scrobbling quietly stopped working" rather than an outage. Check the tunnel before digging into scrobble code.
 
 ---
 
