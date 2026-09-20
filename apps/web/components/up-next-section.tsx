@@ -214,7 +214,14 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
         <div
           className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3 pointer-events-none group-hover:pointer-events-auto"
         >
-          <div className="w-full">
+          <div
+            className="w-full"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <WatchDatePicker
               watched={false}
               releaseDate={item.airDate ?? null}

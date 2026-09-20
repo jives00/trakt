@@ -1,5 +1,10 @@
 # Changelog
 
+## September 20, 2026
+
+### Web
+- **Marking an Up Next episode watched navigated away from the home page** — the card wraps its poster in a `Link` to the episode page and the hover overlay's `WatchDatePicker` sits inside that anchor, so the Mark Watched click bubbled up and Next navigated, cutting off the in-place refresh that swaps the card for the show's next episode; the picker is now wrapped in a div that `preventDefault`s and stops propagation on click (the Remove button already did this), with `onMouseDown` only stopping propagation so the dropdown's date input still focuses `d79b562`
+
 ## August 27, 2026
 
 ### API
@@ -21,6 +26,7 @@
 
 ### Infrastructure
 - **The Cloudflare Tunnel is no longer required** — it existed solely to give Stremio an HTTPS addon URL. Nothing depends on public access now; the tunnel is still running and can be torn down at will. Noted in `docs/INFRASTRUCTURE.md`. `00adeef`
+  > **Correction (Aug 30, 2026): this was wrong when written.** `Nuvio-Fork` and `NuvioDesktop-Fork` both scrobble to `https://trakt.berek.xyz/api/scrobble/nuvio/*` with the URL compiled in and no fallback, so the tunnel was already load-bearing — the Stremio addon just wasn't the reason any more. Tearing it down silently breaks scrobbling from both clients. See `docs/INFRASTRUCTURE.md`.
 
 ## August 10, 2026
 
