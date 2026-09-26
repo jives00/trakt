@@ -2,6 +2,7 @@ import { getOrFetchMovie } from './movies.service';
 import { getOrFetchShow, getOrFetchEpisode } from './shows.service';
 import { checkMovieWatchlistCompletion, checkShowWatchlistCompletion } from './user-media.service';
 import { updateNowPlaying, clearNowPlaying, upsertWatchHistory, isScrobbleExcluded, DEFAULT_USER_ID, getWatchThreshold } from './scrobble.service';
+import { isPlausibleCompletion } from './scrobble-plausibility.service';
 import { getPool } from '../db';
 import { get as tmdbGet } from './tmdb.client';
 
@@ -103,7 +104,8 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
         // sends paused:true only for genuine user pauses and seek restarts; real
         // stops (playback end, stream switch, player exit) send paused:false.
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'episode', episodeId, progressPct, true);
-      } else if (!isExcluded && progressPct >= threshold.episode) {
+      } else if (!isExcluded && progressPct >= threshold.episode
+          && await isPlausibleCompletion(DEFAULT_USER_ID, 'episode', episodeId, progressPct)) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'episode', episodeId, progressPct, true);
         void checkShowWatchlistCompletion(DEFAULT_USER_ID, showId)
@@ -123,7 +125,8 @@ export async function handleNuvioScrobble(action: 'start' | 'stop', payload: Nuv
       } else if (payload.paused) {
         // See the episode branch: a pause never completes, regardless of progress.
         await updateNowPlaying(DEFAULT_USER_ID, 'nuvio', 'movie', movieId, progressPct, true);
-      } else if (!isExcluded && progressPct >= threshold.movie) {
+      } else if (!isExcluded && progressPct >= threshold.movie
+          && await isPlausibleCompletion(DEFAULT_USER_ID, 'movie', movieId, progressPct)) {
         await clearNowPlaying(DEFAULT_USER_ID);
         await upsertWatchHistory(DEFAULT_USER_ID, 'nuvio', 'movie', movieId, progressPct, true);
         void checkMovieWatchlistCompletion(DEFAULT_USER_ID, movieId)

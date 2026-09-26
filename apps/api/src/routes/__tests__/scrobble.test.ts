@@ -955,6 +955,43 @@ describe('POST /api/scrobble/emby', () => {
       expect(history.length).toBe(1);
       expect(history[0].progress_pct).toBe(99);
     });
+
+    // Nuvio sends a hardcoded 99.5% when a stream ends early; a jump the elapsed
+    // time can't explain must not mark the title watched.
+    it('rejects a completion that jumps far past the session position', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(21));
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(99.5));
+
+      const [nowPlaying] = await pool.query<any[]>('SELECT * FROM now_playing WHERE source = "nuvio"');
+      expect(nowPlaying.length).toBe(0);
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(0);
+    });
+
+    it('accepts a completion once enough time has elapsed to reach it', async () => {
+      const pool = getPool();
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/start')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(21));
+      await pool.query('UPDATE now_playing SET updated_at = NOW() - INTERVAL 3 HOUR');
+
+      await supertest(app.server)
+        .post('/api/scrobble/nuvio/stop')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send(nuvioMoviePayload(99.5));
+
+      const [history] = await pool.query<any[]>('SELECT * FROM watch_history WHERE media_type = "movie"');
+      expect(history.length).toBe(1);
+    });
   });
 
   describe('Progress calculation', () => {

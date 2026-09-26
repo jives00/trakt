@@ -80,3 +80,23 @@ export function isTrustedClient(
   if (headers['cf-connecting-ip'] || headers['cf-ray']) return false;
   return isTrustedIp(remoteAddress, extraCidrs);
 }
+
+// Scrobble routes authenticate with an API key that ships inside the public Nuvio
+// builds, so the key alone can't keep strangers out. Direct traffic (LAN/Tailscale)
+// is always allowed; tunnel traffic must come from an allow-listed public IP or
+// IPv4 CIDR. An unset allowlist leaves the tunnel open.
+export function isAllowedScrobbleSource(
+  headers: Record<string, unknown>,
+  remoteAddress: string | undefined | null,
+  publicAllowlist?: string | null,
+): boolean {
+  const cfIp = headers['cf-connecting-ip'];
+  if (!cfIp) return isTrustedIp(remoteAddress);
+  if (!publicAllowlist) return true;
+  const ip = normalizeIp(String(cfIp));
+  return publicAllowlist
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .some((entry) => (entry.includes('/') ? ipv4InCidr(ip, entry) : normalizeIp(entry) === ip));
+}

@@ -1,5 +1,11 @@
 # Changelog
 
+## September 26, 2026
+
+### API
+- **A stranger's Nuvio playback was scrobbled into history (Neagley S1E6)** — the Nuvio fork repos and their releases are public, and each build compiles in the tunnel URL and `SCROBBLE_API_KEY`, so anyone who installed one scrobbled into this account. Scrobble routes now check the request's source: direct LAN/Tailscale traffic always passes, but Cloudflare-tunnel traffic must come from an IP in the new `SCROBBLE_ALLOWED_IPS` (exact IPs or IPv4 CIDRs; unset leaves the tunnel open). Rejected requests get a 403 and a `🔒 Scrobble blocked` log line. Nuvio start/stop log lines now include the episode, client IP and app version `b6f5acf`
+- **A stream that died partway through was recorded as a completed watch** — Nuvio sends a hardcoded 99.5% whenever the player reaches ENDED, and its natural-completion check never compares position to duration, so a stream that dropped at 21% arrived as a 99.5% stop. New `scrobble-plausibility.service.ts` rejects a completing Nuvio stop that runs more than 10 points past the `now_playing` position plus elapsed time over runtime, and clears Now Playing instead `b6f5acf`
+
 ## September 20, 2026
 
 ### Web

@@ -111,6 +111,7 @@ The tunnel publishes one hostname, and it is the only publicly accessible endpoi
 > ⚠️ **Do not tear this tunnel down.** It was originally built so Stremio could reach the addon over HTTPS, and that addon is gone — but two other things have since taken a dependency on it:
 >
 > - **`Nuvio-Fork`** (Android TV) and **`NuvioDesktop-Fork`** (Windows) scrobble to `<tunnel domain>/api/scrobble/nuvio/*`, authenticating with `SCROBBLE_API_KEY` as `X-Api-Key`. That URL is **compiled into each build with no fallback**, and they live in separate repos, so nothing here fails to compile if the tunnel goes away. Failure is silent — a rejected or unreachable scrobble is only logged client-side. Removing the tunnel means rebuilding *and reinstalling* both clients.
+>   Because those builds are public, the key is effectively public too. Tunnel scrobbles are only accepted from the IPs in `SCROBBLE_ALLOWED_IPS` (your home connection). If your ISP changes that IP, Nuvio scrobbling goes quiet and the API logs `🔒 Scrobble blocked — … from <new ip>`; update the variable in the NAS `.env` and run `docker compose up -d`.
 >
 > **Vault no longer uses this tunnel** (2026-09-25). It briefly published a `vault` hostname as a Plaid OAuth redirect target; that turned out to break Plaid's desktop popup flow and was removed. Vault has no public hostname.
 >

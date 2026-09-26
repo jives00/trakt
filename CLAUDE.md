@@ -45,7 +45,7 @@ See **[docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md)** for full hosting, netwo
 | Metadata APIs | `TMDB_API_KEY`, `TVDB_API_KEY`, `OMDB_API_KEY` (`FANART_API_KEY` is legacy — no code uses it) |
 | Database | `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` |
 | Auth | `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` |
-| Integrations | `SCROBBLE_API_KEY` |
+| Integrations | `SCROBBLE_API_KEY`, `SCROBBLE_ALLOWED_IPS` (public IPs allowed through the tunnel; LAN/Tailscale always allowed) |
 | Emby | `EMBY_URL`, `EMBY_API_KEY` — for live now-playing progress polling |
 | Web | `NEXT_PUBLIC_API_URL` — leave unset in dev (next.config.mjs proxies `/api/*`) |
 | Web | `NEXT_PUBLIC_LAN_HOST` — host substituted into the integration URLs shown on the settings page, so Sonarr/Radarr/Emby containers get a name they can resolve (defaults to the NAS LAN IP) |
@@ -66,11 +66,15 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 ### Scrobbling
 
+**Source restriction:** every scrobble route also checks where the request came from. The Nuvio builds are public and carry the key. Direct LAN/Tailscale traffic always passes; Cloudflare-tunnel traffic passes only if its `cf-connecting-ip` is in `SCROBBLE_ALLOWED_IPS`. Nuvio log lines include the client IP and app version.
+
 **Kodi:** `POST /api/scrobble/kodi` with `X-Api-Key: SCROBBLE_API_KEY`.
 
 **Emby:** `POST /api/scrobble/emby` webhook on `PlaybackProgress`/`PlaybackStopped`. Upsert on `(user_id, media_type, media_id, DATE(watched_at))` — one row per viewing day. 90% completion threshold.
 
 **Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
+
+A completing stop is also checked for plausibility (`scrobble-plausibility.service.ts`): it can't run more than 10 points past the session's last position plus elapsed time over runtime. Nuvio sends a hardcoded 99.5% whenever the player reaches ENDED, including when a stream dies partway through. Without the check, that falsely marks the title watched.
 
 Id resolution is local-first: a scrobble only needs the DB row id, so anything already in the library resolves straight from `tv_shows`/`seasons`/`episodes` (or `movies`) and never touches TMDB. The `getOrFetch*` path runs only for titles not yet cached — so a TMDB outage or bad key can no longer drop a session for content you already have.
 

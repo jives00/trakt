@@ -164,7 +164,7 @@ export async function upsertWatchHistory(
   }
 }
 
-const FALLBACK_RUNTIME_MIN = { movie: 120, episode: 45 } as const;
+export const FALLBACK_RUNTIME_MIN = { movie: 120, episode: 45 } as const;
 
 export async function updateNowPlaying(
   userId: number,
