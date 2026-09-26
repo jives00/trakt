@@ -102,17 +102,17 @@ If the NAS hostname or API port ever changes, update the `TAILSCALE_HOSTNAME` se
 
 ## Cloudflare Tunnel
 
-The tunnel publishes two hostnames, and these are the only publicly accessible endpoints — everything else is Tailscale-only:
+The tunnel publishes one hostname, and it is the only publicly accessible endpoint — everything else is Tailscale-only:
 
 | Hostname | Origin | Exposed |
 |---|---|---|
 | your tunnel domain | `localhost:3002` (Trakt API) | all paths |
-| Vault's hostname | `localhost:3010` (Vault web) | `/vault/plaid/oauth-return` and `/vault/_next/.*` only |
 
-> ⚠️ **Do not tear this tunnel down.** It was originally built so Stremio could reach the addon over HTTPS, and that addon is gone — but three other things have since taken a dependency on it:
+> ⚠️ **Do not tear this tunnel down.** It was originally built so Stremio could reach the addon over HTTPS, and that addon is gone — but two other things have since taken a dependency on it:
 >
 > - **`Nuvio-Fork`** (Android TV) and **`NuvioDesktop-Fork`** (Windows) scrobble to `<tunnel domain>/api/scrobble/nuvio/*`, authenticating with `SCROBBLE_API_KEY` as `X-Api-Key`. That URL is **compiled into each build with no fallback**, and they live in separate repos, so nothing here fails to compile if the tunnel goes away. Failure is silent — a rejected or unreachable scrobble is only logged client-side. Removing the tunnel means rebuilding *and reinstalling* both clients.
-> - **`Vault`** (personal finance tracker, separate repo) uses its own hostname on this tunnel as Plaid's OAuth redirect target. Plaid requires a registered, publicly-resolvable HTTPS URL, so this is the only way OAuth banks and brokerages can be linked at all. Everything outside those two paths 404s at the tunnel, and the CF-header check in `trustedNetwork.ts` stops the hostname minting a session.
+>
+> **Vault no longer uses this tunnel** (2026-09-25). It briefly published a `vault` hostname as a Plaid OAuth redirect target; that turned out to break Plaid's desktop popup flow and was removed. Vault has no public hostname.
 >
 > A prior revision of this file said the tunnel was "no longer required." That was wrong; see `Development/.claude/NASDocumentation.md`, which has tracked the Nuvio dependency all along.
 
