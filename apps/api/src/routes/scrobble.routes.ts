@@ -14,9 +14,26 @@ function describeNuvio(body: any): string {
   return `${body?.show?.title ?? '?'}${ep}`;
 }
 
+// Emby also sends test, pause and library events; only these two are scrobbles.
+const HANDLED_EMBY_EVENTS = new Set(['playback.start', 'playback.stop']);
+
+function describeEmby(body: any): string {
+  const item = body?.Item;
+  if (!item) return '(no item)';
+  const ep = item.Type === 'Episode' ? ` S${item.ParentIndexNumber}E${item.IndexNumber}` : '';
+  const pos = body?.PlaybackInfo?.PositionTicks;
+  const pct = pos != null && item.RunTimeTicks > 0 ? ` @ ${Math.round((pos / item.RunTimeTicks) * 100)}%` : '';
+  const client = body?.Session?.Client ? ` [${body.Session.Client}]` : '';
+  return `${item.SeriesName ?? item.Name ?? '?'}${ep}${pct}${client}`;
+}
+
 export async function scrobbleRoutes(app: FastifyInstance) {
   app.post<{ Body: EmbyWebhookPayload }>('/scrobble/emby', { preHandler: authenticateScrobble }, async (request, reply) => {
     try {
+      const body = request.body as any;
+      console.log(`🎬 Emby ${body?.Event ?? '(no event)'} — ${describeEmby(body)}`);
+      if (!HANDLED_EMBY_EVENTS.has(body?.Event)) return reply.send({});
+
       const parsed = EmbyWebhookPayload.safeParse(request.body);
       if (!parsed.success) {
         return reply.status(400).send({ error: 'Invalid payload' });

@@ -613,9 +613,19 @@ describe('POST /api/scrobble/emby', () => {
       const res = await supertest(app.server)
         .post('/api/scrobble/emby')
         .set('X-Api-Key', SCROBBLE_API_KEY)
-        .send({ Event: 'PlaybackStopped' });
+        .send({ Event: 'playback.stop' });
 
       expect(res.status).toBe(400);
+    });
+
+    it("returns 200 {} for Emby's test notification, which has no media item", async () => {
+      const res = await supertest(app.server)
+        .post('/api/scrobble/emby')
+        .set('X-Api-Key', SCROBBLE_API_KEY)
+        .send({ Event: 'system.notificationtest', Title: 'Test Notification' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
     });
   });
 

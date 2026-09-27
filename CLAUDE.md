@@ -68,9 +68,9 @@ One file per route group in `src/routes/`. Handlers validate input → call serv
 
 **Source restriction:** every scrobble route also checks where the request came from. The Nuvio builds are public and carry the key. Direct LAN/Tailscale traffic always passes; Cloudflare-tunnel traffic passes only if its `cf-connecting-ip` is in `SCROBBLE_ALLOWED_IPS`. Nuvio log lines include the client IP and app version.
 
-**Kodi:** `POST /api/scrobble/kodi` with `X-Api-Key: SCROBBLE_API_KEY`.
+**Kodi:** has no endpoint of its own. Kodi plays through the Emby add-on, so its watches arrive as Emby webhooks and are stored as `source: emby`; the `kodi` source/exclusion values are unused.
 
-**Emby:** `POST /api/scrobble/emby` webhook on `PlaybackProgress`/`PlaybackStopped`. Upsert on `(user_id, media_type, media_id, DATE(watched_at))` — one row per viewing day. 90% completion threshold.
+**Emby:** `POST /api/scrobble/emby` webhook, acting on `playback.start`/`playback.stop` only. Every event is logged on arrival (`🎬 Emby <event> — <title> S?E? @ n%`), and any other event, including Emby's *Send test*, gets a 200 without validation. Upsert on `(user_id, media_type, media_id, DATE(watched_at))` — one row per viewing day. 90% completion threshold.
 
 **Nuvio:** `POST /api/scrobble/nuvio/start` and `/stop` with `X-Api-Key: SCROBBLE_API_KEY`. Nuvio sends start (with current progress %) on play/resume and stop on pause/end/exit. Does not send periodic progress updates. The stop payload carries `paused: boolean` — `true` means "user paused, keep the session alive" and is honoured at any progress, including past the completion threshold, so pausing near the end never marks something watched; omitted/`false` means a real stop, which clears `now_playing` immediately and records history if the completion threshold was hit.
 
