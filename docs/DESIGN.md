@@ -89,7 +89,7 @@ Standard page headers should include:
 - Optional subtitle using `text-on-surface-variant/70`.
 - Optional eyebrow using `text-[10px] uppercase tracking-widest font-black text-accent`.
 
-Detail pages may use full-width artwork heroes with overlays. Dashboard sections may use richer composition, but should still preserve the same typography and control language.
+Detail pages may use full-width artwork heroes with overlays. On web detail heroes the text bottom-aligns with the poster, and the overview sits below the hero at the top of the content column, not in the hero. Dashboard sections may use richer composition, but should still preserve the same typography and control language.
 
 ## 6. Navigation
 

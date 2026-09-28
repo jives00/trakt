@@ -4,6 +4,7 @@
 
 ### Web
 - **Now Playing hero progress bar is full width and taller** — the 4px padded bar is now a 40px, square, edge-to-edge bar along the bottom of the hero, with time watched, % and time left inside it in regular-weight white text `ea01031`
+- **Detail-page overview moved below the hero** — on movie, show, season, all-seasons and episode pages the overview no longer sits clamped to 3 lines in the hero; it now opens the main content column in full. Hero text bottom-aligns with the poster (the movie/show fixed-height text column is gone), the poster and text sit 25% closer to the hero's bottom edge, and the content below the hero starts 16px higher `dfffd35`
 
 ## September 26, 2026
 

@@ -159,7 +159,7 @@ export default function MovieDetailPage() {
     return (
       <div className="w-full flex-1 overflow-x-hidden">
         {castLoading && (cast.length === 0 && crew.length === 0) ? (
-          <div className="max-w-page mx-auto px-margin-page mt-12 pb-16">
+          <div className="max-w-page mx-auto px-margin-page mt-8 pb-16">
             <section>
               <div className="flex gap-6 border-b border-outline-variant/30 mb-6">
                 <span className="text-on-surface/40 text-sm">Loading cast…</span>
@@ -206,7 +206,7 @@ export default function MovieDetailPage() {
             <span className="text-sm font-bold">Backdrop</span>
           </button>
 
-          <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-6">
+          <div className="absolute bottom-0 left-0 w-full z-10 pb-6 md:pb-[18px]">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {movie.posterPath && (
                 <div className="relative group/poster hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
@@ -214,16 +214,13 @@ export default function MovieDetailPage() {
                   <EditImageButton onClick={() => setPicker("poster")} label="Change poster image" />
                 </div>
               )}
-              <div className="min-w-0 flex flex-col justify-end items-start md:h-48 lg:h-60">
+              <div className="min-w-0 flex flex-col items-start">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   {movie.genres.slice(0, 2).map((g) => (
                     <span key={g} className="bg-white/10 backdrop-blur-md text-white/80 px-3 py-1 rounded-full text-label-sm font-bold uppercase border border-white/10">{g}</span>
                   ))}
                 </div>
-                <h1 className="text-h1 font-black text-white mb-3 drop-shadow-2xl">{movie.title}</h1>
-                {movie.overview && (
-                  <p className="text-body-sm text-white/70 line-clamp-3">{movie.overview}</p>
-                )}
+                <h1 className="text-h1 font-black text-white drop-shadow-2xl">{movie.title}</h1>
                 {movie.trailerYoutubeKey && (
                   <button
                     onClick={() => setTrailerOpen(true)}
@@ -239,9 +236,12 @@ export default function MovieDetailPage() {
         </section>
 
         {/* Content */}
-        <div className="max-w-page mx-auto px-margin-page mt-12 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
+        <div className="max-w-page mx-auto px-margin-page mt-8 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
           {/* Left */}
           <div className="lg:col-span-8 space-y-10">
+            {movie.overview && (
+              <p className="text-body-md text-on-surface/80">{movie.overview}</p>
+            )}
 
             {/* Metadata */}
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">

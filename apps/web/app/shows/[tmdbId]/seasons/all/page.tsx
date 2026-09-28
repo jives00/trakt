@@ -183,7 +183,7 @@ export default function AllSeasonsPage() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f]" />
-          <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-12">
+          <div className="absolute bottom-0 left-0 w-full z-10 pb-6 md:pb-9">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {posterUrl && (
                 <div className="hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10 relative">
@@ -202,18 +202,19 @@ export default function AllSeasonsPage() {
                 <Link href={`/shows/${tmdbId}`} className="hover:opacity-80 transition-opacity">
                   <h1 className="text-h1 font-black text-white drop-shadow-2xl">{show.title}</h1>
                 </Link>
-                <p className="text-white/60 text-lg font-semibold mt-1 mb-3">All Seasons</p>
-                {show.overview && (
-                  <p className="text-body-sm text-white/70 line-clamp-3">{show.overview}</p>
-                )}
+                <p className="text-white/60 text-lg font-semibold mt-1">All Seasons</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Content */}
-        <div className="max-w-page mx-auto px-margin-page mt-12 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
+        <div className="max-w-page mx-auto px-margin-page mt-8 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
           <div className="lg:col-span-8 space-y-10">
+            {show.overview && (
+              <p className="text-body-md text-on-surface/80">{show.overview}</p>
+            )}
+
             {/* Metadata */}
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
               {show.status && (

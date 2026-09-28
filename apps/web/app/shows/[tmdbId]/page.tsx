@@ -258,7 +258,7 @@ export default function ShowDetailPage() {
             <span className="text-sm font-bold">Backdrop</span>
           </button>
 
-          <div className="absolute bottom-0 left-0 w-full z-10 pb-8 md:pb-6">
+          <div className="absolute bottom-0 left-0 w-full z-10 pb-6 md:pb-[18px]">
             <div className="max-w-page mx-auto px-margin-page flex items-end gap-6">
               {show.posterPath && (
                 <div className="relative group/poster hidden md:block shrink-0 w-32 lg:w-40 aspect-[2/3] overflow-hidden shadow-2xl border border-white/10">
@@ -266,7 +266,7 @@ export default function ShowDetailPage() {
                   <EditImageButton onClick={() => setPicker("poster")} label="Change poster image" />
                 </div>
               )}
-              <div className="min-w-0 flex flex-col justify-end items-start md:h-48 lg:h-60">
+              <div className="min-w-0 flex flex-col items-start">
                 <div className="flex items-center gap-3 mb-4 flex-wrap">
                   {show.genres.slice(0, 2).map((g) => (
                     <span key={g} className="bg-white/10 backdrop-blur-md text-white/80 px-3 py-1 rounded-full text-label-sm font-bold uppercase border border-white/10">{g}</span>
@@ -275,10 +275,7 @@ export default function ShowDetailPage() {
                     <span className="text-white/40 text-label-sm uppercase tracking-widest">{show.network}</span>
                   )}
                 </div>
-                <h1 className="text-h1 font-black text-white mb-3 drop-shadow-2xl">{show.title}</h1>
-                {show.overview && (
-                  <p className="text-body-sm text-white/70 line-clamp-3">{show.overview}</p>
-                )}
+                <h1 className="text-h1 font-black text-white drop-shadow-2xl">{show.title}</h1>
                 {show.trailerYoutubeKey && (
                   <button
                     onClick={() => setTrailerOpen(true)}
@@ -294,9 +291,12 @@ export default function ShowDetailPage() {
         </section>
 
         {/* Content */}
-        <div className="max-w-page mx-auto px-margin-page mt-12 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
+        <div className="max-w-page mx-auto px-margin-page mt-8 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
           {/* Left */}
           <div className="lg:col-span-8 space-y-10">
+            {show.overview && (
+              <p className="text-body-md text-on-surface/80">{show.overview}</p>
+            )}
 
             {/* Metadata */}
             <section className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
