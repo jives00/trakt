@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember, type SeasonSummary, type HistoryItem } from "@/lib/api";
+import { api, type ShowDetail, type ShowStatus, type EpisodeDetail, type CastMember, type SeasonSummary, type HistoryItem, type EpisodeItem } from "@/lib/api";
 import { RefreshButton } from "@/components/refresh-button";
 import { WatchDatePicker } from "@/components/watch-date-picker";
+import { EpisodeStrip } from "./_episode-strip";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
@@ -29,6 +30,7 @@ export default function EpisodeDetailPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [cast, setCast] = useState<CastMember[]>([]);
   const [seasons, setSeasons] = useState<SeasonSummary[]>([]);
+  const [seasonEpisodes, setSeasonEpisodes] = useState<EpisodeItem[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -40,12 +42,14 @@ export default function EpisodeDetailPage() {
       api.getEpisodeCast(id, sn, ep, token),
       api.getShowSeasons(id, token),
       api.getEpisodeHistory(id, sn, ep, token),
-    ]).then(([showRes, episodeRes, castRes, seasonsRes, historyRes]) => {
+      api.getSeason(id, sn, token),
+    ]).then(([showRes, episodeRes, castRes, seasonsRes, historyRes, seasonRes]) => {
       if (showRes.status === 'fulfilled') { setShow(showRes.value.show); setStatus(showRes.value.status); }
       if (episodeRes.status === 'fulfilled') { setEpisode(episodeRes.value.episode); setWatched(episodeRes.value.watched); }
       if (castRes.status === 'fulfilled') setCast(castRes.value.cast);
       if (seasonsRes.status === 'fulfilled') setSeasons(seasonsRes.value.seasons);
       if (historyRes.status === 'fulfilled') setHistory(historyRes.value);
+      if (seasonRes.status === 'fulfilled') setSeasonEpisodes(seasonRes.value.episodes);
       if (showRes.status === 'rejected' && episodeRes.status === 'rejected') setError("Failed to load episode.");
     });
   }, [isLoading, token, tmdbId, sn, ep]);
@@ -121,6 +125,7 @@ export default function EpisodeDetailPage() {
   async function handleRefreshEpisodeData() {
     if (!token) return;
     const result = await api.refreshSeasonEpisodes(Number(tmdbId), sn, token);
+    setSeasonEpisodes(result.episodes);
     const episodeData = result.episodes.find(e => e.episodeNumber === ep);
     if (episodeData) {
       setEpisode({
@@ -216,8 +221,13 @@ export default function EpisodeDetailPage() {
         {/* Content */}
         <div className="max-w-page mx-auto px-margin-page mt-8 grid grid-cols-1 lg:grid-cols-12 gap-stack-lg pb-16">
           <div className="lg:col-span-8 space-y-10">
+            <EpisodeStrip tmdbId={tmdbId} seasonNumber={sn} current={ep} episodes={seasonEpisodes} />
+
             {episode.overview && (
-              <p className="text-body-md text-on-surface/80">{episode.overview}</p>
+              <section>
+                <h2 className="text-on-surface font-black text-xl mb-4">Overview</h2>
+                <p className="text-body-md text-on-surface/80">{episode.overview}</p>
+              </section>
             )}
 
             {/* Metadata */}
