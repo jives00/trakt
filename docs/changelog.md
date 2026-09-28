@@ -1,5 +1,10 @@
 # Changelog
 
+## September 27, 2026
+
+### Web
+- **Now Playing hero progress bar is full width and taller** — the 4px padded bar is now a 40px, square, edge-to-edge bar along the bottom of the hero, with time watched, % and time left inside it in regular-weight white text `ea01031`
+
 ## September 26, 2026
 
 ### API

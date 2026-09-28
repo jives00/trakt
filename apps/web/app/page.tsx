@@ -437,7 +437,7 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
       )}
       <div className="absolute inset-0 z-[1] bg-gradient-to-r from-black from-[40%] via-black/30 via-[65%] to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-24 z-[1] bg-gradient-to-t from-black/60 to-transparent" />
-      <div className="relative z-10 px-margin-page py-8 md:py-10 h-full flex flex-col justify-end">
+      <div className="relative z-10 px-margin-page pt-8 pb-16 md:pt-10 md:pb-20 h-full flex flex-col justify-end">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
@@ -461,18 +461,12 @@ function NowPlayingHero({ item }: { item: NowPlayingItem }) {
           )}
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-10 px-margin-page pb-3">
-        <div className="flex justify-between items-baseline mb-2">
-          {watchedMin != null
-            ? <span className="text-xs text-white/50 tabular-nums">{fmt(watchedMin)} watched</span>
-            : <span />}
-          <span className="text-xs font-black text-white tabular-nums">{item.progressPct}%</span>
-          {remainingMin != null
-            ? <span className="text-xs text-white/50 tabular-nums">{fmt(remainingMin)} left</span>
-            : <span />}
-        </div>
-        <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-          <div className="h-full bg-accent rounded-full transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
+      <div className="absolute inset-x-0 bottom-0 z-10 h-10 bg-white/15">
+        <div className="h-full bg-accent transition-all duration-1000" style={{ width: `${item.progressPct}%` }} />
+        <div className="absolute inset-0 px-margin-page grid grid-cols-3 items-center text-sm md:text-base text-white tabular-nums">
+          <span className="text-left">{watchedMin != null ? `${fmt(watchedMin)} watched` : ''}</span>
+          <span className="text-center">{item.progressPct}%</span>
+          <span className="text-right">{remainingMin != null ? `${fmt(remainingMin)} left` : ''}</span>
         </div>
       </div>
     </section>

@@ -185,7 +185,7 @@ Border radius should be intentional:
 - Posters and compact media cards: `rounded-lg` or square when matching discover grids.
 - Panels and dashboard cards: `rounded-xl`.
 - Large feature panels and modals: `rounded-xl` or `rounded-2xl`.
-- Pills, avatars, progress bars, and round icon buttons: `rounded-full`.
+- Pills, avatars, progress bars, and round icon buttons: `rounded-full`. Exception: the web Now Playing hero's bar is square, full-bleed along the hero's bottom edge, with its labels inside.
 
 Avoid mixing square cards, `rounded-lg`, `rounded-xl`, and `rounded-2xl` within the same repeated component family.
 
