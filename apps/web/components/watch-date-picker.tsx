@@ -78,12 +78,12 @@ export function WatchDatePicker({
           <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-md shadow-lg z-50 overflow-hidden">
             {addingWatch ? (
               <div className="p-3 border-b border-accent/60">
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
+                    className="flex-[999_1_8rem] min-w-0 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
                   />
                   <button
                     onClick={() => {
@@ -92,7 +92,7 @@ export function WatchDatePicker({
                       setAddingWatch(false);
                       setSelectedDate(getTodayString());
                     }}
-                    className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
+                    className="flex-[1_0_auto] px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
                   >
                     Add
                   </button>
@@ -187,16 +187,16 @@ export function WatchDatePicker({
         <div className="absolute top-full left-0 right-0 mt-1 bg-[rgba(8,43,95,0.9)] border border-accent/60 rounded-b-md shadow-lg z-50 overflow-hidden">
           {showDateInput ? (
             <div className="p-3 border-b border-accent/60">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <input
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="flex-1 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
+                  className="flex-[999_1_8rem] min-w-0 px-2 py-1 rounded bg-black/60 border border-accent/60 text-white text-sm"
                 />
                 <button
                   onClick={handleConfirmDate}
-                  className="px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
+                  className="flex-[1_0_auto] px-2 py-1 rounded bg-accent text-white text-sm hover:bg-accent-hover transition-colors"
                 >
                   Confirm
                 </button>

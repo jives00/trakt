@@ -203,25 +203,28 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
         transform: isRemoving ? "scale(0.95)" : "scale(1)"
       }}
     >
-      <Link href={episodeHref} className="group relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-outline-variant/30 transition-transform duration-300 group-hover:scale-[1.02] block">
-        {item.posterPath ? (
-          <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-on-surface-variant text-label-sm uppercase tracking-widest p-2 text-center">
-            {item.showTitle}
+      <div className="group relative transition-transform duration-300 hover:scale-[1.02]">
+        <Link href={episodeHref} className="relative aspect-[2/3] overflow-hidden bg-surface-container-high border border-outline-variant/30 block">
+          {item.posterPath ? (
+            <Image src={`${TMDB_IMG}${item.posterPath}`} alt={item.showTitle} fill sizes="224px" className="object-cover" />
+          ) : (
+            <div className="flex h-full items-center justify-center text-on-surface-variant text-label-sm uppercase tracking-widest p-2 text-center">
+              {item.showTitle}
+            </div>
+          )}
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-on-surface/20">
+            {item.totalAired > 0 && (
+              <div
+                className="h-full bg-accent transition-all duration-300"
+                style={{ width: `${(item.watchedCount / item.totalAired) * 100}%` }}
+              />
+            )}
           </div>
-        )}
-        <div
-          className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3 pointer-events-none group-hover:pointer-events-auto"
-        >
-          <div
-            className="w-full"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
+        </Link>
+        {/* Overlay sits outside the Link: a preventDefault'd click inside an <a> also blocks the native date picker */}
+        <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-3 pointer-events-none group-hover:pointer-events-auto focus-within:pointer-events-auto">
+          <Link href={episodeHref} aria-hidden tabIndex={-1} className="absolute inset-0" />
+          <div className="relative w-full">
             <WatchDatePicker
               watched={false}
               releaseDate={item.airDate ?? null}
@@ -230,31 +233,15 @@ function UpNextCard({ item, onRemovalStart, onWatched, fadeIn }: { item: UpNextI
             />
           </div>
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleDismiss(e as any);
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
+            onClick={handleDismiss}
             disabled={isRemoving}
-            className="flex items-center gap-2 px-4 py-2 rounded-md bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
+            className="relative flex items-center gap-2 px-4 py-2 rounded-md bg-white/20 hover:bg-white/30 disabled:opacity-50 text-white font-semibold transition-colors w-full justify-center"
           >
             <span className="material-symbols-outlined text-base">close</span>
             Remove
           </button>
         </div>
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-on-surface/20">
-          {item.totalAired > 0 && (
-            <div
-              className="h-full bg-accent transition-all duration-300"
-              style={{ width: `${(item.watchedCount / item.totalAired) * 100}%` }}
-            />
-          )}
-        </div>
-      </Link>
+      </div>
       <div className="mt-2 px-0.5 flex justify-between items-start">
         <div className="min-w-0">
           <Link href={showHref} className="truncate text-base font-semibold text-on-surface hover:text-primary-container transition-colors block">

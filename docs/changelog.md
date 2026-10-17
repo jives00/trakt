@@ -1,5 +1,10 @@
 # Changelog
 
+## October 16, 2026
+
+### Web
+- **Up Next "Pick Date" calendar icon did nothing, and Confirm was cut off** — the hover overlay sat inside the poster's `Link`, and the wrapper that `preventDefault`ed clicks to stop navigation also cancelled the native date picker. The overlay is now a sibling of the `Link`, with a background link behind the buttons that still opens the episode, and it stays visible while focused so it doesn't fade out under the calendar popup. `WatchDatePicker`'s date row now wraps, so Confirm/Add drop to a full-width line in narrow containers like the 224px Up Next card `1c0e229`
+
 ## September 27, 2026
 
 ### Web
