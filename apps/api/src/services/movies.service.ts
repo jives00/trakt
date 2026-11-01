@@ -287,11 +287,13 @@ export async function forceRefreshMovieMetadata(tmdbId: number): Promise<MovieDe
   const pool = getPool();
   const movieData = await fetchMovie(tmdbId);
   await pool.query(
-    `UPDATE movies SET title = ?, year = ?, release_date = ?, overview = ?, tagline = ?, runtime_min = ?,
+    `UPDATE movies SET title = ?, year = ?, release_date = ?, digital_release_date = ?, physical_release_date = ?,
+     overview = ?, tagline = ?, poster_path = ?, backdrop_path = ?, runtime_min = ?,
      genres = ?, origin_country = ?, original_language = ?, production_company = ?, tmdb_rating = ?, trailer_youtube_key = ?
      WHERE tmdb_id = ?`,
-    [movieData.title, movieData.year || null, movieData.releaseDate ?? null, movieData.overview,
-     movieData.tagline ?? null, movieData.runtimeMin, JSON.stringify(movieData.genres),
+    [movieData.title, movieData.year || null, movieData.releaseDate ?? null,
+     movieData.digitalReleaseDate ?? null, movieData.physicalReleaseDate ?? null, movieData.overview,
+     movieData.tagline ?? null, movieData.posterPath, movieData.backdropPath, movieData.runtimeMin, JSON.stringify(movieData.genres),
      movieData.originCountry, movieData.originalLanguage, movieData.productionCompany,
      movieData.tmdbRating ?? null, movieData.trailerYoutubeKey ?? null, tmdbId],
   );

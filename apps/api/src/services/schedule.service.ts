@@ -44,8 +44,7 @@ export async function getSchedule(
   startDays = 0,
 ): Promise<ScheduleEntry[]> {
   const pool = getPool();
-  const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT
+  const episodeSql = `SELECT
        'episode' AS mediaType,
        s.tmdb_id       AS showTmdbId,
        s.title         AS showTitle,
@@ -65,9 +64,8 @@ export async function getSchedule(
      JOIN ${TRACKED_SHOWS} tracked ON tracked.media_id = s.id
      JOIN seasons seas ON seas.show_id = s.id
      JOIN episodes e   ON e.season_id  = seas.id
-     WHERE e.air_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
-     UNION ALL
-     SELECT
+     WHERE e.air_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND e.air_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)`;
+  const movieSql = `SELECT
        'movie'          AS mediaType,
        NULL             AS showTmdbId,
        NULL             AS showTitle,
@@ -85,10 +83,15 @@ export async function getSchedule(
        NULL             AS airTime
      FROM movies m
      JOIN ${TRACKED_MOVIES} tracked_movies ON tracked_movies.media_id = m.id
-     WHERE m.release_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)
-     ORDER BY date, showTitle, seasonNumber, episodeNumber, movieTitle
-     LIMIT 100`,
-    [userId, userId, startDays, startDays + range, userId, startDays, startDays + range],
+     WHERE m.release_date >= DATE_ADD(CURDATE(), INTERVAL ? DAY) AND m.release_date < DATE_ADD(CURDATE(), INTERVAL ? DAY)`;
+  const end = startDays + range;
+  const parts: string[] = [];
+  const params: number[] = [];
+  if (type !== 'movie') { parts.push(episodeSql); params.push(userId, userId, startDays, end); }
+  if (type !== 'tv') { parts.push(movieSql); params.push(userId, startDays, end); }
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `${parts.join(' UNION ALL ')} ORDER BY date, showTitle, seasonNumber, episodeNumber, movieTitle`,
+    params,
   );
 
   const overridePairs = (rows as ScheduleEntry[]).map(r => ({

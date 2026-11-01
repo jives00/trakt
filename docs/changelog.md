@@ -1,5 +1,12 @@
 # Changelog
 
+## November 1, 2026
+
+### API
+- **Schedule stopped partway through the range** — the schedule query had a hard `LIMIT 100`, so with many tracked shows it cut off days early. The cap is gone (range is already capped at 90 days), and the `type` filter (tv/movie) is now applied in SQL instead of being ignored `95c46ca`
+- **Daily schedule refresh does full refreshes** — every tracked, non-ended show gets its metadata (title, overview, images, status, season count) re-pulled, and seasons with episodes airing in the next 90 days, aired in the last 14 days, or with no air date, plus the latest season, are fully re-fetched so new episodes, stills and descriptions appear. Watchlist movies with no release date or one in the last 30 days or upcoming are refreshed too `95c46ca`
+- **Movie metadata refresh updates images and release dates** — `forceRefreshMovieMetadata` now also writes poster, backdrop and digital/physical release dates `95c46ca`
+
 ## October 16, 2026
 
 ### Web
