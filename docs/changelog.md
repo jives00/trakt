@@ -7,6 +7,9 @@
 - **Daily schedule refresh does full refreshes** — every tracked, non-ended show gets its metadata (title, overview, images, status, season count) re-pulled, and seasons with episodes airing in the next 90 days, aired in the last 14 days, or with no air date, plus the latest season, are fully re-fetched so new episodes, stills and descriptions appear. Watchlist movies with no release date or one in the last 30 days or upcoming are refreshed too `95c46ca`
 - **Movie metadata refresh updates images and release dates** — `forceRefreshMovieMetadata` now also writes poster, backdrop and digital/physical release dates `95c46ca`
 
+### Web
+- **Dashboard Upcoming Schedule reaches further out** — the five columns are filled with the next five days that have something airing, looking up to 90 days ahead (was 30); empty days are still skipped `0ad3cb8`
+
 ## October 16, 2026
 
 ### Web

@@ -44,7 +44,7 @@ function getNextNDaysWithContent(entries: ScheduleItem[], maxDisplay = 7, maxDay
   const days: string[] = [];
   const usedDates = new Set(entries.map(e => e.date.slice(0, 10)));
 
-  // Collect all days with content in the next 30 days
+  // Collect all days with content in the window
   for (let i = 0; i < maxDayWindow; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
@@ -63,7 +63,7 @@ function getNextNDaysWithContent(entries: ScheduleItem[], maxDisplay = 7, maxDay
 }
 
 export function ScheduleSection({ entries }: { entries: ScheduleItem[] }) {
-  const days = getNextNDaysWithContent(entries, 5, 30);
+  const days = getNextNDaysWithContent(entries, 5, 90);
 
   if (days.length === 0) {
     return (

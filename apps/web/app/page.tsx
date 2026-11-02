@@ -44,7 +44,7 @@ export default function DashboardPage() {
     Promise.allSettled([
       api.getProfile(token),
       api.getUpNext(token),
-      api.getSchedule(token, 30),
+      api.getSchedule(token, 90),
       api.getDashboardStats(token, new Date().getTimezoneOffset()),
       api.getRecentItems(token, 3),
       api.getStatsAllTime(token),
