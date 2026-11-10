@@ -11,6 +11,9 @@
 ### Mobile
 - **List screen filters** — same media, release and show-status filters as the web; sorts trimmed to Date Added and A–Z `add5fc0`
 
+### Infrastructure
+- **APK build failed at Android SDK setup** — `setup-android` defaults to installing `tools platform-tools`, and the obsolete `tools` package no longer exists, so sdkmanager exited 1 before Gradle ran. It now installs only `platform-tools` `e52008d`
+
 ## November 1, 2026
 
 ### API
