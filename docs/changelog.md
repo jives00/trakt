@@ -1,5 +1,16 @@
 # Changelog
 
+## November 9, 2026
+
+### API
+- **List items carry show status and first air date** — `GET /api/lists/:id` items now include `showStatus`, and `releaseDate` falls back to a show's `first_air_date`, so list pages can filter by release and status without fetching each show `add5fc0`
+
+### Web
+- **List page release and status filters** — new All / Released / Unreleased pills for movies and shows (remembered per list). Status pills are now a fixed "Returning Series" and "Ended / Cancelled" pair shown only under Shows; "In Production" and other pre-release statuses are dropped in favour of Unreleased. "Last Updated" and "Random" sorts removed; a saved one falls back to Date Added `add5fc0`
+
+### Mobile
+- **List screen filters** — same media, release and show-status filters as the web; sorts trimmed to Date Added and A–Z `add5fc0`
+
 ## November 1, 2026
 
 ### API

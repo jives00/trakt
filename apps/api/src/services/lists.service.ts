@@ -34,7 +34,8 @@ const ITEMS_SELECT = `
     COALESCE(m.title, ts.title, e.title) AS title,
     COALESCE(m.poster_path, ts.poster_path) AS posterPath,
     COALESCE(m.year, ts.year) AS year,
-    m.release_date AS releaseDate,
+    COALESCE(m.release_date, ts.first_air_date) AS releaseDate,
+    ts.status AS showStatus,
     m.digital_release_date AS digitalReleaseDate,
     m.physical_release_date AS physicalReleaseDate,
     (SELECT MIN(e2.air_date)

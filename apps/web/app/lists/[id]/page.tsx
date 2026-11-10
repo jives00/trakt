@@ -10,15 +10,15 @@ import type { ListDetail, ListItemEntry } from "@trakt/types";
 
 const TMDB_IMG = "https://image.tmdb.org/t/p/";
 
-type SortOption = "added_date" | "alpha" | "last_updated" | "random";
+type SortOption = "added_date" | "alpha";
 type FilterOption = "all" | "movie" | "show";
+type ReleaseOption = "all" | "released" | "unreleased";
+type StatusOption = "returning" | "ended";
 type ViewOption = "grid" | "list";
 
 const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: "added_date", label: "Date Added" },
   { id: "alpha", label: "Title A–Z" },
-  { id: "last_updated", label: "Last Updated" },
-  { id: "random", label: "Random" },
 ];
 
 const FILTER_OPTIONS: { id: FilterOption; label: string }[] = [
@@ -27,8 +27,31 @@ const FILTER_OPTIONS: { id: FilterOption; label: string }[] = [
   { id: "show", label: "Shows" },
 ];
 
+const RELEASE_OPTIONS: { id: ReleaseOption; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "released", label: "Released" },
+  { id: "unreleased", label: "Unreleased" },
+];
+
+const STATUS_OPTIONS: { id: StatusOption; label: string; matches: string[] }[] = [
+  { id: "returning", label: "Returning Series", matches: ["Returning Series"] },
+  { id: "ended", label: "Ended / Cancelled", matches: ["Ended", "Canceled", "Cancelled"] },
+];
+
+const PILL_ON = "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold";
+const PILL_OFF = "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors";
+
 function stripArticles(title: string): string {
   return title.replace(/^(the|a|an)\s+/i, "").trim();
+}
+
+function todayIso(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function isReleased(item: ListItemEntry, today: string): boolean {
+  return !!item.releaseDate && item.releaseDate.slice(0, 10) <= today;
 }
 
 function sortItems(items: ListItemEntry[], sort: SortOption): ListItemEntry[] {
@@ -39,13 +62,6 @@ function sortItems(items: ListItemEntry[], sort: SortOption): ListItemEntry[] {
       const bTitle = stripArticles(b.title ?? "");
       return aTitle.localeCompare(bTitle);
     });
-  }
-  if (sort === "random") {
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j]!, copy[i]!];
-    }
-    return copy;
   }
   return copy.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime());
 }
@@ -65,9 +81,8 @@ export default function ListDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added_date");
   const [filter, setFilter] = useState<FilterOption>("all");
   const [view, setView] = useState<ViewOption>("grid");
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<string>>(new Set());
-  const [availableStatuses, setAvailableStatuses] = useState<string[]>([]);
-  const [showStatusMap, setShowStatusMap] = useState<Map<number, string | null>>(new Map());
+  const [release, setRelease] = useState<ReleaseOption>("all");
+  const [status, setStatus] = useState<StatusOption | null>(null);
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -77,38 +92,21 @@ export default function ListDetailPage() {
     if (isLoading || !token) return;
     const listId = Number(id);
     api.getList(listId, token)
-      .then(async (data) => {
+      .then((data) => {
         setList(data);
         setEditName(data.name);
         setEditDesc(data.description ?? "");
         if (!initialized.current.has(listId)) {
           initialized.current.add(listId);
-          const savedSort = localStorage.getItem(`list-sort-${id}`) as SortOption | null;
+          const savedSort = localStorage.getItem(`list-sort-${id}`);
           const savedFilter = localStorage.getItem(`list-filter-${id}`) as FilterOption | null;
+          const savedRelease = localStorage.getItem(`list-release-${id}`) as ReleaseOption | null;
           const savedView = localStorage.getItem(`list-view-${id}`) as ViewOption | null;
-          if (savedSort) setSortBy(savedSort);
+          if (SORT_OPTIONS.some((o) => o.id === savedSort)) setSortBy(savedSort as SortOption);
           if (savedFilter) setFilter(savedFilter);
+          if (savedRelease) setRelease(savedRelease);
           if (savedView) setView(savedView);
         }
-
-        const showItems = data.items.filter((item) => item.mediaType === "show" && item.tmdbId);
-        const statusMap = new Map<number, string | null>();
-        const statuses = new Set<string>();
-
-        for (const item of showItems) {
-          try {
-            const showDetail = await api.getShow(item.tmdbId!, token);
-            statusMap.set(item.mediaId, showDetail.show.status);
-            if (showDetail.show.status) {
-              statuses.add(showDetail.show.status);
-            }
-          } catch {
-            statusMap.set(item.mediaId, null);
-          }
-        }
-
-        setShowStatusMap(statusMap);
-        setAvailableStatuses(Array.from(statuses).sort());
       })
       .catch(() => setError("Failed to load list."));
   }, [token, isLoading, id]);
@@ -126,24 +124,18 @@ export default function ListDetailPage() {
 
   function changeFilter(next: FilterOption) {
     setFilter(next);
+    if (next !== "show") setStatus(null);
     localStorage.setItem(`list-filter-${id}`, next);
+  }
+
+  function changeRelease(next: ReleaseOption) {
+    setRelease(next);
+    localStorage.setItem(`list-release-${id}`, next);
   }
 
   function changeView(next: ViewOption) {
     setView(next);
     localStorage.setItem(`list-view-${id}`, next);
-  }
-
-  function toggleStatusFilter(status: string) {
-    setSelectedStatuses((prev) => {
-      const next = new Set(prev);
-      if (next.has(status)) {
-        next.delete(status);
-      } else {
-        next.add(status);
-      }
-      return next;
-    });
   }
 
   async function handleSaveEdits() {
@@ -183,12 +175,14 @@ export default function ListDetailPage() {
 
   let filtered = filter === "all" ? list.items : list.items.filter((i) => i.mediaType === filter);
 
-  if (selectedStatuses.size > 0) {
-    filtered = filtered.filter((item) => {
-      if (item.mediaType !== "show") return true;
-      const status = showStatusMap.get(item.mediaId);
-      return status && selectedStatuses.has(status);
-    });
+  if (release !== "all") {
+    const today = todayIso();
+    filtered = filtered.filter((item) => item.mediaType === "episode" || isReleased(item, today) === (release === "released"));
+  }
+
+  const statusMatches = STATUS_OPTIONS.find((o) => o.id === status)?.matches;
+  if (filter === "show" && statusMatches) {
+    filtered = filtered.filter((item) => !!item.showStatus && statusMatches.includes(item.showStatus));
   }
 
   // List view only shows movies and shows (not episodes)
@@ -266,16 +260,15 @@ export default function ListDetailPage() {
           <div className="flex flex-wrap items-center gap-4 mb-6">
             <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => changeFilter(opt.id)}
-                  className={
-                    filter === opt.id
-                      ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                      : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
-                  }
-                >
+                <button key={opt.id} type="button" onClick={() => changeFilter(opt.id)} className={filter === opt.id ? PILL_ON : PILL_OFF}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {RELEASE_OPTIONS.map((opt) => (
+                <button key={opt.id} type="button" onClick={() => changeRelease(opt.id)} className={release === opt.id ? PILL_ON : PILL_OFF}>
                   {opt.label}
                 </button>
               ))}
@@ -283,35 +276,22 @@ export default function ListDetailPage() {
 
             <div className="flex flex-wrap gap-2">
               {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => changeSort(opt.id)}
-                  className={
-                    sortBy === opt.id
-                      ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                      : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
-                  }
-                >
+                <button key={opt.id} type="button" onClick={() => changeSort(opt.id)} className={sortBy === opt.id ? PILL_ON : PILL_OFF}>
                   {opt.label}
                 </button>
               ))}
             </div>
 
-            {availableStatuses.length > 0 && (
+            {filter === "show" && (
               <div className="flex flex-wrap gap-2">
-                {availableStatuses.map((status) => (
+                {STATUS_OPTIONS.map((opt) => (
                   <button
-                    key={status}
+                    key={opt.id}
                     type="button"
-                    onClick={() => toggleStatusFilter(status)}
-                    className={
-                      selectedStatuses.has(status)
-                        ? "px-3 py-2 rounded-full bg-accent text-white text-sm font-bold"
-                        : "px-3 py-2 rounded-full bg-surface-container-low border border-outline-variant/40 text-on-surface-variant/70 text-sm hover:bg-surface-container hover:text-on-surface transition-colors"
-                    }
+                    onClick={() => setStatus((s) => (s === opt.id ? null : opt.id))}
+                    className={status === opt.id ? PILL_ON : PILL_OFF}
                   >
-                    {status}
+                    {opt.label}
                   </button>
                 ))}
               </div>

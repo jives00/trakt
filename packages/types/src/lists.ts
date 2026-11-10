@@ -31,6 +31,7 @@ export interface ListItemEntry {
   digitalReleaseDate: string | null;
   physicalReleaseDate: string | null;
   nextEpisodeDate: string | null;
+  showStatus: string | null;
 }
 
 export interface ListDetail extends UserList {
